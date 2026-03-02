@@ -92,7 +92,10 @@ export function useContextMenu<T>(): UseContextMenuReturn<T> {
       }
     };
 
-    const handleScroll = () => {
+    const handleScroll = (e: Event) => {
+      if (menuRef.current && e.target instanceof Node && menuRef.current.contains(e.target)) {
+        return;
+      }
       closeContextMenu();
     };
 

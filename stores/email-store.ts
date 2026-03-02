@@ -541,20 +541,23 @@ export const useEmailStore = create<EmailStore>((set, get) => ({
 
   moveToMailbox: async (client, emailId, destinationMailboxId) => {
     try {
-      // Get the email to check its current mailboxes and read status
       const email = get().emails.find(e => e.id === emailId);
       if (!email) return;
 
       const isUnread = !email.keywords?.$seen;
       const currentMailboxIds = email.mailboxIds ? Object.keys(email.mailboxIds) : [];
 
-      await client.moveEmail(emailId, destinationMailboxId);
+      const { selectedMailbox, mailboxes } = get();
+      const currentMailbox = mailboxes.find(mb => mb.id === selectedMailbox);
+      const accountId = currentMailbox?.isShared ? currentMailbox.accountId : undefined;
 
-      // Update local state and mailbox counters
+      const destMailbox = mailboxes.find(mb => mb.id === destinationMailboxId);
+      const jmapDestId = destMailbox?.originalId || destinationMailboxId;
+
+      await client.moveEmail(emailId, jmapDestId, accountId);
+
       set((state) => {
-        // Update mailbox counters
         const updatedMailboxes = state.mailboxes.map(mailbox => {
-          // Remove from current mailboxes
           if (currentMailboxIds.includes(mailbox.id)) {
             return {
               ...mailbox,
@@ -564,8 +567,7 @@ export const useEmailStore = create<EmailStore>((set, get) => ({
               unreadThreads: isUnread ? Math.max(0, mailbox.unreadThreads - 1) : mailbox.unreadThreads
             };
           }
-          // Add to destination mailbox
-          else if (mailbox.id === destinationMailboxId) {
+          if (mailbox.id === destinationMailboxId) {
             return {
               ...mailbox,
               totalEmails: mailbox.totalEmails + 1,
@@ -577,25 +579,9 @@ export const useEmailStore = create<EmailStore>((set, get) => ({
           return mailbox;
         });
 
-        // Update the email's mailboxIds
-        const updatedEmails = state.emails.map(e => {
-          if (e.id === emailId) {
-            return {
-              ...e,
-              mailboxIds: { [destinationMailboxId]: true }
-            };
-          }
-          return e;
-        });
-
-        // If moved email is selected, update selectedEmail too
-        const updatedSelectedEmail = state.selectedEmail?.id === emailId
-          ? { ...state.selectedEmail, mailboxIds: { [destinationMailboxId]: true } }
-          : state.selectedEmail;
-
         return {
-          emails: updatedEmails,
-          selectedEmail: updatedSelectedEmail,
+          emails: state.emails.filter(e => e.id !== emailId),
+          selectedEmail: state.selectedEmail?.id === emailId ? null : state.selectedEmail,
           mailboxes: updatedMailboxes
         };
       });

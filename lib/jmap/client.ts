@@ -681,10 +681,11 @@ export class JMAPClient {
     ]);
   }
 
-  async moveEmail(emailId: string, toMailboxId: string): Promise<void> {
-    await this.request([
+  async moveEmail(emailId: string, toMailboxId: string, accountId?: string): Promise<void> {
+    const targetAccountId = accountId || this.accountId;
+    const response = await this.request([
       ["Email/set", {
-        accountId: this.accountId,
+        accountId: targetAccountId,
         update: {
           [emailId]: {
             mailboxIds: { [toMailboxId]: true },
@@ -692,6 +693,11 @@ export class JMAPClient {
         },
       }, "0"],
     ]);
+
+    const result = response.methodResponses?.[0]?.[1];
+    if (result?.notUpdated?.[emailId]) {
+      throw new Error(`Failed to move email: ${result.notUpdated[emailId].type || 'unknown error'}`);
+    }
   }
 
   async markAsSpam(emailId: string, accountId?: string): Promise<void> {

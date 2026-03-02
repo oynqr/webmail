@@ -115,13 +115,13 @@ export function ContextMenuSubMenu({
   const [subMenuPosition, setSubMenuPosition] = useState<"right" | "left">("right");
   const itemRef = useRef<HTMLDivElement>(null);
   const subMenuRef = useRef<HTMLDivElement>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (isOpen && itemRef.current) {
       const rect = itemRef.current.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
 
-      // Check if submenu would overflow right edge
       if (rect.right + 200 > viewportWidth - 10) {
         setSubMenuPosition("left");
       } else {
@@ -130,12 +130,30 @@ export function ContextMenuSubMenu({
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    return () => clearTimeout(closeTimerRef.current ?? undefined);
+  }, []);
+
+  const handleMouseEnter = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setIsOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    closeTimerRef.current = setTimeout(() => {
+      setIsOpen(false);
+    }, 150);
+  };
+
   return (
     <div
       ref={itemRef}
       className="relative"
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <div
         className={cn(
@@ -158,7 +176,7 @@ export function ContextMenuSubMenu({
           className={cn(
             "absolute top-0 min-w-[180px] bg-background rounded-md shadow-lg border border-border",
             "animate-in fade-in-0 zoom-in-95 duration-100",
-            subMenuPosition === "right" ? "left-full ml-1" : "right-full mr-1"
+            subMenuPosition === "right" ? "left-full" : "right-full"
           )}
           role="menu"
         >

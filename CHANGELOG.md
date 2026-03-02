@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.2 (2026-03-02)
+
+### Fixes
+
+- **Context menu**: Fix "Move to folder" submenu closing when scrolling the folder list or moving the mouse to the submenu (#19)
+- **Move to folder**: Fix emails not actually moving on the server — JMAP response errors were silently ignored and shared account IDs were not resolved correctly
+- **Dependencies**: Update tailwindcss, lucide-react, @tanstack/react-virtual, @typescript-eslint/*, globals, @types/node
+
 ## 1.1.1 (2026-02-28)
 
 ### Fixes
