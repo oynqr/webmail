@@ -5,6 +5,8 @@ import { Email } from "@/lib/jmap/types";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
 import { Paperclip, Star, Circle } from "lucide-react";
+import { useEmailDrag } from "@/hooks/use-email-drag";
+import { useEmailStore } from "@/stores/email-store";
 
 interface ThreadEmailItemProps {
   email: Email;
@@ -24,24 +26,46 @@ export function ThreadEmailItem({
   const isUnread = !email.keywords?.$seen;
   const isStarred = email.keywords?.$flagged;
   const sender = email.from?.[0];
+  const { selectedMailbox, selectedEmailIds, toggleEmailSelection, selectRangeEmails } = useEmailStore();
+  const isChecked = selectedEmailIds.has(email.id);
+
+  const { dragHandlers, isDragging } = useEmailDrag({
+    email,
+    sourceMailboxId: selectedMailbox,
+  });
 
   const handleContextMenu = (e: React.MouseEvent) => {
     onContextMenu?.(e, email);
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      toggleEmailSelection(email.id);
+    } else if (e.shiftKey) {
+      e.preventDefault();
+      selectRangeEmails(email.id);
+    } else {
+      onClick?.();
+    }
+  };
+
   return (
     <div
+      {...dragHandlers}
       className={cn(
         "relative cursor-pointer transition-all duration-150",
-        "pl-12 pr-4 py-2.5", // Indented for thread hierarchy
+        "pl-12 pr-4 py-2.5",
         "border-l-2 border-l-transparent",
         selected
           ? "bg-accent border-l-primary"
           : "hover:bg-muted/50",
         isUnread && !selected && "bg-accent/20",
-        !isLast && "border-b border-border/30"
+        !isLast && "border-b border-border/30",
+        isChecked && "ring-2 ring-primary/20 bg-accent/40",
+        isDragging && "opacity-50 scale-[0.98] ring-2 ring-primary/30"
       )}
-      onClick={onClick}
+      onClick={handleClick}
       onContextMenu={handleContextMenu}
     >
       <div className="flex items-start gap-3">

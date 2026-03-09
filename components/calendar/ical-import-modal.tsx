@@ -181,26 +181,26 @@ export function ICalImportModal({ calendars, client, onClose }: ICalImportModalP
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" onClick={onClose} aria-hidden="true" />
       <div
         ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-label={t("title")}
-        className="relative bg-background border border-border rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto"
+        className="relative bg-background border border-border rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200"
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <h2 className="text-lg font-semibold">{t("title")}</h2>
           <button
             onClick={onClose}
-            className="p-1 rounded hover:bg-muted transition-colors"
+            className="p-1.5 rounded-md hover:bg-muted transition-colors duration-150 text-muted-foreground hover:text-foreground"
             aria-label={tCommon("close")}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="px-5 py-4 space-y-4">
+        <div className="px-6 py-4 space-y-4">
           {step === "select" && !isParsing && (
             <div
               onClick={() => fileInputRef.current?.click()}
@@ -318,7 +318,7 @@ export function ICalImportModal({ calendars, client, onClose }: ICalImportModalP
         </div>
 
         {step !== "importing" && (
-          <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-border">
+          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border">
             <Button variant="outline" onClick={onClose}>
               {tForm("cancel")}
             </Button>

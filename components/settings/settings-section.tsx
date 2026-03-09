@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 interface SettingsSectionProps {
   title: string;
@@ -54,17 +55,17 @@ export function ToggleSwitch({ checked, onChange, disabled }: ToggleSwitchProps)
       aria-checked={checked}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`
-        relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-        ${checked ? 'bg-primary' : 'bg-muted'}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-      `}
+      className={cn(
+        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-150',
+        checked ? 'bg-primary' : 'bg-muted',
+        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+      )}
     >
       <span
-        className={`
-          inline-block h-4 w-4 transform rounded-full bg-background transition-transform
-          ${checked ? 'translate-x-6' : 'translate-x-1'}
-        `}
+        className={cn(
+          'inline-block h-4 w-4 transform rounded-full bg-background transition-transform duration-150',
+          checked ? 'translate-x-6' : 'translate-x-1'
+        )}
       />
     </button>
   );
@@ -78,20 +79,18 @@ interface RadioGroupProps {
 
 export function RadioGroup({ value, onChange, options }: RadioGroupProps) {
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-1.5">
       {options.map((option) => (
         <button
           key={option.value}
           type="button"
           onClick={() => onChange(option.value)}
-          className={`
-            px-3 py-1.5 text-xs rounded transition-colors
-            ${
-              value === option.value
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted hover:bg-accent text-foreground'
-            }
-          `}
+          className={cn(
+            'px-3 py-1.5 text-xs rounded-md transition-colors duration-150',
+            value === option.value
+              ? 'bg-primary text-primary-foreground font-medium'
+              : 'bg-muted hover:bg-accent text-foreground'
+          )}
         >
           {option.label}
         </button>
@@ -112,7 +111,7 @@ export function Select({ value, onChange, options }: SelectProps) {
       value={value}
       onChange={(e) => onChange(e.target.value)}
       dir="auto"
-      className="px-3 py-1.5 text-sm rounded bg-muted border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+      className="px-3 py-1.5 text-sm rounded-md bg-muted border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors duration-150 cursor-pointer hover:border-muted-foreground"
     >
       {options.map((option) => (
         <option key={option.value} value={option.value}>

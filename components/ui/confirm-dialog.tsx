@@ -56,7 +56,7 @@ export function ConfirmDialog({
   const resolvedCancelText = cancelText || t("cancel");
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-[60] p-4 animate-in fade-in duration-150">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center z-[60] p-4 animate-in fade-in duration-150">
       <div
         ref={dialogRef}
         role="alertdialog"

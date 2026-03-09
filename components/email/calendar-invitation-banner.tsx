@@ -286,7 +286,7 @@ export function CalendarInvitationBanner({ email }: CalendarInvitationBannerProp
                 disabled={isProcessing}
                 aria-pressed={currentRsvp === 'accepted'}
                 className={cn(
-                  "flex items-center gap-1 text-sm px-2 py-0.5 rounded transition-colors min-h-[44px] md:min-h-0 disabled:opacity-50",
+                  "flex items-center gap-1 text-sm px-2 py-0.5 rounded-md transition-colors duration-150 min-h-[44px] md:min-h-0 disabled:opacity-50",
                   currentRsvp === 'accepted'
                     ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -300,7 +300,7 @@ export function CalendarInvitationBanner({ email }: CalendarInvitationBannerProp
                 disabled={isProcessing}
                 aria-pressed={currentRsvp === 'tentative'}
                 className={cn(
-                  "flex items-center gap-1 text-sm px-2 py-0.5 rounded transition-colors min-h-[44px] md:min-h-0 disabled:opacity-50",
+                  "flex items-center gap-1 text-sm px-2 py-0.5 rounded-md transition-colors duration-150 min-h-[44px] md:min-h-0 disabled:opacity-50",
                   currentRsvp === 'tentative'
                     ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-medium"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -314,7 +314,7 @@ export function CalendarInvitationBanner({ email }: CalendarInvitationBannerProp
                 disabled={isProcessing}
                 aria-pressed={currentRsvp === 'declined'}
                 className={cn(
-                  "flex items-center gap-1 text-sm px-2 py-0.5 rounded transition-colors min-h-[44px] md:min-h-0 disabled:opacity-50",
+                  "flex items-center gap-1 text-sm px-2 py-0.5 rounded-md transition-colors duration-150 min-h-[44px] md:min-h-0 disabled:opacity-50",
                   currentRsvp === 'declined'
                     ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 font-medium"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -346,7 +346,7 @@ export function CalendarInvitationBanner({ email }: CalendarInvitationBannerProp
                   }
                 }}
                 disabled={isProcessing}
-                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:bg-muted px-2 py-0.5 rounded transition-colors min-h-[44px] md:min-h-0 disabled:opacity-50"
+                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:bg-muted px-2 py-0.5 rounded-md transition-colors duration-150 min-h-[44px] md:min-h-0 disabled:opacity-50"
               >
                 <CalendarCheck className="w-3.5 h-3.5" />
                 {t('add_to_calendar')}

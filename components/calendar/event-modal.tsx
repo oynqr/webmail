@@ -375,16 +375,16 @@ export function EventModal({
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
-        <div ref={modalRef} role="dialog" aria-modal="true" aria-label={event.title || t("events.no_title")} className="relative bg-background border border-border rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" onClick={onClose} aria-hidden="true" />
+        <div ref={modalRef} role="dialog" aria-modal="true" aria-label={event.title || t("events.no_title")} className="relative bg-background border border-border rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
             <h2 className="text-lg font-semibold truncate">{event.title || t("events.no_title")}</h2>
-            <button onClick={onClose} className="p-1 rounded hover:bg-muted transition-colors" aria-label={t("form.cancel")}>
+            <button onClick={onClose} className="p-1.5 rounded-md hover:bg-muted transition-colors duration-150 text-muted-foreground hover:text-foreground" aria-label={t("form.cancel")}>
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="px-5 py-4 space-y-3">
+          <div className="px-6 py-4 space-y-3">
             <div className="flex items-start gap-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/50 px-4 py-3">
               <CalendarDays className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
               <div className="text-sm">
@@ -432,7 +432,7 @@ export function EventModal({
             )}
           </div>
 
-          <div className="px-5 py-4 border-t border-border">
+          <div className="px-6 py-4 border-t border-border">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">{t("participants.rsvp_label")}</span>
               <div className="flex gap-2">
@@ -479,18 +479,18 @@ export function EventModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
-      <div ref={modalRef} role="dialog" aria-modal="true" aria-label={isEdit ? t("events.edit") : t("events.create")} className="relative bg-background border border-border rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" onClick={onClose} aria-hidden="true" />
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-label={isEdit ? t("events.edit") : t("events.create")} className="relative bg-background border border-border rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <h2 className="text-lg font-semibold">
             {isEdit ? t("events.edit") : t("events.create")}
           </h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-muted transition-colors" aria-label={t("form.cancel")}>
+          <button onClick={onClose} className="p-1.5 rounded-md hover:bg-muted transition-colors duration-150 text-muted-foreground hover:text-foreground" aria-label={t("form.cancel")}>
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="px-5 py-4 space-y-4">
+        <div className="px-6 py-4 space-y-4">
           <div>
             <label className="text-sm font-medium mb-1 block">{t("form.title")}</label>
             <Input
@@ -666,7 +666,7 @@ export function EventModal({
           )}
         </div>
 
-        <div className="flex items-center justify-between px-5 py-4 border-t border-border">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-border">
           <div className="flex items-center gap-1">
             {isEdit && onDelete && (
               showDeleteConfirm ? (

@@ -43,7 +43,7 @@ const getEmailColor = (keywords: Record<string, boolean> | undefined) => {
 
 export function EmailListItem({ email, selected, onClick, onContextMenu }: EmailListItemProps) {
   const t = useTranslations('email_viewer');
-  const { selectedEmailIds, toggleEmailSelection, selectedMailbox } = useEmailStore();
+  const { selectedEmailIds, toggleEmailSelection, selectRangeEmails, selectedMailbox } = useEmailStore();
   const showPreview = useSettingsStore((state) => state.showPreview);
   const { identities } = useAuthStore();
   const isChecked = selectedEmailIds.has(email.id);
@@ -88,7 +88,17 @@ export function EmailListItem({ email, selected, onClick, onContextMenu }: Email
         // Drag state visual feedback
         isDragging && "opacity-50 scale-[0.98] ring-2 ring-primary/30"
       )}
-      onClick={onClick}
+      onClick={(e) => {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          toggleEmailSelection(email.id);
+        } else if (e.shiftKey) {
+          e.preventDefault();
+          selectRangeEmails(email.id);
+        } else {
+          onClick?.();
+        }
+      }}
       onContextMenu={handleContextMenu}
       style={{ minHeight: 'var(--list-item-height)' }}
     >

@@ -34,7 +34,7 @@ export function CalendarSidebarPanel({
               key={cal.id}
               onClick={() => onToggleVisibility(cal.id)}
               className={cn(
-                "flex items-center gap-2 w-full px-1.5 py-1 rounded text-sm transition-colors",
+                "flex items-center gap-2 w-full px-1.5 py-1 rounded-md text-sm transition-colors duration-150",
                 "hover:bg-muted"
               )}
             >

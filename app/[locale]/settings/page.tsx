@@ -66,9 +66,9 @@ export default function SettingsPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  'w-full text-left px-3 py-2 rounded text-sm transition-colors',
+                  'w-full text-left px-3 py-2 rounded-md text-sm transition-colors duration-150',
                   activeTab === tab.id
-                    ? 'bg-accent text-accent-foreground'
+                    ? 'bg-accent text-accent-foreground font-medium'
                     : 'hover:bg-muted text-foreground'
                 )}
               >
@@ -83,10 +83,10 @@ export default function SettingsPage() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto p-8">
           {/* Page Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <SettingsIcon className="w-8 h-8 text-foreground" />
-              <h1 className="text-3xl font-semibold text-foreground">{t('title')}</h1>
+          <div className="mb-6">
+            <div className="flex items-center gap-2.5 mb-2">
+              <SettingsIcon className="w-6 h-6 text-muted-foreground" />
+              <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
             </div>
           </div>
 

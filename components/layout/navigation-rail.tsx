@@ -1,11 +1,12 @@
 "use client";
 
-import { Mail, Calendar, BookUser, Settings } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Mail, Calendar, BookUser, Settings, LogOut } from "lucide-react";
 import { usePathname, Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { useEmailStore } from "@/stores/email-store";
-import { cn } from "@/lib/utils";
+import { cn, formatFileSize } from "@/lib/utils";
 
 interface NavItem {
   id: string;
@@ -20,12 +21,100 @@ interface NavigationRailProps {
   orientation?: "vertical" | "horizontal";
   collapsed?: boolean;
   className?: string;
+  quota?: { used: number; total: number } | null;
+  isPushConnected?: boolean;
+  onLogout?: () => void;
+}
+
+function StorageQuotaCircle({ quota, usagePercent }: { quota: { used: number; total: number }; usagePercent: number }) {
+  const t = useTranslations("sidebar");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  const free = quota.total - quota.used;
+  const strokeColor = usagePercent > 90
+    ? "stroke-red-500 dark:stroke-red-400"
+    : usagePercent > 70
+      ? "stroke-amber-500 dark:stroke-amber-400"
+      : "stroke-green-500 dark:stroke-green-400";
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="relative w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors cursor-pointer"
+        aria-label={t("storage")}
+      >
+        <svg className="w-8 h-8 -rotate-90" viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="12" fill="none" className="stroke-muted" strokeWidth="3" />
+          <circle
+            cx="16" cy="16" r="12" fill="none"
+            className={cn(strokeColor)}
+            strokeWidth="3" strokeLinecap="round"
+            strokeDasharray={`${(usagePercent / 100) * 75.4} 75.4`}
+            style={{ transition: "stroke-dasharray 0.3s" }}
+          />
+        </svg>
+        <span className="absolute text-[7px] font-bold text-muted-foreground tabular-nums">
+          {Math.round(usagePercent)}%
+        </span>
+      </button>
+
+      {open && (
+        <div className="absolute left-full bottom-0 ml-2 w-52 rounded-lg border border-border bg-popover text-popover-foreground shadow-lg p-3 z-50">
+          <p className="text-xs font-semibold mb-2">{t("storage")}</p>
+          <div className="space-y-1.5 text-xs">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t("storage_used")}</span>
+              <span className="font-medium tabular-nums">{formatFileSize(quota.used)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t("storage_free")}</span>
+              <span className="font-medium tabular-nums">{formatFileSize(free)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t("storage_total")}</span>
+              <span className="font-medium tabular-nums">{formatFileSize(quota.total)}</span>
+            </div>
+          </div>
+          <div className="mt-2.5 w-full bg-muted rounded-full h-1.5">
+            <div
+              className={cn(
+                "h-1.5 rounded-full transition-all",
+                usagePercent > 90
+                  ? "bg-red-500 dark:bg-red-400"
+                  : usagePercent > 70
+                    ? "bg-amber-500 dark:bg-amber-400"
+                    : "bg-green-500 dark:bg-green-400"
+              )}
+              style={{ width: `${usagePercent}%` }}
+            />
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1 tabular-nums">
+            {Math.round(usagePercent)}% {t("storage_used").toLowerCase()}
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function NavigationRail({
   orientation = "vertical",
   collapsed = false,
   className,
+  quota,
+  isPushConnected,
+  onLogout,
 }: NavigationRailProps) {
   const t = useTranslations("sidebar");
   const pathname = usePathname();
@@ -91,49 +180,89 @@ export function NavigationRail({
     );
   }
 
+  const quotaUsagePercent = quota && quota.total > 0 ? Math.min((quota.used / quota.total) * 100, 100) : 0;
+
   return (
-    <nav
+    <div
       className={cn(
-        "flex flex-col",
-        collapsed ? "items-center gap-1 py-3 px-1" : "gap-0.5 py-2 px-2",
+        "flex flex-col h-full",
+        collapsed ? "items-center" : "",
         className
       )}
-      role="navigation"
-      aria-label={t("nav_label")}
     >
-      {visibleItems.map((item) => {
-        const isActive = getIsActive(item.href);
-        const Icon = item.icon;
-        return (
-          <Link
-            key={item.id}
-            href={item.href}
-            className={cn(
-              "relative flex items-center gap-2.5 rounded-md transition-colors duration-150",
-              collapsed
-                ? "justify-center w-10 h-10"
-                : "px-2.5 py-1.5 text-sm",
-              "max-lg:min-h-[44px]",
-              isActive
-                ? "bg-primary/10 text-primary font-medium"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-            aria-current={isActive ? "page" : undefined}
-            title={collapsed ? t(item.labelKey) : undefined}
+      <nav
+        className={cn(
+          "flex flex-col",
+          collapsed ? "items-center gap-1 py-3 px-1" : "gap-0.5 py-2 px-2",
+        )}
+        role="navigation"
+        aria-label={t("nav_label")}
+      >
+        {visibleItems.map((item) => {
+          const isActive = getIsActive(item.href);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={cn(
+                "relative flex items-center gap-2.5 rounded-md transition-colors duration-150",
+                collapsed
+                  ? "justify-center w-10 h-10"
+                  : "px-2.5 py-1.5 text-sm",
+                "max-lg:min-h-[44px]",
+                isActive
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+              aria-current={isActive ? "page" : undefined}
+              title={collapsed ? t(item.labelKey) : undefined}
+            >
+              <Icon className={cn("w-[18px] h-[18px] flex-shrink-0", isActive && "text-primary")} />
+              {!collapsed && <span className="truncate">{t(item.labelKey)}</span>}
+              {item.badge != null && item.badge > 0 && (
+                <span className={cn(
+                  "absolute flex items-center justify-center min-w-[16px] h-4 text-[10px] font-bold rounded-full bg-red-500 text-white px-1",
+                  collapsed ? "-top-0.5 -right-0.5" : "right-1.5"
+                )}>
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Footer: Storage Quota + Sign Out + Push Status */}
+      <div className="mt-auto flex flex-col items-center gap-2 pb-3 px-1 border-t border-border pt-2">
+        {quota && quota.total > 0 && (
+          <StorageQuotaCircle quota={quota} usagePercent={quotaUsagePercent} />
+        )}
+
+        {isPushConnected != null && (
+          <span
+            className="relative group"
+            title={isPushConnected ? t("push_connected") : t("push_disconnected")}
           >
-            <Icon className={cn("w-[18px] h-[18px] flex-shrink-0", isActive && "text-primary")} />
-            {!collapsed && <span className="truncate">{t(item.labelKey)}</span>}
-            {item.badge != null && item.badge > 0 && (
-              <span className={cn(
-                "absolute flex items-center justify-center min-w-[16px] h-4 text-[10px] font-bold rounded-full bg-red-500 text-white px-1",
-                collapsed ? "-top-0.5 -right-0.5" : "right-1.5"
-              )}>
-                {item.badge > 99 ? "99+" : item.badge}
-              </span>
-            )}
-          </Link>
-        );
-      })}
-    </nav>
+            <span
+              className={cn(
+                "inline-block w-1.5 h-1.5 rounded-full transition-all duration-300",
+                isPushConnected ? "bg-green-500" : "bg-muted-foreground/40"
+              )}
+            />
+          </span>
+        )}
+
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            className="flex items-center justify-center w-10 h-10 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            title={t("sign_out")}
+          >
+            <LogOut className="w-[18px] h-[18px]" />
+          </button>
+        )}
+      </div>
+    </div>
   );
 }

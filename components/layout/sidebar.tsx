@@ -15,7 +15,6 @@ import {
   PenSquare,
   Search,
   Menu,
-  LogOut,
   ChevronRight,
   ChevronDown,
   Folder,
@@ -27,11 +26,12 @@ import {
   Settings,
   X,
 } from "lucide-react";
-import { cn, buildMailboxTree, MailboxNode, formatFileSize } from "@/lib/utils";
+import { cn, buildMailboxTree, MailboxNode } from "@/lib/utils";
 import { Mailbox } from "@/lib/jmap/types";
 import { useDragDropContext } from "@/contexts/drag-drop-context";
 import { useMailboxDrop } from "@/hooks/use-mailbox-drop";
 import { useEmailStore } from "@/stores/email-store";
+import { useUIStore } from "@/stores/ui-store";
 import { activeFilterCount } from "@/lib/jmap/search-utils";
 import { useVacationStore } from "@/stores/vacation-store";
 import { toast } from "@/stores/toast-store";
@@ -42,13 +42,10 @@ interface SidebarProps {
   selectedMailbox?: string;
   onMailboxSelect?: (mailboxId: string) => void;
   onCompose?: () => void;
-  onLogout?: () => void;
   onSidebarClose?: () => void;
   onSearch?: (query: string) => void;
   onClearSearch?: () => void;
   activeSearchQuery?: string;
-  quota?: { used: number; total: number } | null;
-  isPushConnected?: boolean;
   className?: string;
 }
 
@@ -184,16 +181,21 @@ function MailboxTreeItem({
           {!isCollapsed && (
             <>
               <span className="flex-1 truncate">{node.name}</span>
-              {node.unreadEmails > 0 && (
-                <span className={cn(
-                  "text-xs rounded-full px-2 py-0.5 ml-2 font-medium",
-                  selectedMailbox === node.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-foreground text-background"
-                )}>
-                  {node.unreadEmails}
+              <span className="flex items-center gap-1.5 ml-2 flex-shrink-0">
+                {node.unreadEmails > 0 && (
+                  <span className={cn(
+                    "text-xs rounded-full px-2 py-0.5 font-medium",
+                    selectedMailbox === node.id
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-foreground text-background"
+                  )}>
+                    {node.unreadEmails}
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {node.totalEmails}
                 </span>
-              )}
+              </span>
             </>
           )}
         </button>
@@ -268,58 +270,18 @@ function AdvancedSearchToggle() {
   );
 }
 
-function StorageQuota({ quota, isCollapsed }: { quota: { used: number; total: number } | null; isCollapsed: boolean }) {
-  const t = useTranslations('sidebar');
-
-  if (!quota || quota.total <= 0) return null;
-
-  const usagePercent = Math.min((quota.used / quota.total) * 100, 100);
-  const barColor = usagePercent > 90
-    ? "bg-red-500 dark:bg-red-400"
-    : usagePercent > 70
-      ? "bg-amber-500 dark:bg-amber-400"
-      : "bg-green-500 dark:bg-green-400";
-
-  if (isCollapsed) {
-    return (
-      <div className="px-2 py-2" title={`${formatFileSize(quota.used)} / ${formatFileSize(quota.total)}`}>
-        <div className="w-full bg-muted rounded-full h-1">
-          <div className={cn(barColor, "h-1 rounded-full transition-all")} style={{ width: `${usagePercent}%` }} />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="px-3 py-2">
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">{t("storage")}</span>
-        <span className="text-foreground tabular-nums">
-          {formatFileSize(quota.used)} / {formatFileSize(quota.total)}
-        </span>
-      </div>
-      <div className="mt-1 w-full bg-muted rounded-full h-1">
-        <div className={cn(barColor, "h-1 rounded-full transition-all")} style={{ width: `${usagePercent}%` }} />
-      </div>
-    </div>
-  );
-}
-
 export function Sidebar({
   mailboxes = [],
   selectedMailbox = "",
   onMailboxSelect,
   onCompose,
-  onLogout,
   onSidebarClose,
   onSearch,
   onClearSearch,
   activeSearchQuery = "",
-  quota,
-  isPushConnected = false,
   className,
 }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { sidebarCollapsed: isCollapsed, toggleSidebarCollapsed } = useUIStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const t = useTranslations('sidebar');
@@ -407,7 +369,7 @@ export function Sidebar({
         "relative flex flex-col h-full border-r transition-all duration-300 overflow-hidden",
         "bg-secondary border-border",
         "max-lg:w-full",
-        isCollapsed ? "lg:w-16" : "lg:w-64",
+        isCollapsed ? "lg:w-16" : "lg:w-full",
         className
       )}
     >
@@ -426,7 +388,7 @@ export function Sidebar({
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={toggleSidebarCollapsed}
           className="hidden lg:flex"
         >
           <Menu className="w-5 h-5" />
@@ -501,51 +463,7 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* Footer: Storage Quota + Sign Out + Push Status */}
-      <div className="border-t border-border">
-        <StorageQuota quota={quota ?? null} isCollapsed={isCollapsed} />
-
-        <div className={cn(
-          "flex items-center border-t border-border",
-          isCollapsed ? "justify-center py-2" : "justify-between px-3 py-2"
-        )}>
-          {onLogout && (
-            <button
-              onClick={onLogout}
-              className={cn(
-                "flex items-center gap-2 rounded-md transition-colors text-sm text-muted-foreground hover:text-foreground hover:bg-muted",
-                isCollapsed ? "p-2" : "px-2 py-1.5"
-              )}
-              title={t("sign_out")}
-            >
-              <LogOut className="w-4 h-4" />
-              {!isCollapsed && t("sign_out")}
-            </button>
-          )}
-
-          {!isCollapsed && (
-            <span
-              className="relative group"
-              title={isPushConnected ? t("push_connected") : t("push_disconnected")}
-            >
-              <span
-                className={cn(
-                  "inline-block w-1.5 h-1.5 rounded-full transition-all duration-300",
-                  isPushConnected ? "bg-green-500" : "bg-muted-foreground/40"
-                )}
-              />
-              <span className={cn(
-                "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1",
-                "bg-popover text-popover-foreground text-xs rounded shadow-lg",
-                "whitespace-nowrap opacity-0 group-hover:opacity-100",
-                "pointer-events-none transition-opacity duration-200 z-50"
-              )}>
-                {isPushConnected ? t("push_connected") : t("push_disconnected")}
-              </span>
-            </span>
-          )}
-        </div>
-      </div>
+      {/* Footer removed - storage quota and sign out moved to NavigationRail */}
     </div>
   );
 }

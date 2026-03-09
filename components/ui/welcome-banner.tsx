@@ -69,10 +69,10 @@ export function WelcomeBanner() {
           </div>
           <button
             onClick={dismiss}
-            className="flex-shrink-0 p-1 rounded hover:bg-muted transition-colors"
+            className="flex-shrink-0 p-1.5 rounded-md hover:bg-muted transition-colors duration-150 text-muted-foreground hover:text-foreground"
             aria-label={t("dismiss")}
           >
-            <X className="w-4 h-4 text-muted-foreground" />
+            <X className="w-4 h-4" />
           </button>
         </div>
         <div className="mt-3 flex justify-end">

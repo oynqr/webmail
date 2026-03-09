@@ -8,6 +8,7 @@ import { useDragDropContext } from "@/contexts/drag-drop-context";
 interface UseEmailDragOptions {
   email: Email;
   sourceMailboxId: string;
+  threadEmails?: Email[];
 }
 
 interface UseEmailDragReturn {
@@ -42,18 +43,19 @@ function createDragPreview(count: number): HTMLElement {
   return preview;
 }
 
-export function useEmailDrag({ email, sourceMailboxId }: UseEmailDragOptions): UseEmailDragReturn {
+export function useEmailDrag({ email, sourceMailboxId, threadEmails }: UseEmailDragOptions): UseEmailDragReturn {
   const { selectedEmailIds, emails } = useEmailStore();
   const { startDrag, endDrag, isDragging, draggedEmails } = useDragDropContext();
 
   const handleDragStart = useCallback((e: DragEvent<HTMLDivElement>) => {
     // Determine which emails to drag:
     // - If current email is selected, drag all selected
+    // - If threadEmails provided (thread header), drag all thread emails
     // - Otherwise, drag only this email
     const isSelected = selectedEmailIds.has(email.id);
     const emailsToDrag = isSelected
       ? emails.filter(em => selectedEmailIds.has(em.id))
-      : [email];
+      : threadEmails || [email];
 
     // Set data transfer
     e.dataTransfer.effectAllowed = "move";
@@ -76,7 +78,7 @@ export function useEmailDrag({ email, sourceMailboxId }: UseEmailDragOptions): U
     });
 
     startDrag(emailsToDrag, sourceMailboxId);
-  }, [email, selectedEmailIds, emails, sourceMailboxId, startDrag]);
+  }, [email, selectedEmailIds, emails, sourceMailboxId, startDrag, threadEmails]);
 
   const handleDragEnd = useCallback(() => {
     endDrag();

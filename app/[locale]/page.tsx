@@ -33,6 +33,7 @@ import { AdvancedSearchPanel } from "@/components/search/advanced-search-panel";
 import { isFilterEmpty } from "@/lib/jmap/search-utils";
 import { WelcomeBanner } from "@/components/ui/welcome-banner";
 import { NavigationRail } from "@/components/layout/navigation-rail";
+import { ResizeHandle } from "@/components/layout/resize-handle";
 
 export default function Home() {
   const router = useRouter();
@@ -53,7 +54,7 @@ export default function Home() {
 
   // Mobile/tablet responsive hooks
   const { isMobile, isTablet } = useDeviceDetection();
-  const { activeView, sidebarOpen, setSidebarOpen, setActiveView, tabletListVisible, setTabletListVisible } = useUIStore();
+  const { activeView, sidebarOpen, setSidebarOpen, setActiveView, tabletListVisible, setTabletListVisible, sidebarWidth, emailListWidth, setSidebarWidth, setEmailListWidth, persistColumnWidths, sidebarCollapsed, resetSidebarWidth, resetEmailListWidth } = useUIStore();
   const {
     emails,
     mailboxes,
@@ -237,6 +238,19 @@ export default function Home() {
       setInitialCheckDone(true);
     });
   }, [checkAuth]);
+
+  // Hydrate persisted column widths from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("column-widths");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.sidebarWidth) setSidebarWidth(parsed.sidebarWidth);
+        if (parsed.emailListWidth) setEmailListWidth(parsed.emailListWidth);
+      }
+    } catch { /* ignore parse errors */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -735,8 +749,13 @@ export default function Home() {
       <div className="flex h-screen bg-background overflow-hidden">
         {/* Desktop Navigation Rail */}
         {!isMobile && !isTablet && (
-          <div className="w-14 border-r border-border bg-secondary flex flex-col items-center flex-shrink-0">
-            <NavigationRail collapsed />
+          <div className="w-14 border-r border-border bg-secondary flex flex-col flex-shrink-0">
+            <NavigationRail
+              collapsed
+              quota={quota}
+              isPushConnected={isPushConnected}
+              onLogout={handleLogout}
+            />
           </div>
         )}
 
@@ -751,7 +770,7 @@ export default function Home() {
         {/* Sidebar - overlay on mobile/tablet, fixed on desktop */}
         <div
           className={cn(
-            "flex-shrink-0 h-full z-50",
+            "flex-shrink-0 h-full z-50 transition-[width] duration-300",
             // Mobile/Tablet: fixed overlay
             "max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:w-72",
             "max-lg:transform max-lg:transition-transform max-lg:duration-300 max-lg:ease-in-out",
@@ -759,6 +778,7 @@ export default function Home() {
             // Desktop: normal flow
             "lg:relative lg:translate-x-0"
           )}
+          style={!isMobile && !isTablet ? { width: sidebarCollapsed ? 64 : sidebarWidth } : undefined}
         >
           <ErrorBoundary fallback={SidebarErrorFallback}>
             <Sidebar
@@ -770,16 +790,22 @@ export default function Home() {
                 setShowComposer(true);
                 if (isMobile) setSidebarOpen(false);
               }}
-              onLogout={handleLogout}
               onSidebarClose={() => setSidebarOpen(false)}
               onSearch={handleSearch}
               onClearSearch={handleClearSearch}
               activeSearchQuery={searchQuery}
-              quota={quota}
-              isPushConnected={isPushConnected}
             />
           </ErrorBoundary>
         </div>
+
+        {/* Sidebar resize handle (desktop only, hidden when collapsed) */}
+        {!isMobile && !isTablet && !sidebarCollapsed && (
+          <ResizeHandle
+            onResize={(delta) => setSidebarWidth(sidebarWidth + delta)}
+            onResizeEnd={persistColumnWidths}
+            onDoubleClick={resetSidebarWidth}
+          />
+        )}
 
         {/* Main Content Area */}
         <div className="flex flex-col flex-1 min-w-0 h-full">
@@ -792,11 +818,12 @@ export default function Home() {
               "max-md:flex-1 max-md:border-r-0",
               isMobile && activeView !== "list" && "max-md:hidden",
               // Tablet/Desktop: fixed width with collapse animation
-              "md:w-80 lg:w-96 md:flex-shrink-0 md:shadow-sm",
+              "md:flex-shrink-0 md:shadow-sm",
               "transition-all duration-200 ease-out",
               // Tablet: collapse when email selected
               isTablet && !tabletListVisible && "md:w-0 md:opacity-0 md:overflow-hidden md:border-r-0"
             )}
+            style={!isMobile && !(isTablet && !tabletListVisible) ? { width: emailListWidth } : undefined}
           >
             {/* Mobile Header for List View */}
             <MobileHeader
@@ -879,6 +906,15 @@ export default function Home() {
               />
             </ErrorBoundary>
           </div>
+
+          {/* Email list resize handle (desktop only) */}
+          {!isMobile && !isTablet && (
+            <ResizeHandle
+              onResize={(delta) => setEmailListWidth(emailListWidth + delta)}
+              onResizeEnd={persistColumnWidths}
+              onDoubleClick={resetEmailListWidth}
+            />
+          )}
 
           {/* Email Viewer - full screen on mobile, flex on tablet/desktop */}
           <div

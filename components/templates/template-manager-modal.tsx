@@ -68,7 +68,7 @@ export function TemplateManagerModal({ isOpen, onClose }: TemplateManagerModalPr
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
       <div
         ref={modalRef}
         role="dialog"
@@ -89,7 +89,7 @@ export function TemplateManagerModal({ isOpen, onClose }: TemplateManagerModalPr
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+            className="p-1.5 rounded-md hover:bg-muted transition-colors duration-150 text-muted-foreground hover:text-foreground"
           >
             <X className="w-5 h-5" />
           </button>

@@ -44,6 +44,8 @@ interface EmailStore {
   setSearchQuery: (query: string) => void;
   setQuota: (quota: { used: number; total: number } | null) => void;
   toggleEmailSelection: (emailId: string) => void;
+  selectRangeEmails: (targetEmailId: string) => void;
+  lastSelectedEmailId: string | null;
   selectAllEmails: () => void;
   clearSelection: () => void;
 
@@ -106,6 +108,7 @@ export const useEmailStore = create<EmailStore>((set, get) => ({
   quota: null,
   processingReadStatus: new Set(),
   selectedEmailIds: new Set(),
+  lastSelectedEmailId: null,
   hasMoreEmails: false,
   totalEmails: 0,
   isPushConnected: false,
@@ -127,7 +130,7 @@ export const useEmailStore = create<EmailStore>((set, get) => ({
 
   setEmails: (emails) => set({ emails }),
   setMailboxes: (mailboxes) => set({ mailboxes }),
-  selectEmail: (email) => set({ selectedEmail: email }),
+  selectEmail: (email) => set({ selectedEmail: email, lastSelectedEmailId: email?.id ?? get().lastSelectedEmailId }),
   selectMailbox: (mailboxId) => set({
     selectedMailbox: mailboxId,
     selectedEmail: null,
@@ -150,6 +153,22 @@ export const useEmailStore = create<EmailStore>((set, get) => ({
     } else {
       newSelection.add(emailId);
     }
+    set({ selectedEmailIds: newSelection, lastSelectedEmailId: emailId });
+  },
+
+  selectRangeEmails: (targetEmailId) => {
+    const { emails, lastSelectedEmailId, selectedEmailIds } = get();
+    const anchorId = lastSelectedEmailId || emails[0]?.id;
+    if (!anchorId) return;
+    const anchorIndex = emails.findIndex(e => e.id === anchorId);
+    const targetIndex = emails.findIndex(e => e.id === targetEmailId);
+    if (anchorIndex === -1 || targetIndex === -1) return;
+    const start = Math.min(anchorIndex, targetIndex);
+    const end = Math.max(anchorIndex, targetIndex);
+    const newSelection = new Set(selectedEmailIds);
+    for (let i = start; i <= end; i++) {
+      newSelection.add(emails[i].id);
+    }
     set({ selectedEmailIds: newSelection });
   },
 
@@ -160,7 +179,7 @@ export const useEmailStore = create<EmailStore>((set, get) => ({
   },
 
   clearSelection: () => {
-    set({ selectedEmailIds: new Set() });
+    set({ selectedEmailIds: new Set(), lastSelectedEmailId: null });
   },
 
   // JMAP operations

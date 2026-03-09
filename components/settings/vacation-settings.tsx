@@ -169,7 +169,7 @@ export function VacationSettings() {
             type="datetime-local"
             value={localFromDate ? utcToLocalDatetime(localFromDate) : ''}
             onChange={(e) => setLocalFromDate(e.target.value ? new Date(e.target.value).toISOString() : '')}
-            className="px-3 py-1.5 text-sm rounded bg-muted border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="px-3 py-1.5 text-sm rounded-md bg-muted border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors duration-150 hover:border-muted-foreground"
           />
         </SettingItem>
         <SettingItem
@@ -180,7 +180,7 @@ export function VacationSettings() {
             type="datetime-local"
             value={localToDate ? utcToLocalDatetime(localToDate) : ''}
             onChange={(e) => setLocalToDate(e.target.value ? new Date(e.target.value).toISOString() : '')}
-            className="px-3 py-1.5 text-sm rounded bg-muted border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="px-3 py-1.5 text-sm rounded-md bg-muted border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors duration-150 hover:border-muted-foreground"
           />
         </SettingItem>
       </SettingsSection>
@@ -195,7 +195,7 @@ export function VacationSettings() {
             value={localSubject}
             onChange={(e) => setLocalSubject(e.target.value)}
             placeholder={t('message.subject_placeholder')}
-            className="w-64 px-3 py-1.5 text-sm rounded bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-64 px-3 py-1.5 text-sm rounded-md bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors duration-150 hover:border-muted-foreground"
           />
         </SettingItem>
         <div className="py-3">
@@ -211,7 +211,7 @@ export function VacationSettings() {
             onChange={(e) => setLocalTextBody(e.target.value)}
             placeholder={t('message.body_placeholder')}
             rows={6}
-            className="w-full px-3 py-2 text-sm rounded bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-y"
+            className="w-full px-3 py-2 text-sm rounded-md bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors duration-150 hover:border-muted-foreground resize-y"
           />
         </div>
       </SettingsSection>

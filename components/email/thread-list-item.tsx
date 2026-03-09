@@ -8,7 +8,9 @@ import { Avatar } from "@/components/ui/avatar";
 import { Paperclip, Star, Circle, ChevronRight, ChevronDown, Loader2, MessageSquare } from "lucide-react";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUIStore } from "@/stores/ui-store";
+import { useEmailStore } from "@/stores/email-store";
 import { getThreadColorTag } from "@/lib/thread-utils";
+import { useEmailDrag } from "@/hooks/use-email-drag";
 import { ThreadEmailItem } from "./thread-email-item";
 import { useTranslations } from "next-intl";
 
@@ -48,14 +50,34 @@ const SingleEmailItem = React.forwardRef<HTMLDivElement, SingleEmailItemProps>(
     const isUnread = !email.keywords?.$seen;
     const isStarred = email.keywords?.$flagged;
     const sender = email.from?.[0];
+    const { selectedMailbox, selectedEmailIds, toggleEmailSelection, selectRangeEmails } = useEmailStore();
+    const isChecked = selectedEmailIds.has(email.id);
+
+    const { dragHandlers, isDragging } = useEmailDrag({
+      email,
+      sourceMailboxId: selectedMailbox,
+    });
 
     const handleContextMenu = (e: React.MouseEvent) => {
       onContextMenu?.(e, email);
     };
 
+    const handleClick = (e: React.MouseEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        toggleEmailSelection(email.id);
+      } else if (e.shiftKey) {
+        e.preventDefault();
+        selectRangeEmails(email.id);
+      } else {
+        onClick();
+      }
+    };
+
     return (
       <div
         ref={ref}
+        {...dragHandlers}
         className={cn(
           "relative group cursor-pointer transition-all duration-200 border-b border-border",
           colorTag ? colorTag : (
@@ -66,9 +88,11 @@ const SingleEmailItem = React.forwardRef<HTMLDivElement, SingleEmailItemProps>(
           selected && !colorTag && "shadow-sm",
           !colorTag && !selected && "hover:bg-muted hover:shadow-sm",
           colorTag && "hover:brightness-95 dark:hover:brightness-110",
-          isUnread && !colorTag && "bg-accent/30"
+          isUnread && !colorTag && "bg-accent/30",
+          isChecked && "ring-2 ring-primary/20 bg-accent/40",
+          isDragging && "opacity-50 scale-[0.98] ring-2 ring-primary/30"
         )}
-        onClick={onClick}
+        onClick={handleClick}
         onContextMenu={handleContextMenu}
         style={{ minHeight: 'var(--list-item-height)' }}
       >
@@ -164,11 +188,21 @@ export const ThreadListItem = React.forwardRef<HTMLDivElement, ThreadListItemPro
     const isMobile = useUIStore((state) => state.isMobile);
     const { latestEmail, participantNames, hasUnread, hasStarred, hasAttachment, emailCount } = thread;
 
+    const { selectedMailbox, selectedEmailIds, toggleEmailSelection, selectRangeEmails } = useEmailStore();
+
+    const { dragHandlers, isDragging: isThreadDragging } = useEmailDrag({
+      email: latestEmail,
+      sourceMailboxId: selectedMailbox,
+      threadEmails: thread.emails,
+    });
+
     const threadColor = getThreadColorTag(thread.emails);
     const colorTag = threadColor ? colorTags[threadColor as keyof typeof colorTags] : null;
 
     const isSelected = selectedEmailId === latestEmail.id ||
       thread.emails.some(e => e.id === selectedEmailId);
+
+    const isChecked = thread.emails.some(e => selectedEmailIds.has(e.id));
 
     if (emailCount === 1) {
       return (
@@ -187,6 +221,18 @@ export const ThreadListItem = React.forwardRef<HTMLDivElement, ThreadListItemPro
     const emailsToShow = expandedEmails || thread.emails;
 
     const handleHeaderClick = (e: React.MouseEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        // Ctrl+Click: toggle selection for all thread emails
+        thread.emails.forEach(em => toggleEmailSelection(em.id));
+        return;
+      }
+      if (e.shiftKey) {
+        e.preventDefault();
+        selectRangeEmails(latestEmail.id);
+        return;
+      }
+
       if (isMobile && onOpenConversation) {
         onOpenConversation(thread);
         return;
@@ -208,8 +254,9 @@ export const ThreadListItem = React.forwardRef<HTMLDivElement, ThreadListItemPro
     };
 
     return (
-      <div ref={ref} className="border-b border-border">
+      <div ref={ref} className={cn("border-b border-border", isThreadDragging && "opacity-50 scale-[0.98] ring-2 ring-primary/30")}>
         <div
+          {...dragHandlers}
           className={cn(
             "relative group cursor-pointer transition-all duration-200",
             colorTag ? colorTag : (
@@ -221,7 +268,8 @@ export const ThreadListItem = React.forwardRef<HTMLDivElement, ThreadListItemPro
             !colorTag && !isSelected && "hover:bg-muted hover:shadow-sm",
             colorTag && "hover:brightness-95 dark:hover:brightness-110",
             hasUnread && !colorTag && !isSelected && "bg-accent/30",
-            isExpanded && "border-b border-border/50"
+            isExpanded && "border-b border-border/50",
+            isChecked && "ring-2 ring-primary/20 bg-accent/40"
           )}
           onClick={handleHeaderClick}
           onContextMenu={handleContextMenu}

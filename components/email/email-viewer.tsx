@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import DOMPurify from "dompurify";
 import { Email } from "@/lib/jmap/types";
-import { hasRichFormatting, EMAIL_SANITIZE_CONFIG, collapseBlockedImageContainers } from "@/lib/email-sanitization";
+import { EMAIL_SANITIZE_CONFIG, collapseBlockedImageContainers } from "@/lib/email-sanitization";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { formatFileSize, cn } from "@/lib/utils";
@@ -403,9 +403,7 @@ export function EmailViewer({
 
       if (email.htmlBody?.[0]?.partId && email.bodyValues[email.htmlBody[0].partId]) {
         htmlContent = email.bodyValues[email.htmlBody[0].partId].value;
-
-        // Use safe parsing instead of innerHTML to detect rich formatting
-        useHtmlVersion = hasRichFormatting(htmlContent);
+        useHtmlVersion = !!htmlContent;
       }
 
       // If we should use HTML version and it exists
@@ -599,8 +597,8 @@ export function EmailViewer({
 
         {/* Loading Content Skeleton */}
         <div className="flex-1 overflow-auto bg-muted/20">
-          <div className="max-w-4xl mx-auto p-6">
-            <div className="bg-background rounded-lg shadow-sm border border-border overflow-hidden p-6 space-y-3">
+          <div className="px-6 pt-4 pb-6">
+            <div className="space-y-3">
               <div className="h-4 bg-muted/60 rounded w-full"></div>
               <div className="h-4 bg-muted/60 rounded w-5/6"></div>
               <div className="h-4 bg-muted/60 rounded w-4/6"></div>
@@ -1388,11 +1386,11 @@ export function EmailViewer({
           </div>
         )}
 
-        <div className="max-w-4xl mx-auto p-6">
+        <div>
 
           {/* Inline Attachments */}
           {email.attachments && email.attachments.length > 0 && (
-            <div className="mb-4">
+            <div className="mb-4 px-6">
               {/* Image attachments as thumbnails */}
               {email.attachments.filter(a =>
                 a.type?.startsWith('image/') ||
@@ -1474,36 +1472,34 @@ export function EmailViewer({
           )}
 
           {/* Email Body */}
-          <div className="bg-background rounded-lg shadow-sm border border-border overflow-x-auto">
-            <div className="email-content-wrapper p-6">
-              {emailContent.isHtml ? (
-                <div
-                  className="email-content prose dark:prose-invert max-w-none"
-                  dangerouslySetInnerHTML={{ __html: emailContent.html }}
-                  style={{
-                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    fontSize: '14px',
-                    lineHeight: '1.6',
-                  }}
-                />
-              ) : (
-                <div
-                  className="email-content-text text-foreground"
-                  dangerouslySetInnerHTML={{ __html: emailContent.html }}
-                  style={{
-                    fontFamily: 'ui-monospace, "SF Mono", Consolas, monospace',
-                    fontSize: '14px',
-                    lineHeight: '1.6',
-                    wordBreak: 'break-word',
-                  }}
-                />
-              )}
-            </div>
+          <div className="email-content-wrapper overflow-x-auto">
+            {emailContent.isHtml ? (
+              <div
+                className="email-content prose dark:prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: emailContent.html }}
+                style={{
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  fontSize: '14px',
+                  lineHeight: '1.6',
+                }}
+              />
+            ) : (
+              <div
+                className="email-content-text text-foreground"
+                dangerouslySetInnerHTML={{ __html: emailContent.html }}
+                style={{
+                  fontFamily: 'ui-monospace, "SF Mono", Consolas, monospace',
+                  fontSize: '14px',
+                  lineHeight: '1.6',
+                  wordBreak: 'break-word',
+                }}
+              />
+            )}
           </div>
 
           {/* Quick Reply Section */}
           <div className={cn(
-            "mt-6 bg-background rounded-lg shadow-sm border transition-all",
+            "mt-6 mx-6 mb-6 bg-background rounded-lg shadow-sm border transition-all",
             isQuickReplyFocused || quickReplyText ? "border-primary" : "border-border"
           )}>
             <div className="p-4">

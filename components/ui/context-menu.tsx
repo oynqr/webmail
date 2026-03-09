@@ -74,8 +74,8 @@ export function ContextMenuItem({
       role="menuitem"
       disabled={disabled}
       className={cn(
-        "w-full px-3 py-2 text-sm text-left flex items-center gap-2",
-        "transition-colors duration-100",
+        "w-full px-3 py-1.5 text-sm text-left flex items-center gap-2",
+        "transition-colors duration-150",
         "focus:outline-none focus:bg-muted",
         disabled && "opacity-50 cursor-not-allowed",
         !disabled && "hover:bg-muted cursor-pointer",
@@ -157,8 +157,8 @@ export function ContextMenuSubMenu({
     >
       <div
         className={cn(
-          "w-full px-3 py-2 text-sm flex items-center gap-2",
-          "transition-colors duration-100 cursor-pointer",
+          "w-full px-3 py-1.5 text-sm flex items-center gap-2",
+          "transition-colors duration-150 cursor-pointer",
           "hover:bg-muted"
         )}
         role="menuitem"

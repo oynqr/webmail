@@ -156,32 +156,32 @@ export function FilterRuleModal({
   };
 
   const selectClass =
-    "px-2 py-1.5 text-sm rounded bg-muted border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer";
+    "px-2.5 py-1.5 text-sm rounded-md bg-muted border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors duration-150 cursor-pointer hover:border-muted-foreground";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" onClick={onClose} aria-hidden="true" />
       <div
         ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-label={isEdit ? t("edit_rule") : t("new_rule")}
-        className="relative bg-background border border-border rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"
+        className="relative bg-background border border-border rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200"
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <h2 className="text-lg font-semibold text-foreground">
             {isEdit ? t("edit_rule") : t("new_rule")}
           </h2>
           <button
             onClick={onClose}
-            className="p-1 rounded hover:bg-muted transition-colors"
+            className="p-1.5 rounded-md hover:bg-muted transition-colors duration-150 text-muted-foreground hover:text-foreground"
             aria-label={t("cancel")}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="px-5 py-4 space-y-6">
+        <div className="px-6 py-4 space-y-6">
           <div>
             <label className="text-sm font-medium mb-1 block text-foreground">
               {t("rule_name")}
@@ -203,9 +203,9 @@ export function FilterRuleModal({
               <button
                 type="button"
                 onClick={() => setMatchType("all")}
-                className={`px-3 py-1.5 text-xs rounded transition-colors ${
+                className={`px-3 py-1.5 text-xs rounded-md transition-colors duration-150 ${
                   matchType === "all"
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary text-primary-foreground font-medium"
                     : "bg-muted hover:bg-accent text-foreground"
                 }`}
               >
@@ -214,9 +214,9 @@ export function FilterRuleModal({
               <button
                 type="button"
                 onClick={() => setMatchType("any")}
-                className={`px-3 py-1.5 text-xs rounded transition-colors ${
+                className={`px-3 py-1.5 text-xs rounded-md transition-colors duration-150 ${
                   matchType === "any"
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary text-primary-foreground font-medium"
                     : "bg-muted hover:bg-accent text-foreground"
                 }`}
               >
@@ -409,7 +409,7 @@ export function FilterRuleModal({
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-border">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border">
           <Button variant="outline" onClick={onClose}>
             {t("cancel")}
           </Button>
