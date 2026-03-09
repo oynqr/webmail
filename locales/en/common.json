@@ -454,7 +454,8 @@
       "advanced": "Advanced",
       "calendar": "Calendar",
       "filters": "Filters",
-      "templates": "Templates"
+      "templates": "Templates",
+      "folders": "Folders"
     },
     "appearance": {
       "title": "Appearance",
@@ -698,6 +699,37 @@
         "start_in_past": "Start date is in the past",
         "empty_body": "Message body is empty — recipients will receive a blank reply"
       }
+    },
+    "folders": {
+      "title": "Folders",
+      "description": "Manage your email folders and assign standard roles",
+      "folder_list": "Your Folders",
+      "standard_roles": "Standard Folder Roles",
+      "standard_roles_description": "Assign which folders are used for standard mailbox roles like Inbox, Sent, Trash, etc.",
+      "role_inbox": "Inbox",
+      "role_drafts": "Drafts",
+      "role_sent": "Sent",
+      "role_trash": "Trash",
+      "role_junk": "Spam / Junk",
+      "role_archive": "Archive",
+      "role_none": "None",
+      "create_folder": "Create Folder",
+      "new_folder_name": "Folder name",
+      "rename": "Rename",
+      "delete": "Delete",
+      "confirm_delete": "Are you sure you want to delete \"{name}\"? Emails in this folder will be moved to Trash.",
+      "create": "Create",
+      "cancel": "Cancel",
+      "no_folders": "No custom folders",
+      "cannot_delete_role": "Cannot delete a folder with a standard role. Remove the role first.",
+      "folder_created": "Folder created",
+      "folder_renamed": "Folder renamed",
+      "folder_deleted": "Folder deleted",
+      "role_updated": "Folder role updated",
+      "error_create": "Failed to create folder",
+      "error_rename": "Failed to rename folder",
+      "error_delete": "Failed to delete folder",
+      "error_role": "Failed to update folder role"
     },
     "advanced": {
       "title": "Advanced",

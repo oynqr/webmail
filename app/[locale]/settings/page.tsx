@@ -14,10 +14,11 @@ import { CalendarSettings } from '@/components/settings/calendar-settings';
 import { FilterSettings } from '@/components/settings/filter-settings';
 import { TemplateSettings } from '@/components/settings/template-settings';
 import { AdvancedSettings } from '@/components/settings/advanced-settings';
+import { FolderSettings } from '@/components/settings/folder-settings';
 import { useAuthStore } from '@/stores/auth-store';
 import { cn } from '@/lib/utils';
 
-type Tab = 'appearance' | 'email' | 'account' | 'identities' | 'vacation' | 'calendar' | 'filters' | 'templates' | 'advanced';
+type Tab = 'appearance' | 'email' | 'account' | 'identities' | 'vacation' | 'calendar' | 'filters' | 'templates' | 'folders' | 'advanced';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -38,6 +39,7 @@ export default function SettingsPage() {
     ...(supportsCalendar ? [{ id: 'calendar' as Tab, label: t('tabs.calendar') }] : []),
     ...(supportsSieve ? [{ id: 'filters' as Tab, label: t('tabs.filters') }] : []),
     { id: 'templates', label: t('tabs.templates') },
+    { id: 'folders', label: t('tabs.folders') },
     { id: 'advanced', label: t('tabs.advanced') },
   ];
 
@@ -100,6 +102,7 @@ export default function SettingsPage() {
             {activeTab === 'calendar' && <CalendarSettings />}
             {activeTab === 'filters' && <FilterSettings />}
             {activeTab === 'templates' && <TemplateSettings />}
+            {activeTab === 'folders' && <FolderSettings />}
             {activeTab === 'advanced' && <AdvancedSettings />}
           </div>
         </div>

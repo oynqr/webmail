@@ -91,6 +91,12 @@ interface EmailStore {
   collapseAllThreads: () => void;
   updateThreadCache: (threadId: string, emails: Email[]) => void;
 
+  // Mailbox management
+  createMailbox: (client: JMAPClient, name: string, parentId?: string) => Promise<void>;
+  renameMailbox: (client: JMAPClient, mailboxId: string, name: string) => Promise<void>;
+  deleteMailbox: (client: JMAPClient, mailboxId: string) => Promise<void>;
+  setMailboxRole: (client: JMAPClient, mailboxId: string, role: string | null) => Promise<void>;
+
   // Mock data for demo
   loadMockData: () => void;
 }
@@ -1174,6 +1180,68 @@ export const useEmailStore = create<EmailStore>((set, get) => ({
     const newCache = new Map(get().threadEmailsCache);
     newCache.set(threadId, emails);
     set({ threadEmailsCache: newCache });
+  },
+
+  // Mailbox management
+  createMailbox: async (client, name, parentId) => {
+    try {
+      await client.createMailbox(name, parentId);
+      await get().fetchMailboxes(client);
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Failed to create folder' });
+      throw error;
+    }
+  },
+
+  renameMailbox: async (client, mailboxId, name) => {
+    try {
+      await client.updateMailbox(mailboxId, { name });
+      set({
+        mailboxes: get().mailboxes.map(mb =>
+          mb.id === mailboxId ? { ...mb, name } : mb
+        ),
+      });
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Failed to rename folder' });
+      throw error;
+    }
+  },
+
+  deleteMailbox: async (client, mailboxId) => {
+    try {
+      await client.deleteMailbox(mailboxId);
+      const { mailboxes, selectedMailbox } = get();
+      const newMailboxes = mailboxes.filter(mb => mb.id !== mailboxId);
+      const updates: Partial<EmailStore> = { mailboxes: newMailboxes };
+      // If the deleted mailbox was selected, switch to inbox
+      if (selectedMailbox === mailboxId) {
+        const inbox = newMailboxes.find(mb => mb.role === 'inbox' && !mb.isShared);
+        if (inbox) {
+          updates.selectedMailbox = inbox.id;
+        }
+      }
+      set(updates as EmailStore);
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Failed to delete folder' });
+      throw error;
+    }
+  },
+
+  setMailboxRole: async (client, mailboxId, role) => {
+    try {
+      // If assigning a role, first clear that role from any other mailbox
+      if (role) {
+        const existingMailbox = get().mailboxes.find(mb => mb.role === role && !mb.isShared);
+        if (existingMailbox && existingMailbox.id !== mailboxId) {
+          await client.updateMailbox(existingMailbox.id, { role: null });
+        }
+      }
+      await client.updateMailbox(mailboxId, { role });
+      await get().fetchMailboxes(client);
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Failed to update folder role' });
+      throw error;
+    }
   },
 
   loadMockData: () => {

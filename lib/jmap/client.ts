@@ -746,6 +746,75 @@ export class JMAPClient {
     ]);
   }
 
+  async createMailbox(name: string, parentId?: string): Promise<Mailbox> {
+    const createId = `new-${Date.now()}`;
+    const createData: Record<string, unknown> = { name };
+    if (parentId) {
+      createData.parentId = parentId;
+    }
+
+    const response = await this.request([
+      ["Mailbox/set", {
+        accountId: this.accountId,
+        create: { [createId]: createData },
+      }, "0"],
+    ]);
+
+    const result = response.methodResponses?.[0]?.[1];
+    if (result?.notCreated?.[createId]) {
+      throw new Error(`Failed to create mailbox: ${result.notCreated[createId].type || 'unknown error'}`);
+    }
+
+    const created = result?.created?.[createId];
+    if (!created?.id) {
+      throw new Error('Failed to create mailbox: no ID returned');
+    }
+
+    return {
+      id: created.id,
+      name,
+      parentId,
+      sortOrder: 0,
+      totalEmails: 0,
+      unreadEmails: 0,
+      totalThreads: 0,
+      unreadThreads: 0,
+      myRights: DEFAULT_MAILBOX_RIGHTS,
+      isSubscribed: true,
+      accountId: this.accountId,
+      accountName: this.accounts[this.accountId]?.name || this.username,
+      isShared: false,
+    };
+  }
+
+  async updateMailbox(mailboxId: string, changes: { name?: string; parentId?: string | null; role?: string | null; sortOrder?: number }): Promise<void> {
+    const response = await this.request([
+      ["Mailbox/set", {
+        accountId: this.accountId,
+        update: { [mailboxId]: changes },
+      }, "0"],
+    ]);
+
+    const result = response.methodResponses?.[0]?.[1];
+    if (result?.notUpdated?.[mailboxId]) {
+      throw new Error(`Failed to update mailbox: ${result.notUpdated[mailboxId].type || 'unknown error'}`);
+    }
+  }
+
+  async deleteMailbox(mailboxId: string): Promise<void> {
+    const response = await this.request([
+      ["Mailbox/set", {
+        accountId: this.accountId,
+        destroy: [mailboxId],
+      }, "0"],
+    ]);
+
+    const result = response.methodResponses?.[0]?.[1];
+    if (result?.notDestroyed?.[mailboxId]) {
+      throw new Error(`Failed to delete mailbox: ${result.notDestroyed[mailboxId].type || 'unknown error'}`);
+    }
+  }
+
   async searchEmails(query: string, mailboxId?: string, accountId?: string, limit: number = 50, position: number = 0): Promise<{ emails: Email[], hasMore: boolean, total: number }> {
     try {
       const targetAccountId = accountId || this.accountId;
