@@ -111,6 +111,8 @@
     "loading_more": "Loading more emails...",
     "no_more_emails": "No more emails to load",
     "batch_actions": {
+      "select": "Select emails",
+      "select_all": "Select all",
       "mark_read": "Mark as read",
       "mark_unread": "Mark as unread",
       "delete": "Delete",

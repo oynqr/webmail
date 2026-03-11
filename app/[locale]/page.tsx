@@ -36,7 +36,7 @@ import { isFilterEmpty, activeFilterCount } from "@/lib/jmap/search-utils";
 import { WelcomeBanner } from "@/components/ui/welcome-banner";
 import { NavigationRail } from "@/components/layout/navigation-rail";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, ChevronDown, X, Paperclip, Star, Mail, MailOpen, RotateCcw, PenSquare, PenLine } from "lucide-react";
+import { Search, Filter, ChevronDown, X, Paperclip, Star, Mail, MailOpen, RotateCcw, PenSquare, PenLine, CheckSquare, Square } from "lucide-react";
 import { ResizeHandle } from "@/components/layout/resize-handle";
 import { Button } from "@/components/ui/button";
 
@@ -73,8 +73,10 @@ export default function Home() {
     newEmailNotification,
     selectEmail,
     selectMailbox,
+    selectedEmailIds,
     selectAllEmails,
     clearSelection,
+    toggleEmailSelection,
     fetchMailboxes,
     fetchEmails,
     fetchQuota,
@@ -896,6 +898,35 @@ export default function Home() {
             <div className="border-b border-border bg-background">
               <div className="px-3 py-3">
                 <div className="flex items-center gap-1.5">
+                  {/* Select / Select All toggle */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedEmailIds.size > 0) {
+                        if (selectedEmailIds.size === emails.length) {
+                          clearSelection();
+                        } else {
+                          selectAllEmails();
+                        }
+                      } else {
+                        // Enter selection mode by selecting the first email
+                        if (emails.length > 0) toggleEmailSelection(emails[0].id);
+                      }
+                    }}
+                    className={cn(
+                      "flex-shrink-0 p-2 rounded-md transition-colors",
+                      selectedEmailIds.size > 0
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )}
+                    title={selectedEmailIds.size > 0 ? (selectedEmailIds.size === emails.length ? t('email_list.batch_actions.clear_selection') : t('email_list.batch_actions.select_all')) : t('email_list.batch_actions.select')}
+                  >
+                    {selectedEmailIds.size > 0 ? (
+                      <CheckSquare className="w-4 h-4" />
+                    ) : (
+                      <Square className="w-4 h-4" />
+                    )}
+                  </button>
                   <form onSubmit={(e) => { e.preventDefault(); if (searchQuery.trim()) handleSearch(searchQuery); }} className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input

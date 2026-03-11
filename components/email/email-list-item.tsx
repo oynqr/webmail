@@ -88,22 +88,25 @@ export function EmailListItem({ email, selected, onClick, onContextMenu }: Email
       style={{ minHeight: 'var(--list-item-height)' }}
     >
       <div className="flex items-start gap-3 px-4 py-3">
-        {/* Checkbox with smooth animation */}
-        <button
-          onClick={handleCheckboxClick}
-          className={cn(
-            "p-3 lg:p-1 rounded mt-2 flex-shrink-0 transition-all duration-200",
-            "hover:bg-muted/50 hover:scale-110",
-            "active:scale-95",
-            isChecked && "text-primary"
-          )}
-        >
-          {isChecked ? (
-            <CheckSquare className="w-4 h-4 animate-in zoom-in-50 duration-200" />
-          ) : (
-            <Square className="w-4 h-4 text-muted-foreground opacity-60 hover:opacity-100 transition-opacity" />
-          )}
-        </button>
+        {/* Checkbox - only visible when in selection mode */}
+        {selectedEmailIds.size > 0 && (
+          <button
+            onClick={handleCheckboxClick}
+            className={cn(
+              "p-3 lg:p-1 rounded mt-2 flex-shrink-0 transition-all duration-200",
+              "hover:bg-muted/50 hover:scale-110",
+              "active:scale-95",
+              "animate-in fade-in zoom-in-95 duration-150",
+              isChecked && "text-primary"
+            )}
+          >
+            {isChecked ? (
+              <CheckSquare className="w-4 h-4 animate-in zoom-in-50 duration-200" />
+            ) : (
+              <Square className="w-4 h-4 text-muted-foreground opacity-60 hover:opacity-100 transition-opacity" />
+            )}
+          </button>
+        )}
 
         {/* Unread indicator */}
         {isUnread && (
