@@ -970,11 +970,6 @@ trap cleanup INT TERM
 # ── Main ────────────────────────────────────────────────────────────────────
 
 main() {
-    # When piped (e.g. curl | bash), reopen stdin from the terminal
-    if [[ ! -t 0 ]]; then
-        exec < /dev/tty
-    fi
-
     # Check for minimum terminal size
     get_term_size
     if [[ $TERM_COLS -lt 60 || $TERM_ROWS -lt 20 ]]; then
@@ -1030,4 +1025,9 @@ load_existing_config() {
     get_env_val "LOGIN_WEBSITE_URL";        [[ -n "$val" ]] && CFG_LOGIN_WEBSITE_URL="$val"
 }
 
-main "$@"
+# When piped (e.g. curl | bash), reopen stdin from the terminal
+if [[ -t 0 ]]; then
+    main "$@"
+else
+    main "$@" < /dev/tty
+fi
