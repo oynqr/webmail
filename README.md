@@ -1,8 +1,8 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="public/branding/Bulwark Logo with Lettering White and Color.svg" />
-  <source media="(prefers-color-scheme: light)" srcset="public/branding/Bulwark Logo with Lettering Dark Color.svg" />
+  <source media="(prefers-color-scheme: dark)" srcset="public/branding/Bulwark Logo with Lettering Dark Color.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="public/branding/Bulwark Logo with Lettering White and Color.svg" />
   <img src="public/branding/Bulwark Logo with Lettering Dark Color.svg" alt="Bulwark Webmail" width="280" />
 </picture>
 
