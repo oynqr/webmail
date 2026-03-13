@@ -1,9 +1,9 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="public/branding/Bulwark Logo with Lettering White and Color.svg" />
-  <source media="(prefers-color-scheme: light)" srcset="public/branding/Bulwark Logo with Lettering Dark Color.svg" />
-  <img src="public/branding/Bulwark Logo with Lettering Dark Color.svg" alt="Bulwark Webmail" width="280" />
+  <source media="(prefers-color-scheme: dark)" srcset="public/branding/Bulwark%20Logo%20with%20Lettering%20White%20and%20Color.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="public/branding/Bulwark%20Logo%20with%20Lettering%20Dark%20Color.svg" />
+  <img src="public/branding/Bulwark%20Logo%20with%20Lettering%20Dark%20Color.svg" alt="Bulwark Webmail" width="280" />
 </picture>
 
 # Bulwark Webmail
