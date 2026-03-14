@@ -1407,6 +1407,13 @@ export default function Home() {
                     currentUserEmail={client?.["username"]}
                     currentUserName={client?.["username"]?.split("@")[0]}
                     currentMailboxRole={mailboxes.find(m => m.id === selectedMailbox)?.role}
+                    mailboxes={mailboxes}
+                    selectedMailbox={selectedMailbox}
+                    onMoveToMailbox={async (mailboxId) => {
+                      if (client && selectedEmail) {
+                        await moveToMailbox(client, selectedEmail.id, mailboxId);
+                      }
+                    }}
                     className={isMobile ? "flex-1" : undefined}
                   />
                 </ErrorBoundary>

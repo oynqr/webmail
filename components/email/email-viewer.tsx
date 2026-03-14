@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import DOMPurify from "dompurify";
-import { Email, ContactCard } from "@/lib/jmap/types";
+import { Email, ContactCard, Mailbox } from "@/lib/jmap/types";
 import { EMAIL_SANITIZE_CONFIG, collapseBlockedImageContainers } from "@/lib/email-sanitization";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
-import { formatFileSize, cn } from "@/lib/utils";
+import { formatFileSize, cn, buildMailboxTree, MailboxNode } from "@/lib/utils";
 import { getSecurityStatus, extractListHeaders } from "@/lib/email-headers";
 import {
   Reply,
@@ -53,6 +53,9 @@ import {
   StickyNote,
   PanelRightClose,
   Send,
+  FolderInput,
+  Inbox,
+  Folder,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSettingsStore, KEYWORD_PALETTE } from "@/stores/settings-store";
@@ -84,11 +87,14 @@ interface EmailViewerProps {
   onQuickReply?: (body: string) => Promise<void>;
   onMarkAsSpam?: () => void;
   onUndoSpam?: () => void;
+  onMoveToMailbox?: (mailboxId: string) => void;
   onBack?: () => void;
   onShowShortcuts?: () => void;
   currentUserEmail?: string;
   currentUserName?: string;
   currentMailboxRole?: string;
+  mailboxes?: Mailbox[];
+  selectedMailbox?: string;
   className?: string;
 }
 
@@ -333,7 +339,7 @@ function ContactSidebarPanel({
                   <div key={i} className="text-sm">
                     {o.name}
                     {o.units && o.units.length > 0 && (
-                      <span className="text-muted-foreground"> — {o.units.map(u => u.name).join(", ")}</span>
+                      <span className="text-muted-foreground"> â€” {o.units.map(u => u.name).join(", ")}</span>
                     )}
                   </div>
                 ))}
@@ -402,11 +408,14 @@ export function EmailViewer({
   onQuickReply,
   onMarkAsSpam,
   onUndoSpam,
+  onMoveToMailbox,
   onBack,
   onShowShortcuts,
   currentUserEmail,
   currentUserName,
   currentMailboxRole,
+  mailboxes = [],
+  selectedMailbox = "",
   className,
 }: EmailViewerProps) {
   const t = useTranslations('email_viewer');
@@ -443,13 +452,54 @@ export function EmailViewer({
   const [showSourceModal, setShowSourceModal] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [tagMenuOpen, setTagMenuOpen] = useState(false);
+  const [moveMenuOpen, setMoveMenuOpen] = useState(false);
   const moreMenuRef = useRef<HTMLDivElement>(null);
   const tagMenuRef = useRef<HTMLDivElement>(null);
+  const moveMenuRef = useRef<HTMLDivElement>(null);
   const currentColor = getCurrentColor(email?.keywords);
+
+  // Build mailbox tree for move-to dropdown
+  const moveTargetIds = useMemo(() => new Set(
+    mailboxes
+      .filter(
+        (m) =>
+          m.id !== selectedMailbox &&
+          m.role !== "drafts" &&
+          !m.id.startsWith("shared-") &&
+          m.myRights?.mayAddItems
+      )
+      .map((m) => m.id)
+  ), [mailboxes, selectedMailbox]);
+
+  const moveTree = useMemo(() => {
+    const tree = buildMailboxTree(mailboxes);
+    const filterTree = (nodes: MailboxNode[]): MailboxNode[] => {
+      return nodes.reduce<MailboxNode[]>((acc, node) => {
+        const filteredChildren = filterTree(node.children);
+        if (moveTargetIds.has(node.id) || filteredChildren.length > 0) {
+          acc.push({ ...node, children: filteredChildren });
+        }
+        return acc;
+      }, []);
+    };
+    return filterTree(tree);
+  }, [mailboxes, moveTargetIds]);
+
+  // Get mailbox icon based on role
+  const getMoveMailboxIcon = (role?: string) => {
+    switch (role) {
+      case "inbox": return Inbox;
+      case "sent": return Send;
+      case "drafts": return File;
+      case "trash": return Trash2;
+      case "archive": return Archive;
+      default: return Folder;
+    }
+  };
 
   // Close dropdown menus on click outside
   useEffect(() => {
-    if (!moreMenuOpen && !tagMenuOpen) return;
+    if (!moreMenuOpen && !tagMenuOpen && !moveMenuOpen) return;
     function handleClickOutside(e: MouseEvent) {
       if (moreMenuOpen && moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
         setMoreMenuOpen(false);
@@ -457,15 +507,19 @@ export function EmailViewer({
       if (tagMenuOpen && tagMenuRef.current && !tagMenuRef.current.contains(e.target as Node)) {
         setTagMenuOpen(false);
       }
+      if (moveMenuOpen && moveMenuRef.current && !moveMenuRef.current.contains(e.target as Node)) {
+        setMoveMenuOpen(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [moreMenuOpen, tagMenuOpen]);
+  }, [moreMenuOpen, tagMenuOpen, moveMenuOpen]);
 
   // Close dropdowns when email changes
   useEffect(() => {
     setMoreMenuOpen(false);
     setTagMenuOpen(false);
+    setMoveMenuOpen(false);
   }, [email?.id]);
 
   // Contact sidebar state
@@ -1120,6 +1174,55 @@ export function EmailViewer({
                     )}
                   </Button>
                 )}
+                {/* Move to folder - hidden on mobile, available in More menu */}
+                {moveTree.length > 0 && onMoveToMailbox && (
+                  <div ref={moveMenuRef} className="relative hidden sm:block">
+                    <button
+                      onClick={() => { setMoveMenuOpen(!moveMenuOpen); setMoreMenuOpen(false); setTagMenuOpen(false); }}
+                      className="h-8 rounded hover:bg-muted flex items-center gap-1.5 px-2"
+                      title={t('move_to')}
+                    >
+                      <FolderInput className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">{t('move_to')}</span>
+                    </button>
+                    {moveMenuOpen && (
+                      <div className="absolute right-0 top-full mt-1 py-1 w-48 max-h-72 overflow-y-auto bg-background rounded-lg shadow-lg border border-border z-10">
+                        {(() => {
+                          const renderNodes = (nodes: MailboxNode[], depth = 0) => {
+                            return nodes.map((node) => {
+                              const Icon = getMoveMailboxIcon(node.role);
+                              const isTarget = moveTargetIds.has(node.id);
+                              return (
+                                <div key={node.id}>
+                                  {isTarget ? (
+                                    <button
+                                      onClick={() => { onMoveToMailbox(node.id); setMoveMenuOpen(false); }}
+                                      className="w-full px-3 py-1.5 text-sm text-left hover:bg-muted flex items-center gap-2"
+                                      style={{ paddingLeft: `${0.75 + depth * 1}rem` }}
+                                    >
+                                      <Icon className="w-4 h-4 flex-shrink-0" />
+                                      <span className="truncate">{node.name}</span>
+                                    </button>
+                                  ) : (
+                                    <div
+                                      className="px-3 py-1.5 text-sm flex items-center gap-2 text-muted-foreground"
+                                      style={{ paddingLeft: `${0.75 + depth * 1}rem` }}
+                                    >
+                                      <Icon className="w-4 h-4 flex-shrink-0" />
+                                      <span>{node.name}</span>
+                                    </div>
+                                  )}
+                                  {node.children.length > 0 && renderNodes(node.children, depth + 1)}
+                                </div>
+                              );
+                            });
+                          };
+                          return renderNodes(moveTree);
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -1139,7 +1242,7 @@ export function EmailViewer({
                 {/* Tag Picker - click-based, hidden on mobile (available in More menu) */}
                 <div ref={tagMenuRef} className="relative hidden sm:block">
                   <button
-                    onClick={() => { setTagMenuOpen(!tagMenuOpen); setMoreMenuOpen(false); }}
+                    onClick={() => { setTagMenuOpen(!tagMenuOpen); setMoreMenuOpen(false); setMoveMenuOpen(false); }}
                     className={cn(
                       "h-8 rounded hover:bg-muted flex items-center gap-1.5 px-2",
                       currentColor && "bg-muted/50"
@@ -1213,7 +1316,7 @@ export function EmailViewer({
                     size="sm"
                     className="flex-col items-center gap-0.5 h-auto py-1.5 px-2 sm:flex-row sm:h-8 sm:w-8 sm:gap-0 sm:py-0 sm:px-0"
                     title={t('more_actions')}
-                    onClick={() => { setMoreMenuOpen(!moreMenuOpen); setTagMenuOpen(false); }}
+                    onClick={() => { setMoreMenuOpen(!moreMenuOpen); setTagMenuOpen(false); setMoveMenuOpen(false); }}
                   >
                     <MoreVertical className="w-4 h-4 text-muted-foreground" />
                     <span className="text-[10px] leading-tight sm:hidden">{t('more_actions')}</span>
@@ -1241,7 +1344,46 @@ export function EmailViewer({
                           {isInJunkFolder ? t('spam.not_spam_title') : t('spam.button_title')}
                         </button>
                       )}
-                      {/* Tag submenu on mobile */}
+                      {/* Move to folder submenu on mobile */}
+                      {moveTree.length > 0 && onMoveToMailbox && (
+                        <div className="sm:hidden">
+                          <div className="h-px bg-border my-1" />
+                          <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('move_to')}</div>
+                          {(() => {
+                            const renderMobileNodes = (nodes: MailboxNode[], depth = 0) => {
+                              return nodes.map((node) => {
+                                const Icon = getMoveMailboxIcon(node.role);
+                                const isTarget = moveTargetIds.has(node.id);
+                                return (
+                                  <div key={node.id}>
+                                    {isTarget ? (
+                                      <button
+                                        onClick={() => { onMoveToMailbox(node.id); setMoreMenuOpen(false); }}
+                                        className="w-full px-3 py-2 text-sm text-left hover:bg-muted flex items-center gap-2"
+                                        style={{ paddingLeft: `${0.75 + depth * 1}rem` }}
+                                      >
+                                        <Icon className="w-4 h-4 flex-shrink-0" />
+                                        <span className="truncate">{node.name}</span>
+                                      </button>
+                                    ) : (
+                                      <div
+                                        className="px-3 py-2 text-sm flex items-center gap-2 text-muted-foreground"
+                                        style={{ paddingLeft: `${0.75 + depth * 1}rem` }}
+                                      >
+                                        <Icon className="w-4 h-4 flex-shrink-0" />
+                                        <span>{node.name}</span>
+                                      </div>
+                                    )}
+                                    {node.children.length > 0 && renderMobileNodes(node.children, depth + 1)}
+                                  </div>
+                                );
+                              });
+                            };
+                            return renderMobileNodes(moveTree);
+                          })()}
+                          <div className="h-px bg-border my-1" />
+                        </div>
+                      )}                      {/* Tag submenu on mobile */}
                       {colorOptions.length > 0 && (
                         <div className="sm:hidden">
                           <div className="h-px bg-border my-1" />
@@ -1449,6 +1591,55 @@ export function EmailViewer({
                     )}
                   </Button>
                 )}
+                {/* Move to folder - hidden on mobile, available in More menu */}
+                {moveTree.length > 0 && onMoveToMailbox && (
+                  <div ref={moveMenuRef} className="relative hidden sm:block">
+                    <button
+                      onClick={() => { setMoveMenuOpen(!moveMenuOpen); setMoreMenuOpen(false); setTagMenuOpen(false); }}
+                      className="h-8 rounded hover:bg-muted flex items-center gap-1.5 px-2"
+                      title={t('move_to')}
+                    >
+                      <FolderInput className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">{t('move_to')}</span>
+                    </button>
+                    {moveMenuOpen && (
+                      <div className="absolute right-0 top-full mt-1 py-1 w-48 max-h-72 overflow-y-auto bg-background rounded-lg shadow-lg border border-border z-10">
+                        {(() => {
+                          const renderNodes = (nodes: MailboxNode[], depth = 0) => {
+                            return nodes.map((node) => {
+                              const Icon = getMoveMailboxIcon(node.role);
+                              const isTarget = moveTargetIds.has(node.id);
+                              return (
+                                <div key={node.id}>
+                                  {isTarget ? (
+                                    <button
+                                      onClick={() => { onMoveToMailbox(node.id); setMoveMenuOpen(false); }}
+                                      className="w-full px-3 py-1.5 text-sm text-left hover:bg-muted flex items-center gap-2"
+                                      style={{ paddingLeft: `${0.75 + depth * 1}rem` }}
+                                    >
+                                      <Icon className="w-4 h-4 flex-shrink-0" />
+                                      <span className="truncate">{node.name}</span>
+                                    </button>
+                                  ) : (
+                                    <div
+                                      className="px-3 py-1.5 text-sm flex items-center gap-2 text-muted-foreground"
+                                      style={{ paddingLeft: `${0.75 + depth * 1}rem` }}
+                                    >
+                                      <Icon className="w-4 h-4 flex-shrink-0" />
+                                      <span>{node.name}</span>
+                                    </div>
+                                  )}
+                                  {node.children.length > 0 && renderNodes(node.children, depth + 1)}
+                                </div>
+                              );
+                            });
+                          };
+                          return renderNodes(moveTree);
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -1478,7 +1669,7 @@ export function EmailViewer({
                 {/* Tag Picker - click-based, hidden on mobile (available in More menu) */}
                 <div ref={tagMenuRef} className="relative hidden sm:block">
                   <button
-                    onClick={() => { setTagMenuOpen(!tagMenuOpen); setMoreMenuOpen(false); }}
+                    onClick={() => { setTagMenuOpen(!tagMenuOpen); setMoreMenuOpen(false); setMoveMenuOpen(false); }}
                     className={cn(
                       "h-8 rounded hover:bg-muted flex items-center gap-1.5 px-2",
                       currentColor && "bg-muted/50"
@@ -1552,7 +1743,7 @@ export function EmailViewer({
                     size="sm"
                     className="flex-col items-center gap-0.5 h-auto py-1.5 px-2 sm:flex-row sm:h-8 sm:w-8 sm:gap-0 sm:py-0 sm:px-0"
                     title={t('more_actions')}
-                    onClick={() => { setMoreMenuOpen(!moreMenuOpen); setTagMenuOpen(false); }}
+                    onClick={() => { setMoreMenuOpen(!moreMenuOpen); setTagMenuOpen(false); setMoveMenuOpen(false); }}
                   >
                     <MoreVertical className="w-4 h-4 text-muted-foreground" />
                     <span className="text-[10px] leading-tight sm:hidden">{t('more_actions')}</span>
@@ -1580,7 +1771,46 @@ export function EmailViewer({
                           {isInJunkFolder ? t('spam.not_spam_title') : t('spam.button_title')}
                         </button>
                       )}
-                      {/* Tag submenu on mobile */}
+                      {/* Move to folder submenu on mobile */}
+                      {moveTree.length > 0 && onMoveToMailbox && (
+                        <div className="sm:hidden">
+                          <div className="h-px bg-border my-1" />
+                          <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('move_to')}</div>
+                          {(() => {
+                            const renderMobileNodes = (nodes: MailboxNode[], depth = 0) => {
+                              return nodes.map((node) => {
+                                const Icon = getMoveMailboxIcon(node.role);
+                                const isTarget = moveTargetIds.has(node.id);
+                                return (
+                                  <div key={node.id}>
+                                    {isTarget ? (
+                                      <button
+                                        onClick={() => { onMoveToMailbox(node.id); setMoreMenuOpen(false); }}
+                                        className="w-full px-3 py-2 text-sm text-left hover:bg-muted flex items-center gap-2"
+                                        style={{ paddingLeft: `${0.75 + depth * 1}rem` }}
+                                      >
+                                        <Icon className="w-4 h-4 flex-shrink-0" />
+                                        <span className="truncate">{node.name}</span>
+                                      </button>
+                                    ) : (
+                                      <div
+                                        className="px-3 py-2 text-sm flex items-center gap-2 text-muted-foreground"
+                                        style={{ paddingLeft: `${0.75 + depth * 1}rem` }}
+                                      >
+                                        <Icon className="w-4 h-4 flex-shrink-0" />
+                                        <span>{node.name}</span>
+                                      </div>
+                                    )}
+                                    {node.children.length > 0 && renderMobileNodes(node.children, depth + 1)}
+                                  </div>
+                                );
+                              });
+                            };
+                            return renderMobileNodes(moveTree);
+                          })()}
+                          <div className="h-px bg-border my-1" />
+                        </div>
+                      )}                      {/* Tag submenu on mobile */}
                       {colorOptions.length > 0 && (
                         <div className="sm:hidden">
                           <div className="h-px bg-border my-1" />
@@ -2216,12 +2446,12 @@ export function EmailViewer({
                         }}
                       />
                     )}
-                    <span>·</span>
+                    <span>Â·</span>
                   </>
                 )}
                 {email.to && email.to.length > 0 && (
                   <>
-                    <span>→ {t('recipient_to_prefix')}</span>
+                    <span>â†’ {t('recipient_to_prefix')}</span>
                     {renderClickableRecipients(email.to, currentUserEmail, t, handleViewContactSidebar)}
                   </>
                 )}

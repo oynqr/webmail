@@ -175,6 +175,7 @@
     "set_color": "Label setzen",
     "tag": "Label",
     "more_actions": "Weitere Aktionen",
+    "move_to": "Verschieben nach...",
     "remove_color": "Label entfernen",
     "more_count": "+{count} weitere",
     "characters_count": "{count} Zeichen",

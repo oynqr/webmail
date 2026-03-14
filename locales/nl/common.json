@@ -175,6 +175,7 @@
     "set_color": "Label instellen",
     "tag": "Label",
     "more_actions": "Meer acties",
+    "move_to": "Verplaatsen naar...",
     "remove_color": "Label verwijderen",
     "more_count": "+{count} meer",
     "characters_count": "{count} tekens",

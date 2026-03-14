@@ -175,6 +175,7 @@
     "set_color": "Définir l'étiquette",
     "tag": "Étiquette",
     "more_actions": "Plus d'actions",
+    "move_to": "Déplacer vers...",
     "remove_color": "Retirer l'étiquette",
     "more_count": "+{count} de plus",
     "characters_count": "{count} caractères",

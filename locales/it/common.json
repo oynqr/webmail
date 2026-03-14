@@ -175,6 +175,7 @@
     "set_color": "Imposta etichetta",
     "tag": "Etichetta",
     "more_actions": "Altre azioni",
+    "move_to": "Sposta in...",
     "remove_color": "Rimuovi etichetta",
     "more_count": "+{count} altri",
     "characters_count": "{count} caratteri",

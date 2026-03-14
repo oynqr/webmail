@@ -175,6 +175,7 @@
     "set_color": "Set tag",
     "tag": "Tag",
     "more_actions": "More actions",
+    "move_to": "Move to...",
     "remove_color": "Remove tag",
     "more_count": "+{count} more",
     "characters_count": "{count} characters",

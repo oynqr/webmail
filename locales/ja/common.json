@@ -175,6 +175,7 @@
     "set_color": "ラベルを設定",
     "tag": "ラベル",
     "more_actions": "その他の操作",
+    "move_to": "移動...",
     "remove_color": "ラベルを削除",
     "more_count": "他{count}件",
     "characters_count": "{count}文字",
