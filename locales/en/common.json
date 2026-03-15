@@ -362,6 +362,8 @@
     "upload_progress": "Uploading {uploaded} / {total}",
     "upload_cancel": "Cancel upload",
     "upload_failed": "Failed to upload {filename}",
+    "drop_files": "Drop files to attach",
+    "show_less": "Show less",
     "send_failed": "Failed to send email",
     "continue_draft": "Continue draft",
     "close_draft_title": "Save or discard draft?",

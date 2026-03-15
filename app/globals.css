@@ -242,6 +242,26 @@ body {
   list-style-type: decimal;
 }
 
+/* Reply quoted HTML - preserves original inline styles/colors */
+.email-reply-quote {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: none;
+}
+
+.email-reply-quote p {
+  margin: 0.5rem 0;
+}
+
+.email-reply-quote img {
+  max-width: 100%;
+  height: auto;
+}
+
+.email-reply-quote a {
+  text-decoration: underline;
+}
+
 /* Only style tables that are actual data tables, not layout tables */
 .email-content table.data-table,
 .email-content table[border="1"] {

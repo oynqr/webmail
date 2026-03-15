@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import DOMPurify from "dompurify";
 import { Email, ContactCard, Mailbox } from "@/lib/jmap/types";
 import { EMAIL_SANITIZE_CONFIG, collapseBlockedImageContainers } from "@/lib/email-sanitization";
@@ -57,6 +57,8 @@ import {
   FolderInput,
   Inbox,
   Folder,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSettingsStore, KEYWORD_PALETTE } from "@/stores/settings-store";
@@ -66,7 +68,6 @@ import { toast } from "@/stores/toast-store";
 import { useDeviceDetection } from "@/hooks/use-media-query";
 import { useAuthStore } from "@/stores/auth-store";
 import { useThemeStore } from "@/stores/theme-store";
-import { transformInlineStyles, transformColorForDarkMode, transformBgColorForDarkMode } from "@/lib/color-transform";
 import { EmailIdentityBadge } from "./email-identity-badge";
 import { UnsubscribeBanner } from "./unsubscribe-banner";
 import { CalendarInvitationBanner } from "./calendar-invitation-banner";
@@ -613,6 +614,7 @@ export function EmailViewer({
     setQuickReplyText("");
     setIsQuickReplyFocused(false);
     setShowSourceModal(false);
+    setEmailViewDarkOverride(null);
   }, [email?.id, externalContentPolicy]);
 
   // Fetch inline CID images with authentication to prevent browser auth dialogs
@@ -894,25 +896,7 @@ export function EmailViewer({
             node.setAttribute('rel', 'noopener noreferrer');
           }
 
-          if (resolvedTheme === 'dark') {
-            if (htmlNode.style) {
-              const originalStyles = htmlNode.style.cssText;
-              const transformedStyles = transformInlineStyles(originalStyles, 'dark');
-              if (transformedStyles !== originalStyles) {
-                htmlNode.style.cssText = transformedStyles;
-              }
-            }
-
-            const colorAttr = node.getAttribute('color');
-            if (colorAttr) {
-              node.setAttribute('color', transformColorForDarkMode(colorAttr));
-            }
-
-            const bgcolorAttr = node.getAttribute('bgcolor');
-            if (bgcolorAttr) {
-              node.setAttribute('bgcolor', transformBgColorForDarkMode(bgcolorAttr));
-            }
-          }
+          // No dark mode color transforms - emails render true-to-life in iframe
         });
 
         // Sanitize HTML to prevent XSS
@@ -979,7 +963,75 @@ export function EmailViewer({
       html: '<p style="color: var(--color-muted-foreground);">No content available</p>',
       isHtml: false
     };
-  }, [email, allowExternalContent, hasBlockedContent, externalContentPolicy, isSenderTrusted, resolvedTheme, cidBlobUrls]);
+  }, [email, allowExternalContent, hasBlockedContent, externalContentPolicy, isSenderTrusted, cidBlobUrls]);
+
+  // Iframe for rendering HTML emails true-to-life
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Detect if the email HTML has native dark mode support
+  const emailHasNativeDarkMode = useMemo(() => {
+    if (!emailContent.isHtml) return false;
+    return /prefers-color-scheme\s*:\s*dark/i.test(emailContent.html);
+  }, [emailContent.html, emailContent.isHtml]);
+
+  const [emailViewDarkOverride, setEmailViewDarkOverride] = useState<boolean | null>(null);
+  const isDark = emailViewDarkOverride !== null ? emailViewDarkOverride : resolvedTheme === 'dark';
+
+  const emailIframeSrcDoc = useMemo(() => {
+    if (!emailContent.isHtml) return '';
+
+    // If email has native dark mode, let it handle its own theming
+    // Otherwise, use CSS filter inversion for dark mode (preserves layout)
+    const darkModeCSS = isDark && !emailHasNativeDarkMode ? `
+      html { background: #1a1a1a; }
+      body { filter: invert(1) hue-rotate(180deg); }
+      img, video, picture, svg, canvas, object, embed,
+      [style*="background-image"], [style*="background:"],
+      [background], [bgcolor],
+      td[background], table[background],
+      img[src], input[type="image"] {
+        filter: invert(1) hue-rotate(180deg);
+      }
+    ` : '';
+
+    const colorScheme = isDark && emailHasNativeDarkMode ? 'light dark' : 'light';
+
+    return `<!DOCTYPE html>
+<html style="color-scheme: ${colorScheme};"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { margin: 0; padding: 16px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; color: #1a1a1a; background: #ffffff; word-wrap: break-word; overflow-wrap: break-word; }
+  img { max-width: 100%; height: auto; }
+  a { color: #1a73e8; }
+  table { max-width: 100%; }
+  pre { white-space: pre-wrap; word-wrap: break-word; }
+  ${darkModeCSS}
+</style></head><body>${emailContent.html}</body></html>`;
+  }, [emailContent.html, emailContent.isHtml, isDark, emailHasNativeDarkMode]);
+
+  const handleIframeLoad = useCallback(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    try {
+      const doc = iframe.contentDocument;
+      if (doc?.body) {
+        // Auto-resize iframe to fit content
+        const resizeObserver = new ResizeObserver(() => {
+          const height = doc.documentElement.scrollHeight;
+          iframe.style.height = height + 'px';
+        });
+        resizeObserver.observe(doc.body);
+        iframe.style.height = doc.documentElement.scrollHeight + 'px';
+
+        // Make links open in new tab
+        doc.querySelectorAll('a').forEach(a => {
+          a.setAttribute('target', '_blank');
+          a.setAttribute('rel', 'noopener noreferrer');
+        });
+      }
+    } catch {
+      // Cross-origin restrictions - iframe will still display content
+    }
+  }, []);
 
   // Print only the email content in a new window
   const handlePrint = () => {
@@ -2132,6 +2184,15 @@ export function EmailViewer({
                       {formatFileSize(email.size)}
                     </div>
                   )}
+                  {emailContent.isHtml && (
+                    <button
+                      onClick={() => setEmailViewDarkOverride(prev => prev === null ? !(resolvedTheme === 'dark') : !prev)}
+                      className="inline-flex items-center rounded-full p-1 mt-1 text-muted-foreground/70 hover:text-foreground transition-colors hover:bg-muted"
+                      title={isDark ? 'View in light mode' : 'View in dark mode'}
+                    >
+                      {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -2717,14 +2778,14 @@ export function EmailViewer({
           {/* Email Body */}
           <div className="email-content-wrapper overflow-x-auto">
             {emailContent.isHtml ? (
-              <div
-                className="email-content prose dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: emailContent.html }}
-                style={{
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                  fontSize: '14px',
-                  lineHeight: '1.6',
-                }}
+              <iframe
+                ref={iframeRef}
+                srcDoc={emailIframeSrcDoc}
+                sandbox="allow-same-origin allow-popups"
+                title="Email content"
+                className="w-full border-0 rounded"
+                style={{ minHeight: '100px', colorScheme: isDark && emailHasNativeDarkMode ? 'light dark' : 'light' }}
+                onLoad={handleIframeLoad}
               />
             ) : (
               <div

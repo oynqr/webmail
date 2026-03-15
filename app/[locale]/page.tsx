@@ -423,6 +423,7 @@ export default function Home() {
     bcc: string[];
     subject: string;
     body: string;
+    htmlBody?: string;
     draftId?: string;
     fromEmail?: string;
     fromName?: string;
@@ -431,7 +432,7 @@ export default function Home() {
     if (!client) return;
 
     try {
-      await sendEmail(client, data.to, data.subject, data.body, data.cc, data.bcc, data.identityId, data.fromEmail, data.draftId, data.fromName);
+      await sendEmail(client, data.to, data.subject, data.body, data.cc, data.bcc, data.identityId, data.fromEmail, data.draftId, data.fromName, data.htmlBody);
       setShowComposer(false);
 
       // Refresh the current mailbox to update the UI
@@ -1349,6 +1350,7 @@ export default function Home() {
                     cc: selectedEmail.cc,
                     subject: selectedEmail.subject,
                     body: selectedEmail.bodyValues?.[selectedEmail.textBody?.[0]?.partId || '']?.value || selectedEmail.preview || '',
+                    htmlBody: selectedEmail.bodyValues?.[selectedEmail.htmlBody?.[0]?.partId || '']?.value || undefined,
                     receivedAt: selectedEmail.receivedAt
                   } : undefined)}
                   initialDraftText={composerDraftText}

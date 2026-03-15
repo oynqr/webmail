@@ -61,7 +61,7 @@ interface EmailStore {
   loadMoreEmails: (client: JMAPClient) => Promise<void>;
   fetchEmailContent: (client: JMAPClient, emailId: string) => Promise<Email | null>;
   fetchQuota: (client: JMAPClient) => Promise<void>;
-  sendEmail: (client: JMAPClient, to: string[], subject: string, body: string, cc?: string[], bcc?: string[], identityId?: string, fromEmail?: string, draftId?: string, fromName?: string) => Promise<void>;
+  sendEmail: (client: JMAPClient, to: string[], subject: string, body: string, cc?: string[], bcc?: string[], identityId?: string, fromEmail?: string, draftId?: string, fromName?: string, htmlBody?: string) => Promise<void>;
   deleteEmail: (client: JMAPClient, emailId: string, forceDelete?: boolean) => Promise<void>;
   markAsRead: (client: JMAPClient, emailId: string, read: boolean) => Promise<void>;
   moveToMailbox: (client: JMAPClient, emailId: string, mailboxId: string) => Promise<void>;
@@ -387,10 +387,10 @@ export const useEmailStore = create<EmailStore>((set, get) => ({
     }
   },
 
-  sendEmail: async (client, to, subject, body, cc, bcc, identityId, fromEmail, draftId, fromName) => {
+  sendEmail: async (client, to, subject, body, cc, bcc, identityId, fromEmail, draftId, fromName, htmlBody) => {
     set({ isLoading: true, error: null });
     try {
-      await client.sendEmail(to, subject, body, cc, bcc, identityId, fromEmail, draftId, fromName);
+      await client.sendEmail(to, subject, body, cc, bcc, identityId, fromEmail, draftId, fromName, htmlBody);
       // Refresh handled by UI layer for immediate feedback
       set({ isLoading: false });
     } catch (error) {

@@ -9,6 +9,7 @@ import { X, Paperclip, Send, Save, Check, Loader2, AlertCircle, FileText, Bookma
 import { cn, formatFileSize } from "@/lib/utils";
 import { debug } from "@/lib/debug";
 import { toast } from "@/stores/toast-store";
+import { sanitizeEmailHtml } from "@/lib/email-sanitization";
 import { useAuthStore } from "@/stores/auth-store";
 import { useIdentityStore } from "@/stores/identity-store";
 import { useContactStore } from "@/stores/contact-store";
@@ -42,6 +43,7 @@ interface EmailComposerProps {
     bcc: string[];
     subject: string;
     body: string;
+    htmlBody?: string;
     draftId?: string;
     fromEmail?: string;
     fromName?: string;
@@ -60,6 +62,7 @@ interface EmailComposerProps {
     cc?: { email?: string; name?: string }[];
     subject?: string;
     body?: string;
+    htmlBody?: string;
     receivedAt?: string;
   };
 }
@@ -113,16 +116,22 @@ export function EmailComposer({
 
   const getInitialBody = () => {
     const prefix = initialDraftText || "";
-    if (!replyTo?.body) return prefix;
+    if (!replyTo?.body && !replyTo?.htmlBody) return prefix;
 
     const date = replyTo.receivedAt ? new Date(replyTo.receivedAt).toLocaleString() : "";
     const from = replyTo.from?.[0];
     const fromStr = from ? `${from.name || from.email}` : tCommon('unknown');
 
+    // When HTML body is available, don't include quoted text in the textarea
+    // The HTML original will be shown separately below the textarea
+    if (replyTo.htmlBody && (mode === 'reply' || mode === 'replyAll' || mode === 'forward')) {
+      return prefix;
+    }
+
     if (mode === 'forward') {
       return `${prefix}\n\n---------- Forwarded message ----------\nFrom: ${fromStr}\nDate: ${date}\nSubject: ${replyTo.subject || ""}\n\n${replyTo.body}`;
     } else if (mode === 'reply' || mode === 'replyAll') {
-      return `${prefix}\n\nOn ${date}, ${fromStr} wrote:\n> ${replyTo.body.split('\n').join('\n> ')}`;
+      return `${prefix}\n\nOn ${date}, ${fromStr} wrote:\n> ${(replyTo.body || '').split('\n').join('\n> ')}`;
     }
     return prefix;
   };
@@ -138,6 +147,18 @@ export function EmailComposer({
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<string>("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const autoResizeTextarea = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }, []);
+
+  useEffect(() => {
+    autoResizeTextarea();
+  }, [body, autoResizeTextarea]);
   const [attachments, setAttachments] = useState<Array<{ file: File; blobId?: string; uploading?: boolean; error?: boolean; abortController?: AbortController }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [validationErrors, setValidationErrors] = useState<{ to?: boolean; subject?: boolean; body?: boolean }>({});
@@ -147,6 +168,7 @@ export function EmailComposer({
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [showSaveAsTemplate, setShowSaveAsTemplate] = useState(false);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
+  const [showAllAttachments, setShowAllAttachments] = useState(false);
 
   const saveTemplateModalRef = useFocusTrap({
     isActive: showSaveAsTemplate,
@@ -333,13 +355,9 @@ export function EmailComposer({
     return () => window.removeEventListener('keydown', handleTemplateKey);
   }, []);
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!client || !event.target.files) return;
+  const addFiles = useCallback(async (files: File[]) => {
+    if (!client || files.length === 0) return;
 
-    const files = Array.from(event.target.files);
-
-    // AbortController tracks cancellation state but uploadBlob doesn't accept a signal,
-    // so abort only prevents post-upload state updates (cosmetic cancellation)
     const newAttachments = files.map(file => {
       const controller = new AbortController();
       return { file, uploading: true, abortController: controller };
@@ -375,11 +393,59 @@ export function EmailComposer({
         );
       }
     }
+  }, [client, t]);
 
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files) return;
+    await addFiles(Array.from(event.target.files));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
+
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const clearDragState = useCallback(() => {
+    if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
+    dragTimeoutRef.current = null;
+    setIsDraggingOver(false);
+  }, []);
+
+  const resetDragTimeout = useCallback(() => {
+    if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
+    dragTimeoutRef.current = setTimeout(clearDragState, 150);
+  }, [clearDragState]);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDraggingOver(true);
+      resetDragTimeout();
+    }
+  }, [resetDragTimeout]);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    resetDragTimeout();
+  }, [resetDragTimeout]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    resetDragTimeout();
+  }, [resetDragTimeout]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    clearDragState();
+    if (e.dataTransfer.files?.length) {
+      addFiles(Array.from(e.dataTransfer.files));
+    }
+  }, [addFiles, clearDragState]);
 
   const removeAttachment = (index: number) => {
     const att = attachments[index];
@@ -558,6 +624,23 @@ export function EmailComposer({
       finalBody = body + '\n\n-- \n' + currentIdentity.textSignature;
     }
 
+    // Build HTML body when replying/forwarding with original HTML content
+    let finalHtmlBody: string | undefined;
+    if (replyTo?.htmlBody && (mode === 'reply' || mode === 'replyAll' || mode === 'forward')) {
+      const escapedBody = body.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+      const signatureHtml = currentIdentity?.textSignature
+        ? `<br><br>-- <br>${currentIdentity.textSignature.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}`
+        : '';
+      const date = replyTo.receivedAt ? new Date(replyTo.receivedAt).toLocaleString() : '';
+      const fromAddr = replyTo.from?.[0];
+      const fromStr = fromAddr ? `${fromAddr.name || fromAddr.email}` : tCommon('unknown');
+      const quoteHeader = mode === 'forward'
+        ? `---------- ${t('prefix.forward')} ----------<br>From: ${fromStr}<br>Date: ${date}<br>Subject: ${replyTo.subject || ''}<br><br>`
+        : `On ${date}, ${fromStr} wrote:<br>`;
+
+      finalHtmlBody = `<div>${escapedBody}</div>${signatureHtml}<br><div><div>${quoteHeader}</div><blockquote style="margin:0 0 0 0.8ex;border-left:2px solid #ccc;padding-left:1ex">${replyTo.htmlBody}</blockquote></div>`;
+    }
+
     try {
       await onSend?.({
         to: toAddresses,
@@ -565,6 +648,7 @@ export function EmailComposer({
         bcc: bccAddresses,
         subject,
         body: finalBody,
+        htmlBody: finalHtmlBody,
         draftId: finalDraftId || undefined,
         fromEmail,
         fromName: currentIdentity?.name || undefined,
@@ -626,7 +710,22 @@ export function EmailComposer({
   };
 
   return (
-    <div className={cn("flex flex-col h-full bg-background", className)}>
+    <div
+      className={cn("flex flex-col h-full bg-background relative", className)}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Drag overlay */}
+      {isDraggingOver && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 border-2 border-dashed border-primary rounded-lg pointer-events-none">
+          <div className="flex flex-col items-center gap-2 text-primary">
+            <Paperclip className="w-8 h-8" />
+            <span className="text-sm font-medium">{t('drop_files')}</span>
+          </div>
+        </div>
+      )}
       {/* Header - mobile: clean bar with close/send, desktop: title bar */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-background">
         <div className="flex items-center gap-3">
@@ -668,7 +767,7 @@ export function EmailComposer({
         </Button>
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 min-h-0 overflow-auto">
         {/* Fields section */}
         <div className="space-y-0 border-b">
           {/* From field */}
@@ -834,10 +933,11 @@ export function EmailComposer({
         </div>
 
         {/* Body */}
-        <div className="flex-1 px-4 py-3 min-h-0">
+        <div className="px-4 py-3">
           <textarea
+            ref={textareaRef}
             className={cn(
-              "w-full h-full resize-none outline-none text-sm bg-transparent text-foreground placeholder:text-muted-foreground rounded",
+              "w-full resize-none outline-none text-sm bg-transparent text-foreground placeholder:text-muted-foreground rounded min-h-[100px] overflow-hidden",
               validationErrors.body && "ring-2 ring-red-500 dark:ring-red-400"
             )}
             placeholder={t('body_placeholder')}
@@ -850,11 +950,29 @@ export function EmailComposer({
           />
         </div>
 
+        {/* Quoted original HTML */}
+        {replyTo?.htmlBody && (mode === 'reply' || mode === 'replyAll' || mode === 'forward') && (
+          <div className="border-t border-border">
+            <div className="px-4 py-2 text-xs text-muted-foreground">
+              {mode === 'forward'
+                ? `---------- ${t('prefix.forward')} ----------`
+                : `${replyTo.receivedAt ? new Date(replyTo.receivedAt).toLocaleString() : ''}, ${replyTo.from?.[0]?.name || replyTo.from?.[0]?.email || tCommon('unknown')}:`
+              }
+            </div>
+            <div
+              className="email-reply-quote px-4 pb-3 border-l-2 border-muted-foreground/30 ml-4 max-w-none rounded"
+              style={{ backgroundColor: '#ffffff', color: '#1a1a1a', fontSize: '14px' }}
+              dangerouslySetInnerHTML={{ __html: sanitizeEmailHtml(replyTo.htmlBody) }}
+            />
+          </div>
+        )}
+      </div>
+
         {/* Attachments */}
         {attachments.length > 0 && (
-          <div className="px-4 py-2 border-t">
+          <div className="px-4 py-2 border-t shrink-0">
             <div className="flex flex-wrap gap-2">
-              {attachments.map((att, index) => (
+              {(showAllAttachments ? attachments : attachments.slice(0, 3)).map((att, index) => (
                 <div
                   key={index}
                   className={cn(
@@ -890,12 +1008,20 @@ export function EmailComposer({
                   </div>
                 </div>
               ))}
+              {attachments.length > 3 && (
+                <button
+                  onClick={() => setShowAllAttachments(prev => !prev)}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-md text-sm bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showAllAttachments ? t('show_less') : `+${attachments.length - 3}`}
+                </button>
+              )}
             </div>
           </div>
         )}
 
         {/* Bottom toolbar */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-t bg-background">
+        <div className="flex items-center justify-between px-4 py-2.5 border-t bg-background shrink-0">
           {/* Left side actions */}
           <div className="flex items-center gap-1">
             <input
@@ -955,7 +1081,6 @@ export function EmailComposer({
             </Button>
           </div>
         </div>
-      </div>
 
       {showTemplatePicker && (
         <TemplatePicker

@@ -1379,7 +1379,8 @@ export class JMAPClient {
     identityId?: string,
     fromEmail?: string,
     draftId?: string,
-    fromName?: string
+    fromName?: string,
+    htmlBody?: string
   ): Promise<void> {
     const emailId = draftId || `draft-${Date.now()}`;
     const mailboxes = await this.getMailboxes();
@@ -1422,21 +1423,33 @@ export class JMAPClient {
         create: { "1": { emailId: draftId, identityId: finalIdentityId } },
       }, "1"]);
     } else {
+      // Build email body parts - include HTML if available
+      const emailCreate: Record<string, unknown> = {
+        from: [{ ...(fromName ? { name: fromName } : {}), email: fromEmail || this.username }],
+        to: to.map(email => ({ email })),
+        cc: cc?.map(email => ({ email })),
+        bcc: bcc?.map(email => ({ email })),
+        subject,
+        keywords: { "$seen": true },
+        mailboxIds: { [sentMailbox.id]: true },
+      };
+
+      if (htmlBody) {
+        // Send as multipart/alternative with both text and HTML
+        emailCreate.bodyValues = {
+          "text": { value: body },
+          "html": { value: htmlBody },
+        };
+        emailCreate.textBody = [{ partId: "text" }];
+        emailCreate.htmlBody = [{ partId: "html" }];
+      } else {
+        emailCreate.bodyValues = { "1": { value: body } };
+        emailCreate.textBody = [{ partId: "1" }];
+      }
+
       methodCalls.push(["Email/set", {
         accountId: this.accountId,
-        create: {
-          [emailId]: {
-            from: [{ ...(fromName ? { name: fromName } : {}), email: fromEmail || this.username }],
-            to: to.map(email => ({ email })),
-            cc: cc?.map(email => ({ email })),
-            bcc: bcc?.map(email => ({ email })),
-            subject,
-            keywords: { "$seen": true },
-            mailboxIds: { [sentMailbox.id]: true },
-            bodyValues: { "1": { value: body } },
-            textBody: [{ partId: "1" }],
-          },
-        },
+        create: { [emailId]: emailCreate },
       }, "0"]);
       methodCalls.push(["EmailSubmission/set", {
         accountId: this.accountId,
