@@ -20,6 +20,7 @@ import { useEmailStore } from "@/stores/email-store";
 import { toast } from "@/stores/toast-store";
 import { cn } from "@/lib/utils";
 import { NavigationRail } from "@/components/layout/navigation-rail";
+import { ResizeHandle } from "@/components/layout/resize-handle";
 import { useIsMobile } from "@/hooks/use-media-query";
 import type { ContactCard } from "@/lib/jmap/types";
 
@@ -74,6 +75,13 @@ export default function ContactsPage() {
   const hasFetched = useRef(false);
   const { dialogProps: confirmDialogProps, confirm: confirmDialog } = useConfirmDialog();
   const isMobile = useIsMobile();
+
+  // Sidebar resize state
+  const [contactsSidebarWidth, setContactsSidebarWidth] = useState(() => {
+    try { const v = localStorage.getItem("contacts-sidebar-width"); return v ? Number(v) : 256; } catch { return 256; }
+  });
+  const [isResizing, setIsResizing] = useState(false);
+  const dragStartWidth = useRef(256);
 
   // Check auth on mount
   useEffect(() => {
@@ -442,10 +450,15 @@ export default function ContactsPage() {
       <div className="flex flex-col flex-1 min-w-0">
         <div className="flex flex-1 min-h-0">
           {showListPanel && (
-            <div className={cn(
-              "border-r border-border flex flex-col flex-shrink-0",
-              isMobile ? "w-full" : "w-80"
-            )}>
+            <>
+              <div
+                className={cn(
+                  "border-r border-border bg-secondary flex flex-col flex-shrink-0",
+                  isMobile ? "w-full" : "",
+                  !isResizing && !isMobile && "transition-[width] duration-300"
+                )}
+                style={!isMobile ? { width: `${contactsSidebarWidth}px` } : undefined}
+              >
               <div className="flex border-b border-border">
                 <button
                   onClick={() => setActiveTab("all")}
@@ -507,6 +520,18 @@ export default function ContactsPage() {
                 />
               )}
             </div>
+            {!isMobile && (
+              <ResizeHandle
+                onResizeStart={() => { dragStartWidth.current = contactsSidebarWidth; setIsResizing(true); }}
+                onResize={(delta) => setContactsSidebarWidth(Math.max(180, Math.min(400, dragStartWidth.current + delta)))}
+                onResizeEnd={() => {
+                  setIsResizing(false);
+                  localStorage.setItem("contacts-sidebar-width", String(contactsSidebarWidth));
+                }}
+                onDoubleClick={() => { setContactsSidebarWidth(256); localStorage.setItem("contacts-sidebar-width", "256"); }}
+              />
+            )}
+            </>
           )}
 
           {showRightPanel && (

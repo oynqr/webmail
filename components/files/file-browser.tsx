@@ -348,10 +348,10 @@ export function FileBrowser({
       const saved = localStorage.getItem("files-sidebar-width");
       if (saved) return Math.max(180, Math.min(400, Number(saved)));
     }
-    return 220;
+    return 256;
   });
   const [isResizing, setIsResizing] = useState(false);
-  const dragStartWidth = useRef(220);
+  const dragStartWidth = useRef(256);
   const [dragTarget, setDragTarget] = useState<string | null>(null);
 
   // Sync showThumbnails and folderLayout when settings change
@@ -1104,7 +1104,7 @@ export function FileBrowser({
                 setIsResizing(false);
                 localStorage.setItem("files-sidebar-width", String(sidebarWidth));
               }}
-              onDoubleClick={() => { setSidebarWidth(220); localStorage.setItem("files-sidebar-width", "220"); }}
+              onDoubleClick={() => { setSidebarWidth(256); localStorage.setItem("files-sidebar-width", "256"); }}
             />
           </>
         )}

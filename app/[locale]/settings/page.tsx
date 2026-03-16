@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import {
@@ -44,6 +44,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useEmailStore } from '@/stores/email-store';
 import { useIsDesktop } from '@/hooks/use-media-query';
 import { NavigationRail } from '@/components/layout/navigation-rail';
+import { ResizeHandle } from '@/components/layout/resize-handle';
 import { useConfig } from '@/hooks/use-config';
 import { cn } from '@/lib/utils';
 
@@ -93,6 +94,13 @@ export default function SettingsPage() {
   });
   const [mobileShowContent, setMobileShowContent] = useState(false);
   const isDesktop = useIsDesktop();
+
+  // Sidebar resize state
+  const [settingsSidebarWidth, setSettingsSidebarWidth] = useState(() => {
+    try { const v = localStorage.getItem('settings-sidebar-width'); return v ? Number(v) : 256; } catch { return 256; }
+  });
+  const [isResizing, setIsResizing] = useState(false);
+  const dragStartWidth = useRef(256);
 
   // Check auth on mount
   useEffect(() => {
@@ -286,7 +294,13 @@ export default function SettingsPage() {
       </div>
 
       {/* Settings Sidebar */}
-      <div className="w-64 border-r border-border bg-secondary flex flex-col">
+      <div
+        className={cn(
+          "border-r border-border bg-secondary flex flex-col",
+          !isResizing && "transition-[width] duration-300"
+        )}
+        style={{ width: `${settingsSidebarWidth}px` }}
+      >
         {/* Header */}
         <div className="p-4 border-b border-border">
           <Button
@@ -337,6 +351,17 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Sidebar resize handle */}
+      <ResizeHandle
+        onResizeStart={() => { dragStartWidth.current = settingsSidebarWidth; setIsResizing(true); }}
+        onResize={(delta) => setSettingsSidebarWidth(Math.max(180, Math.min(400, dragStartWidth.current + delta)))}
+        onResizeEnd={() => {
+          setIsResizing(false);
+          localStorage.setItem('settings-sidebar-width', String(settingsSidebarWidth));
+        }}
+        onDoubleClick={() => { setSettingsSidebarWidth(256); localStorage.setItem('settings-sidebar-width', '256'); }}
+      />
 
       {/* Settings Content */}
       <div className="flex-1 overflow-y-auto">

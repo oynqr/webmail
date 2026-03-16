@@ -26,7 +26,7 @@ interface FolderTreeSidebarProps {
   isResizing?: boolean;
 }
 
-export function FolderTreeSidebar({ currentPath, onNavigate, listByParentId, width = 220, isResizing }: FolderTreeSidebarProps) {
+export function FolderTreeSidebar({ currentPath, onNavigate, listByParentId, width = 256, isResizing }: FolderTreeSidebarProps) {
   const t = useTranslations("files");
   const client = useFileStore(s => s.client);
   const [rootChildren, setRootChildren] = useState<FolderNode[] | null>(null);

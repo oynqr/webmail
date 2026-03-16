@@ -30,6 +30,8 @@ import { ICalImportModal } from "@/components/calendar/ical-import-modal";
 import { ICalSubscriptionModal } from "@/components/calendar/ical-subscription-modal";
 import { RecurrenceScopeDialog, type RecurrenceEditScope } from "@/components/calendar/recurrence-scope-dialog";
 import { NavigationRail } from "@/components/layout/navigation-rail";
+import { ResizeHandle } from "@/components/layout/resize-handle";
+import { cn } from "@/lib/utils";
 import type { CalendarEvent, CalendarParticipant } from "@/lib/jmap/types";
 import { getUserParticipantId } from "@/lib/calendar-participants";
 import { debug } from "@/lib/debug";
@@ -75,6 +77,13 @@ export default function CalendarPage() {
   const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
   const [detailAnchorRect, setDetailAnchorRect] = useState<DOMRect | null>(null);
   const hasFetched = useRef(false);
+
+  // Sidebar resize state
+  const [calSidebarWidth, setCalSidebarWidth] = useState(() => {
+    try { const v = localStorage.getItem("calendar-sidebar-width"); return v ? Number(v) : 256; } catch { return 256; }
+  });
+  const [isResizing, setIsResizing] = useState(false);
+  const dragStartWidth = useRef(256);
 
   // Swipe navigation ref (handlers defined after navigatePrev/navigateNext)
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
@@ -721,26 +730,43 @@ export default function CalendarPage() {
           onTouchEnd={handleTouchEnd}
         >
           {!isMobile && (
-            <div className="w-60 border-r border-border p-3 overflow-y-auto flex-shrink-0">
-              <MiniCalendar
-                selectedDate={selectedDate}
-                displayMonth={miniMonth}
-                onSelectDate={handleSelectDate}
-                onChangeMonth={handleMiniMonthChange}
-                events={events}
-                firstDayOfWeek={firstDayOfWeek}
+            <>
+              <div
+                className={cn(
+                  "border-r border-border bg-secondary overflow-y-auto flex-shrink-0 p-3",
+                  !isResizing && "transition-[width] duration-300"
+                )}
+                style={{ width: `${calSidebarWidth}px` }}
+              >
+                <MiniCalendar
+                  selectedDate={selectedDate}
+                  displayMonth={miniMonth}
+                  onSelectDate={handleSelectDate}
+                  onChangeMonth={handleMiniMonthChange}
+                  events={events}
+                  firstDayOfWeek={firstDayOfWeek}
+                />
+                <CalendarSidebarPanel
+                  calendars={calendars}
+                  selectedCalendarIds={selectedCalendarIds}
+                  onToggleVisibility={toggleCalendarVisibility}
+                  onColorChange={client ? (calendarId, color) => {
+                    updateCalendar(client, calendarId, { color });
+                  } : undefined}
+                  onSubscribe={() => setShowSubscriptionModal(true)}
+                  client={client}
+                />
+              </div>
+              <ResizeHandle
+                onResizeStart={() => { dragStartWidth.current = calSidebarWidth; setIsResizing(true); }}
+                onResize={(delta) => setCalSidebarWidth(Math.max(180, Math.min(400, dragStartWidth.current + delta)))}
+                onResizeEnd={() => {
+                  setIsResizing(false);
+                  localStorage.setItem("calendar-sidebar-width", String(calSidebarWidth));
+                }}
+                onDoubleClick={() => { setCalSidebarWidth(256); localStorage.setItem("calendar-sidebar-width", "256"); }}
               />
-              <CalendarSidebarPanel
-                calendars={calendars}
-                selectedCalendarIds={selectedCalendarIds}
-                onToggleVisibility={toggleCalendarVisibility}
-                onColorChange={client ? (calendarId, color) => {
-                  updateCalendar(client, calendarId, { color });
-                } : undefined}
-                onSubscribe={() => setShowSubscriptionModal(true)}
-                client={client}
-              />
-            </div>
+            </>
           )}
 
           {renderView()}
