@@ -27,22 +27,30 @@ Built with Next.js and the JMAP protocol.
 
 <img src="screenshots/inbox.png" width="100%" alt="Inbox — three-pane layout with sidebar, email list, and viewer (dark mode)">
 
+**Mail** — Three-pane layout with sidebar, email list, and viewer
+
 </td>
 <td width="50%">
 
-<img src="screenshots/inbox%20whitemode.png" width="100%" alt="Inbox — light mode">
+<img src="screenshots/calendar.png" width="100%" alt="Calendar">
+
+**Calendar** — Month, week, day, and agenda views with event management
 
 </td>
 </tr>
 <tr>
 <td width="50%">
 
-<img src="screenshots/calendar.png" width="100%" alt="Calendar">
+<img src="screenshots/contacts.png" width="100%" alt="Contacts">
+
+**Contacts** — Contact management with groups and vCard support
 
 </td>
 <td width="50%">
 
-<img src="screenshots/settings.png" width="100%" alt="Settings">
+<img src="screenshots/files.png" width="100%" alt="File browser">
+
+**Files** — Cloud file browser with upload, preview, and folder navigation
 
 </td>
 </tr>
@@ -54,19 +62,25 @@ Built with Next.js and the JMAP protocol.
 <tr>
 <td width="50%">
 
-<img src="screenshots/login.png" width="100%" alt="Login page">
+<img src="screenshots/inbox%20whitemode.png" width="100%" alt="Inbox — light mode">
+
+**Light mode** — Full theme support with intelligent color transformation
 
 </td>
 <td width="50%">
 
-<img src="screenshots/contacts.png" width="100%" alt="Contacts">
+<img src="screenshots/settings.png" width="100%" alt="Settings">
+
+**Settings** — Appearance, identities, filters, templates, and more
 
 </td>
 </tr>
 <tr>
 <td width="50%">
 
-<img src="screenshots/files.png" width="100%" alt="File browser">
+<img src="screenshots/login.png" width="100%" alt="Login page">
+
+**Login** — Configurable branding with OAuth2/OIDC and 2FA support
 
 </td>
 <td width="50%">
