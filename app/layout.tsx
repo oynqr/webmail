@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bulwark Webmail",
+  title: process.env.APP_NAME || process.env.NEXT_PUBLIC_APP_NAME || "Webmail",
   description: "Minimalist webmail client using JMAP protocol",
 };
 
