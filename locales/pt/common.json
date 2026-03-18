@@ -191,6 +191,8 @@
     "mark_read": "Marcar como lido",
     "print": "Imprimir",
     "view_source": "Ver código-fonte",
+    "export_email": "Exportar como .eml",
+    "import_email": "Importar .eml",
     "keyboard_shortcuts": "Atalhos de teclado (?)",
     "email_source": "Código-fonte do E-mail",
     "copy_source": "Copiar para a área de transferência",
@@ -527,7 +529,10 @@
     "templates_exported": "Modelos exportados com sucesso",
     "templates_imported": "{count, plural, one {# modelo importado} other {# modelos importados}}",
     "templates_import_errors": "Alguns modelos não puderam ser importados",
-    "templates_import_empty": "Nenhum modelo encontrado no arquivo"
+    "templates_import_empty": "Nenhum modelo encontrado no arquivo",
+    "export_email_error": "Falha ao exportar o e-mail",
+    "import_email_success": "E-mail importado com sucesso",
+    "import_email_error": "Falha ao importar o e-mail"
   },
   "date": {
     "today": "Hoje",

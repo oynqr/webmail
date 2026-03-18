@@ -191,6 +191,8 @@
     "mark_read": "Marcar como leído",
     "print": "Imprimir",
     "view_source": "Ver código fuente",
+    "export_email": "Exportar como .eml",
+    "import_email": "Importar .eml",
     "keyboard_shortcuts": "Atajos de teclado (?)",
     "email_source": "Código Fuente del Correo",
     "copy_source": "Copiar al portapapeles",
@@ -527,7 +529,10 @@
     "templates_exported": "Plantillas exportadas correctamente",
     "templates_imported": "{count, plural, one {# plantilla importada} other {# plantillas importadas}}",
     "templates_import_errors": "Algunas plantillas no se pudieron importar",
-    "templates_import_empty": "No se encontraron plantillas en el archivo"
+    "templates_import_empty": "No se encontraron plantillas en el archivo",
+    "export_email_error": "Error al exportar el correo electrónico",
+    "import_email_success": "Correo electrónico importado correctamente",
+    "import_email_error": "Error al importar el correo electrónico"
   },
   "date": {
     "today": "Hoy",

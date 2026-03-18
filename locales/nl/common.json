@@ -191,6 +191,8 @@
     "mark_read": "Markeren als gelezen",
     "print": "Afdrukken",
     "view_source": "Bron bekijken",
+    "export_email": "Exporteren als .eml",
+    "import_email": ".eml importeren",
     "keyboard_shortcuts": "Sneltoetsen (?)",
     "email_source": "E-mailbron",
     "copy_source": "Kopiëren naar klembord",
@@ -527,7 +529,10 @@
     "templates_exported": "Sjablonen succesvol geëxporteerd",
     "templates_imported": "{count, plural, one {# sjabloon geïmporteerd} other {# sjablonen geïmporteerd}}",
     "templates_import_errors": "Sommige sjablonen konden niet worden geïmporteerd",
-    "templates_import_empty": "Geen sjablonen gevonden in het bestand"
+    "templates_import_empty": "Geen sjablonen gevonden in het bestand",
+    "export_email_error": "Kan e-mail niet exporteren",
+    "import_email_success": "E-mail succesvol geïmporteerd",
+    "import_email_error": "Kan e-mail niet importeren"
   },
   "date": {
     "today": "Vandaag",

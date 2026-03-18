@@ -191,6 +191,8 @@
     "mark_read": "Als gelesen markieren",
     "print": "Drucken",
     "view_source": "Quelltext anzeigen",
+    "export_email": "Als .eml exportieren",
+    "import_email": ".eml importieren",
     "keyboard_shortcuts": "Tastaturkürzel (?)",
     "email_source": "E-Mail-Quelltext",
     "copy_source": "In Zwischenablage kopieren",
@@ -527,7 +529,10 @@
     "templates_exported": "Vorlagen erfolgreich exportiert",
     "templates_imported": "{count, plural, one {# Vorlage importiert} other {# Vorlagen importiert}}",
     "templates_import_errors": "Einige Vorlagen konnten nicht importiert werden",
-    "templates_import_empty": "Keine Vorlagen in der Datei gefunden"
+    "templates_import_empty": "Keine Vorlagen in der Datei gefunden",
+    "export_email_error": "Fehler beim Exportieren der E-Mail",
+    "import_email_success": "E-Mail erfolgreich importiert",
+    "import_email_error": "Fehler beim Importieren der E-Mail"
   },
   "date": {
     "today": "Heute",

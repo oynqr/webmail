@@ -191,6 +191,8 @@
     "mark_read": "既読にする",
     "print": "印刷",
     "view_source": "ソースを表示",
+    "export_email": ".emlとしてエクスポート",
+    "import_email": ".emlをインポート",
     "keyboard_shortcuts": "キーボードショートカット (?)",
     "email_source": "メールソース",
     "copy_source": "クリップボードにコピー",
@@ -527,7 +529,10 @@
     "templates_exported": "テンプレートをエクスポートしました",
     "templates_imported": "{count}件のテンプレートをインポートしました",
     "templates_import_errors": "一部のテンプレートをインポートできませんでした",
-    "templates_import_empty": "ファイルにテンプレートが見つかりません"
+    "templates_import_empty": "ファイルにテンプレートが見つかりません",
+    "export_email_error": "メールのエクスポートに失敗しました",
+    "import_email_success": "メールを正常にインポートしました",
+    "import_email_error": "メールのインポートに失敗しました"
   },
   "date": {
     "today": "今日",
