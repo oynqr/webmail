@@ -519,6 +519,7 @@
     "identity_created": "Identiteit succesvol aangemaakt",
     "identity_updated": "Identiteit succesvol bijgewerkt",
     "identity_deleted": "Identiteit verwijderd",
+    "identity_set_primary": "Primaire identiteit bijgewerkt",
     "identity_create_failed": "Kan identiteit niet aanmaken: {error}",
     "identity_update_failed": "Kan identiteit niet bijwerken: {error}",
     "identity_delete_failed": "Kan identiteit niet verwijderen: {error}",
@@ -1367,6 +1368,7 @@
     "delete_confirm": "Deze identiteit verwijderen? Dit kan niet ongedaan worden gemaakt.",
     "cannot_delete": "Deze identiteit kan niet worden verwijderd",
     "primary_identity": "Primair",
+    "set_as_primary": "Instellen als primair",
     "no_identities": "Geen identiteiten gevonden",
     "display": {
       "reply_to": "Antwoord naar:",

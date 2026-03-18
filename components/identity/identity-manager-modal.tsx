@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { X, Mail, Pencil, Trash2, Plus, AlertTriangle } from 'lucide-react';
+import { X, Mail, Pencil, Trash2, Plus, AlertTriangle, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -18,6 +18,12 @@ import type { Identity, EmailAddress } from '@/lib/jmap/types';
 import { toast } from '@/stores/toast-store';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+
+function emailMatchesUsername(email: string, username: string): boolean {
+  if (email === username) return true;
+  if (!username.includes('@') && email.split('@')[0] === username) return true;
+  return false;
+}
 
 interface IdentityFormData {
   name: string;
@@ -39,6 +45,8 @@ export function IdentityManagerModal({ isOpen, onClose }: IdentityManagerModalPr
 
   const client = useAuthStore((state) => state.client);
   const identities = useIdentityStore((state) => state.identities);
+  const preferredPrimaryId = useIdentityStore((state) => state.preferredPrimaryId);
+  const setPreferredPrimary = useIdentityStore((state) => state.setPreferredPrimary);
   const syncIdentities = useSyncIdentities();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -52,11 +60,26 @@ export function IdentityManagerModal({ isOpen, onClose }: IdentityManagerModalPr
     try {
       const serverIdentities = await client.getIdentities();
       const username = useAuthStore.getState().username;
+      const preferredPrimaryId = useIdentityStore.getState().preferredPrimaryId;
       const sorted = [...serverIdentities].sort((a, b) => {
-        const aMatch = a.email === username ? -1 : 0;
-        const bMatch = b.email === username ? -1 : 0;
-        return aMatch - bMatch;
+        const aMatch = emailMatchesUsername(a.email, username || '');
+        const bMatch = emailMatchesUsername(b.email, username || '');
+        if (aMatch && !bMatch) return -1;
+        if (!aMatch && bMatch) return 1;
+        if (aMatch && bMatch) {
+          if (!a.mayDelete && b.mayDelete) return -1;
+          if (a.mayDelete && !b.mayDelete) return 1;
+        }
+        return 0;
       });
+      // Move preferred primary to front if set
+      if (preferredPrimaryId) {
+        const idx = sorted.findIndex((id) => id.id === preferredPrimaryId);
+        if (idx > 0) {
+          const [preferred] = sorted.splice(idx, 1);
+          sorted.unshift(preferred);
+        }
+      }
       useIdentityStore.getState().setIdentities(sorted);
       syncIdentities();
     } catch (error) {
@@ -167,6 +190,15 @@ export function IdentityManagerModal({ isOpen, onClose }: IdentityManagerModalPr
       setDeletingId(null);
     }
   }, [client, refreshIdentities, t, tNotif, confirmDialog]);
+
+  const handleSetPrimary = useCallback((identity: Identity) => {
+    setPreferredPrimary(identity.id);
+    // Re-sort: move the preferred identity to the front
+    const reordered = [identity, ...identities.filter((id) => id.id !== identity.id)];
+    useIdentityStore.getState().setIdentities(reordered);
+    syncIdentities();
+    toast.success(tNotif('identity_set_primary'));
+  }, [identities, setPreferredPrimary, syncIdentities, tNotif]);
 
   if (!isOpen) return null;
 
@@ -281,6 +313,17 @@ export function IdentityManagerModal({ isOpen, onClose }: IdentityManagerModalPr
 
                       {/* Actions */}
                       <div className="flex items-center gap-2">
+                        {identities[0]?.id !== identity.id && identities.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSetPrimary(identity)}
+                            disabled={!!editingId || isCreating}
+                            title={t('set_as_primary')}
+                          >
+                            <Star className="w-4 h-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"

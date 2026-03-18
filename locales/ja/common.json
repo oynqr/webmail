@@ -519,6 +519,7 @@
     "identity_created": "送信者情報を作成しました",
     "identity_updated": "送信者情報を更新しました",
     "identity_deleted": "送信者情報を削除しました",
+    "identity_set_primary": "プライマリ送信者情報を更新しました",
     "identity_create_failed": "送信者情報の作成に失敗しました: {error}",
     "identity_update_failed": "送信者情報の更新に失敗しました: {error}",
     "identity_delete_failed": "送信者情報の削除に失敗しました: {error}",
@@ -1367,6 +1368,7 @@
     "delete_confirm": "この送信者情報を削除しますか？この操作は元に戻せません。",
     "cannot_delete": "この送信者情報は削除できません",
     "primary_identity": "プライマリ",
+    "set_as_primary": "プライマリに設定",
     "no_identities": "送信者情報が見つかりません",
     "display": {
       "reply_to": "返信先:",

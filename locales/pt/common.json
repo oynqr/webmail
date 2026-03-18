@@ -519,6 +519,7 @@
     "identity_created": "Identidade criada com sucesso",
     "identity_updated": "Identidade atualizada com sucesso",
     "identity_deleted": "Identidade excluída",
+    "identity_set_primary": "Identidade principal atualizada",
     "identity_create_failed": "Falha ao criar identidade: {error}",
     "identity_update_failed": "Falha ao atualizar identidade: {error}",
     "identity_delete_failed": "Falha ao excluir identidade: {error}",
@@ -1367,6 +1368,7 @@
     "delete_confirm": "Excluir esta identidade? Isso não pode ser desfeito.",
     "cannot_delete": "Esta identidade não pode ser excluída",
     "primary_identity": "Principal",
+    "set_as_primary": "Definir como principal",
     "no_identities": "Nenhuma identidade encontrada",
     "display": {
       "reply_to": "Responder para:",

@@ -519,6 +519,7 @@
     "identity_created": "Identität erfolgreich erstellt",
     "identity_updated": "Identität erfolgreich aktualisiert",
     "identity_deleted": "Identität gelöscht",
+    "identity_set_primary": "Primäre Identität aktualisiert",
     "identity_create_failed": "Identität erstellen fehlgeschlagen: {error}",
     "identity_update_failed": "Identität aktualisieren fehlgeschlagen: {error}",
     "identity_delete_failed": "Identität löschen fehlgeschlagen: {error}",
@@ -1367,6 +1368,7 @@
     "delete_confirm": "Diese Identität löschen? Dies kann nicht rückgängig gemacht werden.",
     "cannot_delete": "Diese Identität kann nicht gelöscht werden",
     "primary_identity": "Primär",
+    "set_as_primary": "Als primär festlegen",
     "no_identities": "Keine Identitäten gefunden",
     "display": {
       "reply_to": "Antwort an:",

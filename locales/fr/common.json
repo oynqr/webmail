@@ -519,6 +519,7 @@
     "identity_created": "Identité créée avec succès",
     "identity_updated": "Identité mise à jour avec succès",
     "identity_deleted": "Identité supprimée",
+    "identity_set_primary": "Identité principale mise à jour",
     "identity_create_failed": "Échec de la création de l'identité: {error}",
     "identity_update_failed": "Échec de la mise à jour de l'identité: {error}",
     "identity_delete_failed": "Échec de la suppression de l'identité: {error}",
@@ -1367,6 +1368,7 @@
     "delete_confirm": "Supprimer cette identité ? Cette action est irréversible.",
     "cannot_delete": "Cette identité ne peut pas être supprimée",
     "primary_identity": "Principale",
+    "set_as_primary": "Définir comme principale",
     "no_identities": "Aucune identité trouvée",
     "display": {
       "reply_to": "Répondre à :",

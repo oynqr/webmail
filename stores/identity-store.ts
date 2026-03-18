@@ -15,6 +15,7 @@ interface IdentityStore {
   // Identity state (from server)
   identities: Identity[];
   selectedIdentityId: string | null;
+  preferredPrimaryId: string | null;
   isLoading: boolean;
   error: string | null;
 
@@ -27,6 +28,7 @@ interface IdentityStore {
   updateIdentityLocal: (identityId: string, updates: Partial<Identity>) => void;
   removeIdentity: (identityId: string) => void;
   selectIdentity: (identityId: string | null) => void;
+  setPreferredPrimary: (identityId: string | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   clearIdentities: () => void;
@@ -43,6 +45,7 @@ export const useIdentityStore = create<IdentityStore>()(
     (set, get) => ({
       identities: [],
       selectedIdentityId: null,
+      preferredPrimaryId: null,
       isLoading: false,
       error: null,
       subAddress: {
@@ -70,6 +73,8 @@ export const useIdentityStore = create<IdentityStore>()(
       })),
 
       selectIdentity: (identityId) => set({ selectedIdentityId: identityId }),
+
+      setPreferredPrimary: (identityId) => set({ preferredPrimaryId: identityId }),
 
       setLoading: (loading) => set({ isLoading: loading }),
 
@@ -120,7 +125,8 @@ export const useIdentityStore = create<IdentityStore>()(
       name: 'identity-storage',
       // Only persist sub-addressing data, not identities (they're server-side)
       partialize: (state) => ({
-        subAddress: state.subAddress
+        subAddress: state.subAddress,
+        preferredPrimaryId: state.preferredPrimaryId,
       }),
     }
   )

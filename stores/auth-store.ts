@@ -52,12 +52,41 @@ function classifyLoginError(error: unknown): string {
   return 'generic';
 }
 
-function loadIdentities(rawIdentities: Identity[], username: string): { identities: Identity[]; primaryIdentity: Identity | null } {
-  const identities = [...rawIdentities].sort((a, b) => {
-    const aMatch = a.email === username ? -1 : 0;
-    const bMatch = b.email === username ? -1 : 0;
-    return aMatch - bMatch;
+function emailMatchesUsername(email: string, username: string): boolean {
+  if (email === username) return true;
+  // Handle local-part login: username "user" should match "user@domain.tld"
+  if (!username.includes('@') && email.split('@')[0] === username) return true;
+  return false;
+}
+
+function sortIdentities(rawIdentities: Identity[], username: string): Identity[] {
+  return [...rawIdentities].sort((a, b) => {
+    const aMatch = emailMatchesUsername(a.email, username);
+    const bMatch = emailMatchesUsername(b.email, username);
+    if (aMatch && !bMatch) return -1;
+    if (!aMatch && bMatch) return 1;
+    // Among matching identities, prefer canonical (non-deletable) over aliases
+    if (aMatch && bMatch) {
+      if (!a.mayDelete && b.mayDelete) return -1;
+      if (a.mayDelete && !b.mayDelete) return 1;
+    }
+    return 0;
   });
+}
+
+function loadIdentities(rawIdentities: Identity[], username: string): { identities: Identity[]; primaryIdentity: Identity | null } {
+  const preferredPrimaryId = useIdentityStore.getState().preferredPrimaryId;
+  const identities = sortIdentities(rawIdentities, username);
+
+  // If user has a preferred primary, move it to front
+  if (preferredPrimaryId) {
+    const idx = identities.findIndex((id) => id.id === preferredPrimaryId);
+    if (idx > 0) {
+      const [preferred] = identities.splice(idx, 1);
+      identities.unshift(preferred);
+    }
+  }
+
   const primaryIdentity = identities[0] ?? null;
   useIdentityStore.getState().setIdentities(identities);
   return { identities, primaryIdentity };

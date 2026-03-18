@@ -519,6 +519,7 @@
     "identity_created": "Identity created successfully",
     "identity_updated": "Identity updated successfully",
     "identity_deleted": "Identity deleted",
+    "identity_set_primary": "Primary identity updated",
     "identity_create_failed": "Failed to create identity: {error}",
     "identity_update_failed": "Failed to update identity: {error}",
     "identity_delete_failed": "Failed to delete identity: {error}",
@@ -1367,6 +1368,7 @@
     "delete_confirm": "Delete this identity? This cannot be undone.",
     "cannot_delete": "This identity cannot be deleted",
     "primary_identity": "Primary",
+    "set_as_primary": "Set as primary",
     "no_identities": "No identities found",
     "display": {
       "reply_to": "Reply-To:",

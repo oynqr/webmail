@@ -1425,7 +1425,9 @@ export class JMAPClient {
       if (identityResponse.methodResponses?.[0]?.[0] === "Identity/get") {
         const identities = (identityResponse.methodResponses[0][1].list || []) as { id: string; email: string }[];
         if (identities.length > 0) {
-          const matchingIdentity = identities.find((id) => id.email === (fromEmail || this.username));
+          const target = fromEmail || this.username;
+          const matchingIdentity = identities.find((id) => id.email === target)
+            || (!target.includes('@') ? identities.find((id) => id.email.split('@')[0] === target) : undefined);
           finalIdentityId = matchingIdentity?.id || identities[0].id;
         }
       }
