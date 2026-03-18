@@ -79,6 +79,8 @@ export function buildWeekSegments(events: CalendarEvent[], weekDays: Date[]): Ca
     if (left.event.showWithoutTime !== right.event.showWithoutTime) {
       return left.event.showWithoutTime ? -1 : 1;
     }
+    const timeDiff = new Date(left.event.start).getTime() - new Date(right.event.start).getTime();
+    if (timeDiff !== 0) return timeDiff;
     return (left.event.title || "").localeCompare(right.event.title || "");
   });
 
