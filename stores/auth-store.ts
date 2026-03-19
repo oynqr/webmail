@@ -741,23 +741,39 @@ export const useAuthStore = create<AuthState>()(
             }
           } catch (err) {
             debug.error(`Failed to restore client for ${accountId}:`, err);
-            accountStore.updateAccount(accountId, {
-              isConnected: false,
-              hasError: true,
-              errorMessage: err instanceof Error ? err.message : 'Connection failed',
-            });
-            set({ isLoading: false });
-            return;
           }
         }
 
         if (!targetClient) {
-          accountStore.updateAccount(accountId, {
-            isConnected: false,
-            hasError: true,
-            errorMessage: 'Unable to restore session',
-          });
+          // Cannot restore — remove the stale account and redirect to login
+          evictAccount(accountId);
+          accountStore.removeAccount(accountId);
+          fetch(`/api/auth/session?slot=${targetAccount.cookieSlot}`, { method: 'DELETE' }).catch(() => {});
+
+          // Restore the previous account if still available
+          if (state.activeAccountId && state.activeAccountId !== accountId) {
+            const prevClient = clients.get(state.activeAccountId);
+            const prevAccount = accountStore.getAccountById(state.activeAccountId);
+            if (prevClient && prevAccount) {
+              restoreAccount(state.activeAccountId);
+              accountStore.setActiveAccount(state.activeAccountId);
+              set({
+                isLoading: false,
+                serverUrl: prevAccount.serverUrl,
+                username: prevAccount.username,
+                client: prevClient,
+                authMode: prevAccount.authMode,
+                rememberMe: prevAccount.rememberMe,
+                connectionLost: false,
+                activeAccountId: state.activeAccountId,
+              });
+              return;
+            }
+          }
+
           set({ isLoading: false });
+          // Redirect to login so the user can re-authenticate
+          replaceWindowLocation(getLocaleLoginPath());
           return;
         }
 
@@ -865,11 +881,11 @@ export const useAuthStore = create<AuthState>()(
               }
             } catch (err) {
               debug.error(`Failed to restore account ${account.id}:`, err);
-              accountStore.updateAccount(account.id, {
-                isConnected: false,
-                hasError: true,
-                errorMessage: err instanceof Error ? err.message : 'Restore failed',
-              });
+              // Remove unrestorable accounts so the user is prompted to log in
+              // again rather than seeing a stale error entry forever.
+              evictAccount(account.id);
+              accountStore.removeAccount(account.id);
+              fetch(`/api/auth/session?slot=${account.cookieSlot}`, { method: 'DELETE' }).catch(() => {});
             }
           }
 
