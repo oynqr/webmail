@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useEffect, useCallback } from "react";
 import { useTranslations, useFormatter } from "next-intl";
-import { format, parseISO, isToday, isTomorrow } from "date-fns";
+import { format, parseISO, isToday, isTomorrow, startOfDay } from "date-fns";
 import { Calendar as CalendarIcon, MapPin, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { parseDuration, getEventColor } from "./event-card";
@@ -27,6 +27,7 @@ interface DayGroup {
 }
 
 export function CalendarAgendaView({
+  selectedDate,
   events,
   calendars,
   onSelectEvent,
@@ -42,6 +43,9 @@ export function CalendarAgendaView({
     calendars.forEach((c) => map.set(c.id, c));
     return map;
   }, [calendars]);
+
+  const todayRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const grouped = useMemo(() => {
     const sorted = [...events].sort((a, b) =>
@@ -69,9 +73,37 @@ export function CalendarAgendaView({
       } catch { /* skip invalid dates */ }
     });
 
+    // Always include today's date in the groups so the view has a "Today" anchor
+    const todayKey = format(new Date(), "yyyy-MM-dd");
+    if (!groupMap.has(todayKey)) {
+      const todayGroup = { date: startOfDay(new Date()), dateKey: todayKey, events: [] as CalendarEvent[] };
+      groupMap.set(todayKey, todayGroup);
+      groups.push(todayGroup);
+    }
+
     groups.sort((a, b) => a.date.getTime() - b.date.getTime());
     return groups;
   }, [events]);
+
+  // Auto-scroll to today's section on mount and when selectedDate changes to today
+  const scrollToToday = useCallback(() => {
+    if (todayRef.current) {
+      todayRef.current.scrollIntoView({ block: "start" });
+    }
+  }, []);
+
+  useEffect(() => {
+    // Scroll to today on mount
+    const frame = requestAnimationFrame(scrollToToday);
+    return () => cancelAnimationFrame(frame);
+  }, [scrollToToday]);
+
+  useEffect(() => {
+    // Scroll to today when selectedDate changes to today
+    if (isToday(selectedDate)) {
+      scrollToToday();
+    }
+  }, [selectedDate, scrollToToday]);
 
   const formatDateHeader = (date: Date): string => {
     if (isToday(date)) return t("events.today_header");
@@ -86,19 +118,10 @@ export function CalendarAgendaView({
     return format(date, "HH:mm");
   };
 
-  if (grouped.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground">
-        <CalendarIcon className="w-12 h-12 mb-3 opacity-30" />
-        <p className="text-sm">{t("events.no_events")}</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
       {grouped.map((group) => (
-        <div key={group.dateKey}>
+        <div key={group.dateKey} ref={isToday(group.date) ? todayRef : undefined}>
           <div className="sticky top-0 bg-muted/80 backdrop-blur-sm px-4 py-2 border-b border-border">
             <span className={cn(
               "text-sm font-medium",
@@ -111,6 +134,11 @@ export function CalendarAgendaView({
             </span>
           </div>
 
+          {group.events.length === 0 ? (
+            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+              {t("events.no_events")}
+            </div>
+          ) : (
           <div className="divide-y divide-border">
             {group.events.map((ev) => {
               const calId = getPrimaryCalendarId(ev);
@@ -176,6 +204,7 @@ export function CalendarAgendaView({
               );
             })}
           </div>
+          )}
         </div>
       ))}
     </div>

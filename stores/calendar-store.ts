@@ -655,6 +655,7 @@ export const useCalendarStore = create<CalendarStore>()(
 
         return {
           ...mergedState,
+          selectedDate: new Date(),
           viewMode: getSafeCalendarViewMode(mergedState.viewMode),
         };
       },

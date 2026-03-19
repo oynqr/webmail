@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addMonths, subMonths, addWeeks, subWeeks, addDays, subDays,
-  format, parseISO,
+  startOfDay, format, parseISO,
 } from "date-fns";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { isCalendarViewMode } from "@/stores/calendar-store";
@@ -156,11 +156,15 @@ export default function CalendarPage() {
           start: format(d, "yyyy-MM-dd'T'00:00:00"),
           end: format(d, "yyyy-MM-dd'T'23:59:59"),
         };
-      case "agenda":
+      case "agenda": {
+        // Agenda always starts from today at the earliest
+        const today = startOfDay(new Date());
+        const agendaStart = d >= today ? d : today;
         return {
-          start: format(d, "yyyy-MM-dd'T'00:00:00"),
-          end: format(addDays(d, 30), "yyyy-MM-dd'T'23:59:59"),
+          start: format(agendaStart, "yyyy-MM-dd'T'00:00:00"),
+          end: format(addDays(agendaStart, 30), "yyyy-MM-dd'T'23:59:59"),
         };
+      }
     }
   }, [selectedDate, normalizedViewMode, firstDayOfWeek]);
 
