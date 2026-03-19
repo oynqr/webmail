@@ -97,17 +97,19 @@ const ROLE_PRIORITY: Record<string, number> = {
 
 // Deduplicate mailboxes (e.g., "Sent" vs "Sent Mail")
 function deduplicateMailboxes(mailboxes: Mailbox[]): Mailbox[] {
-  const roleMap = new Map<string, Mailbox>();
   const result: Mailbox[] = [];
 
-  // First pass: collect mailboxes with roles
+  // Group role mailboxes by account so deduplication is scoped per-account
+  const rolesByAccount = new Map<string, Mailbox[]>();
   mailboxes.forEach(mb => {
     if (mb.role) {
-      roleMap.set(mb.role, mb);
+      const key = mb.accountId || '';
+      if (!rolesByAccount.has(key)) rolesByAccount.set(key, []);
+      rolesByAccount.get(key)!.push(mb);
     }
   });
 
-  // Second pass: filter out duplicates
+  // Filter out duplicates scoped to the same account
   mailboxes.forEach(mb => {
     // If this mailbox has a role, always keep it
     if (mb.role) {
@@ -115,9 +117,11 @@ function deduplicateMailboxes(mailboxes: Mailbox[]): Mailbox[] {
       return;
     }
 
-    // Check if this is a duplicate of a role-based mailbox
+    // Check if this is a duplicate of a role-based mailbox in the SAME account
+    const accountKey = mb.accountId || '';
+    const accountRoles = rolesByAccount.get(accountKey) || [];
     const lowerName = mb.name.toLowerCase();
-    const isDuplicate = Array.from(roleMap.values()).some(roleMb => {
+    const isDuplicate = accountRoles.some(roleMb => {
       const roleLowerName = roleMb.name.toLowerCase();
       // Check for common duplicates: "Sent Mail" vs "Sent", etc.
       return lowerName.includes(roleLowerName) || roleLowerName.includes(lowerName);

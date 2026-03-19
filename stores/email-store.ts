@@ -1298,11 +1298,11 @@ export const useEmailStore = create<EmailStore>((set, get) => ({
 
   setMailboxRole: async (client, mailboxId, role) => {
     try {
-      // If assigning a role, first clear that role from any other mailbox
+      // If assigning a role, first clear that role from ALL other mailboxes that have it
       if (role) {
-        const existingMailbox = get().mailboxes.find(mb => mb.role === role && !mb.isShared);
-        if (existingMailbox && existingMailbox.id !== mailboxId) {
-          await client.updateMailbox(existingMailbox.id, { role: null });
+        const existingMailboxes = get().mailboxes.filter(mb => mb.role === role && !mb.isShared && mb.id !== mailboxId);
+        for (const existing of existingMailboxes) {
+          await client.updateMailbox(existing.id, { role: null });
         }
       }
       await client.updateMailbox(mailboxId, { role });

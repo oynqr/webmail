@@ -490,21 +490,34 @@ export function FolderSettings() {
 
       {/* Standard Folder Roles — advanced section */}
       <SettingsSection title={t('standard_roles')} description={t('standard_roles_description')}>
-        {STANDARD_ROLES.map((role) => (
-          <SettingItem key={role} label={t(`role_${role}`)}>
-            <Select
-              value={getRoleMailboxId(role)}
-              onChange={(value) => handleRoleChange(role, value)}
-              options={[
-                { value: '', label: t('role_none') },
-                ...ownMailboxes.map(mb => ({
-                  value: mb.id,
-                  label: mb.name,
-                })),
-              ]}
-            />
-          </SettingItem>
-        ))}
+        {STANDARD_ROLES.map((role) => {
+          // Disambiguate duplicate folder names by appending parent path
+          const nameCounts = new Map<string, number>();
+          ownMailboxes.forEach(mb => nameCounts.set(mb.name, (nameCounts.get(mb.name) || 0) + 1));
+          const getParentPath = (mb: { parentId?: string; name: string }) => {
+            if (!mb.parentId) return '';
+            const parent = ownMailboxes.find(p => p.id === mb.parentId);
+            return parent ? `${parent.name}/` : '';
+          };
+
+          return (
+            <SettingItem key={role} label={t(`role_${role}`)}>
+              <Select
+                value={getRoleMailboxId(role)}
+                onChange={(value) => handleRoleChange(role, value)}
+                options={[
+                  { value: '', label: t('role_none') },
+                  ...ownMailboxes.map(mb => ({
+                    value: mb.id,
+                    label: (nameCounts.get(mb.name) || 0) > 1
+                      ? `${getParentPath(mb)}${mb.name} (${mb.id.slice(-6)})`
+                      : mb.name,
+                  })),
+                ]}
+              />
+            </SettingItem>
+          );
+        })}
       </SettingsSection>
     </div>
   );

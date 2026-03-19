@@ -226,6 +226,34 @@ describe('email-store folder management', () => {
       expect(client.updateMailbox).toHaveBeenCalledWith('trash-1', { role: 'trash' });
     });
 
+    it('should clear role from ALL mailboxes with that role when reassigning', async () => {
+      // Simulate server anomaly: two mailboxes with role "trash"
+      const extraTrash = makeMailbox({ id: 'trash-2', name: 'Deleted Items', role: 'trash' });
+      useEmailStore.setState({
+        mailboxes: [inbox, sent, trash, custom, extraTrash],
+      });
+
+      const newMailboxes = [inbox, sent, custom,
+        makeMailbox({ id: 'trash-1', name: 'Trash', role: undefined }),
+        makeMailbox({ id: 'trash-2', name: 'Deleted Items', role: undefined }),
+      ];
+      // custom-1 gets the trash role
+      newMailboxes[2] = { ...newMailboxes[2], role: 'trash' };
+
+      const client = makeMockClient({
+        getAllMailboxes: vi.fn().mockResolvedValue(newMailboxes),
+      });
+
+      await useEmailStore.getState().setMailboxRole(client, 'custom-1', 'trash');
+
+      // Should clear trash role from BOTH trash-1 and trash-2
+      expect(client.updateMailbox).toHaveBeenCalledWith('trash-1', { role: null });
+      expect(client.updateMailbox).toHaveBeenCalledWith('trash-2', { role: null });
+      // Then set trash role on custom-1
+      expect(client.updateMailbox).toHaveBeenCalledWith('custom-1', { role: 'trash' });
+      expect(client.updateMailbox).toHaveBeenCalledTimes(3);
+    });
+
     it('should set error on failure', async () => {
       const client = makeMockClient({
         updateMailbox: vi.fn().mockRejectedValue(new Error('Role update failed')),
