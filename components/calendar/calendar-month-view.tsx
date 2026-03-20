@@ -12,6 +12,7 @@ import { buildWeekSegments, getEventDayBounds, getPrimaryCalendarId } from "@/li
 import type { CalendarEvent, Calendar } from "@/lib/jmap/types";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCalendarStore } from "@/stores/calendar-store";
+import type { PendingEventPreview } from "./event-modal";
 import { toast } from "@/stores/toast-store";
 
 interface CalendarMonthViewProps {
@@ -25,6 +26,7 @@ interface CalendarMonthViewProps {
   onCreateAtTime?: (date: Date) => void;
   firstDayOfWeek?: number;
   isMobile?: boolean;
+  pendingPreview?: PendingEventPreview | null;
 }
 
 export function CalendarMonthView({
@@ -38,6 +40,7 @@ export function CalendarMonthView({
   onCreateAtTime,
   firstDayOfWeek = 1,
   isMobile,
+  pendingPreview,
 }: CalendarMonthViewProps) {
   const t = useTranslations("calendar");
   const intlFormatter = useFormatter();
@@ -194,30 +197,62 @@ export function CalendarMonthView({
                     </span>
                   </div>
                   {isMobile ? (
-                    dayEvents.length > 0 && (
-                      <div className="flex items-center justify-center gap-0.5 flex-wrap">
-                        {dayEvents.slice(0, 3).map((ev) => {
-                          const calId = getPrimaryCalendarId(ev);
-                          const cal = calId ? calendarMap.get(calId) : undefined;
-                          const evColor = ev.color || cal?.color || "#3b82f6";
-                          return (
-                            <span
-                              key={ev.id}
-                              className="w-1.5 h-1.5 rounded-full"
-                              style={{ backgroundColor: evColor }}
-                            />
-                          );
-                        })}
-                        {dayEvents.length > 3 && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
-                        )}
-                      </div>
-                    )
+                    <div className="flex items-center justify-center gap-0.5 flex-wrap">
+                      {dayEvents.slice(0, 3).map((ev) => {
+                        const calId = getPrimaryCalendarId(ev);
+                        const cal = calId ? calendarMap.get(calId) : undefined;
+                        const evColor = ev.color || cal?.color || "#3b82f6";
+                        return (
+                          <span
+                            key={ev.id}
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ backgroundColor: evColor }}
+                          />
+                        );
+                      })}
+                      {dayEvents.length > 3 && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
+                      )}
+                      {pendingPreview && isSameDay(pendingPreview.start, day) && (
+                        <span
+                          className="w-1.5 h-1.5 rounded-full border border-dashed"
+                          style={{ borderColor: calendarMap.get(pendingPreview.calendarId)?.color || "#3b82f6" }}
+                        />
+                      )}
+                    </div>
                   ) : null}
                 </div>
               );
             })}
             </div>
+
+            {!isMobile && pendingPreview && (() => {
+              const previewDayIdx = week.findIndex(d => isSameDay(d, pendingPreview.start));
+              if (previewDayIdx === -1) return null;
+              const previewRow = rowCount;
+              const cal = calendarMap.get(pendingPreview.calendarId);
+              const color = cal?.color || "#3b82f6";
+              return (
+                <div className="absolute inset-x-0 pointer-events-none" style={{ top: 30 }}>
+                  <div
+                    className="absolute px-0.5"
+                    style={{
+                      left: `calc(${(previewDayIdx / 7) * 100}% + 1px)`,
+                      width: `calc(${(1 / 7) * 100}% - 2px)`,
+                      top: previewRow * 22,
+                      height: 20,
+                    }}
+                  >
+                    <div
+                      className="h-full rounded text-[10px] leading-[20px] font-medium px-1.5 truncate border-2 border-dashed"
+                      style={{ borderColor: color, color, backgroundColor: `${color}10` }}
+                    >
+                      {pendingPreview.title}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {!isMobile && segments.length > 0 && (
               <div className="absolute inset-x-0 pointer-events-none" style={{ top: 30 }}>

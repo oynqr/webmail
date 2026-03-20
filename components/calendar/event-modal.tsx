@@ -20,6 +20,14 @@ import {
 } from "@/lib/calendar-participants";
 import { useSettingsStore } from "@/stores/settings-store";
 
+export interface PendingEventPreview {
+  start: Date;
+  end: Date;
+  title: string;
+  allDay: boolean;
+  calendarId: string;
+}
+
 interface EventModalProps {
   event?: CalendarEvent | null;
   calendars: Calendar[];
@@ -30,6 +38,7 @@ interface EventModalProps {
   onDuplicate?: (data: Partial<CalendarEvent>) => void;
   onRsvp?: (eventId: string, participantId: string, status: CalendarParticipant['participationStatus']) => void;
   onClose: () => void;
+  onPreviewChange?: (preview: PendingEventPreview | null) => void;
   currentUserEmails?: string[];
   isMobile?: boolean;
 }
@@ -105,6 +114,7 @@ export function EventModal({
   onDuplicate,
   onRsvp,
   onClose,
+  onPreviewChange,
   currentUserEmails = [],
   isMobile = false,
 }: EventModalProps) {
@@ -218,6 +228,18 @@ export function EventModal({
       .map(p => ({ name: p.name, email: p.email }));
   });
   const [sendInvitations, setSendInvitations] = useState(true);
+
+  // Report live preview to parent for grid outline
+  useEffect(() => {
+    if (!onPreviewChange || isEdit) return;
+    const startStr = allDay ? `${startDate}T00:00:00` : `${startDate}T${startTime}:00`;
+    const endStr = allDay ? `${endDate}T23:59:59` : `${endDate}T${endTime}:00`;
+    const s = new Date(startStr);
+    const e = new Date(endStr);
+    if (isNaN(s.getTime()) || isNaN(e.getTime())) return;
+    onPreviewChange({ start: s, end: e, title: title || "(No title)", allDay, calendarId });
+    return () => onPreviewChange(null);
+  }, [startDate, startTime, endDate, endTime, allDay, title, calendarId, isEdit, onPreviewChange]);
 
   const statusCounts = useMemo(() => {
     if (!event?.participants) return null;

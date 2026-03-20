@@ -110,10 +110,12 @@ export const useCalendarStore = create<CalendarStore>()(
       fetchEvents: async (client, start, end) => {
         set({ isLoadingEvents: true, error: null });
         try {
-          const events = await client.queryAllCalendarEvents({
+          const rawEvents = await client.queryAllCalendarEvents({
             after: start,
             before: end,
           });
+          // Filter out malformed events missing required 'start' field
+          const events = rawEvents.filter(e => typeof e.start === 'string' && e.start);
           set({ events, isLoadingEvents: false, dateRange: { start, end } });
         } catch (error) {
           debug.error('Failed to fetch events:', error);

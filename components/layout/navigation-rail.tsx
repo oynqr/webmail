@@ -217,8 +217,8 @@ export function NavigationRail({
           );
         })}
 
-        {/* Custom sidebar apps */}
-        {sidebarApps.map((app) => {
+        {/* Custom sidebar apps (per-app mobile visibility) */}
+        {sidebarApps.filter((app) => app.showOnMobile).map((app) => {
           const AppIcon = lucideIcons[app.icon as keyof typeof lucideIcons] as LucideIcon | undefined;
           const isActive = activeAppId === app.id;
           return (
@@ -252,16 +252,27 @@ export function NavigationRail({
           );
         })}
 
-        {/* Manage apps button */}
-        {onManageApps && (
-          <button
-            onClick={onManageApps}
-            className="flex flex-col items-center justify-center gap-1 py-2 px-3 min-w-[64px] min-h-[44px] transition-colors duration-150 text-muted-foreground hover:text-foreground"
-          >
-            <Plus className="w-5 h-5" />
-            <span className="text-[10px] font-medium leading-tight">{t("add_app")}</span>
-          </button>
-        )}
+        {/* Settings */}
+        <Link
+          href="/settings"
+          onClick={activeAppId ? () => onCloseInlineApp?.() : undefined}
+          className={cn(
+            "flex flex-col items-center justify-center gap-1 py-2 px-3 min-w-[64px] min-h-[44px]",
+            "transition-colors duration-150",
+            isSettingsActive
+              ? "text-primary"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+          aria-current={isSettingsActive ? "page" : undefined}
+        >
+          <div className="relative">
+            <Settings className="w-5 h-5" />
+            {isSettingsActive && (
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-primary" />
+            )}
+          </div>
+          <span className="text-[10px] font-medium leading-tight">{t("settings")}</span>
+        </Link>
       </nav>
     );
   }

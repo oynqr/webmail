@@ -70,6 +70,7 @@ export function EventCard({ event, calendar, variant, onClick, onMouseEnter, onM
   const color = getEventColor(event, calendar);
   const startDate = parseISO(event.start);
   const timeFormat = useSettingsStore((state) => state.timeFormat);
+  const showTimeInMonthView = useSettingsStore((state) => state.showTimeInMonthView);
   const timeFmt = timeFormat === "12h" ? "h:mm a" : "HH:mm";
 
   const calendarName = calendar?.name || "";
@@ -156,6 +157,9 @@ export function EventCard({ event, calendar, variant, onClick, onMouseEnter, onM
         style={{ backgroundColor: `${color}24`, borderLeft: `3px solid ${color}`, color, ...style }}
       >
         <div className="flex items-center gap-1 min-w-0">
+          {showTimeInMonthView && !event.showWithoutTime && (
+            <span className="flex-shrink-0 opacity-80">{format(startDate, timeFmt)}</span>
+          )}
           <span className="truncate font-medium">{event.title || t("events.no_title")}</span>
         </div>
       </button>

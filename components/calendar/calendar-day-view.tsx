@@ -2,13 +2,14 @@
 
 import { useMemo, useEffect, useRef, useState } from "react";
 import { useTranslations, useFormatter } from "next-intl";
-import { format, isToday, parseISO } from "date-fns";
+import { format, isSameDay, isToday, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { EventCard, parseDuration } from "./event-card";
 import { QuickEventInput } from "./quick-event-input";
 import { formatSnapTime, getEventDayBounds, getPrimaryCalendarId, layoutOverlappingEvents } from "@/lib/calendar-utils";
 import type { CalendarEvent, Calendar } from "@/lib/jmap/types";
 import { useTimeGridInteractions } from "@/hooks/use-time-grid-interactions";
+import type { PendingEventPreview } from "./event-modal";
 
 interface CalendarDayViewProps {
   selectedDate: Date;
@@ -20,6 +21,7 @@ interface CalendarDayViewProps {
   onCreateAtTime: (date: Date, endDate?: Date) => void;
   timeFormat?: "12h" | "24h";
   isMobile?: boolean;
+  pendingPreview?: PendingEventPreview | null;
 }
 
 const HOUR_HEIGHT = 64;
@@ -35,6 +37,7 @@ export function CalendarDayView({
   onCreateAtTime,
   timeFormat = "24h",
   isMobile,
+  pendingPreview,
 }: CalendarDayViewProps) {
   const t = useTranslations("calendar");
   const intlFormatter = useFormatter();
@@ -273,6 +276,34 @@ export function CalendarDayView({
                   {formatSnapTime(dropTarget.minutes, timeFormat)}
                 </div>
               </div>
+            )}
+
+            {pendingPreview && !pendingPreview.allDay && isSameDay(pendingPreview.start, selectedDate) && (
+              (() => {
+                const startMin = pendingPreview.start.getHours() * 60 + pendingPreview.start.getMinutes();
+                const endMin = pendingPreview.end.getHours() * 60 + pendingPreview.end.getMinutes();
+                const durationMin = Math.max(15, endMin - startMin);
+                const cal = calendars.find(c => c.id === pendingPreview.calendarId);
+                const color = cal?.color || "hsl(var(--primary))";
+                return (
+                  <div
+                    className="absolute left-2 right-2 z-10 rounded-md pointer-events-none border-2 border-dashed overflow-hidden"
+                    style={{
+                      top: (startMin / 60) * HOUR_HEIGHT,
+                      height: Math.max(24, (durationMin / 60) * HOUR_HEIGHT),
+                      borderColor: color,
+                      backgroundColor: `${color}10`,
+                    }}
+                  >
+                    <div className="text-[10px] font-medium px-1.5 py-0.5 truncate" style={{ color }}>
+                      {pendingPreview.title}
+                    </div>
+                    <div className="text-[9px] px-1.5 opacity-70" style={{ color }}>
+                      {formatSnapTime(startMin, timeFormat)} – {formatSnapTime(startMin + durationMin, timeFormat)}
+                    </div>
+                  </div>
+                );
+              })()
             )}
           </div>
         </div>

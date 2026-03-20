@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 import { decryptSession } from '@/lib/auth/crypto';
-import { SESSION_COOKIE } from '@/lib/auth/session-cookie';
+import { sessionCookieName } from '@/lib/auth/session-cookie';
 import { saveUserSettings, loadUserSettings, deleteUserSettings } from '@/lib/settings-sync';
 
 function isEnabled(): boolean {
@@ -10,19 +10,30 @@ function isEnabled(): boolean {
 }
 
 /**
- * Verify identity against the session cookie if available.
- * Returns true if no session cookie exists (can't verify) or if identity matches.
- * Returns false if session cookie exists but identity doesn't match.
+ * Verify identity against session cookies across all account slots.
+ * With multi-account, the requesting account may be on any slot (0-4).
+ * Returns true if any slot matches OR if no session cookies exist at all.
  */
 async function verifyIdentity(username: string, serverUrl: string): Promise<boolean> {
   const cookieStore = await cookies();
-  const sessionToken = cookieStore.get(SESSION_COOKIE)?.value;
-  if (!sessionToken) return true; // No session cookie, can't verify (same-origin protection applies)
+  let hasAnyCookie = false;
 
-  const session = decryptSession(sessionToken);
-  if (!session) return true; // Invalid session cookie, skip verification
+  for (let slot = 0; slot <= 4; slot++) {
+    const token = cookieStore.get(sessionCookieName(slot))?.value;
+    if (!token) continue;
+    hasAnyCookie = true;
 
-  return session.username === username && session.serverUrl === serverUrl;
+    const session = decryptSession(token);
+    if (session && session.username === username && session.serverUrl === serverUrl) {
+      return true; // Found a matching slot
+    }
+  }
+
+  // No cookies at all → can't verify, allow (same-origin protection applies)
+  if (!hasAnyCookie) return true;
+
+  // Cookies exist but none matched → identity mismatch
+  return false;
 }
 
 export async function GET(request: NextRequest) {

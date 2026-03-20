@@ -14,6 +14,7 @@ export function CalendarSettings() {
   const {
     timeFormat,
     firstDayOfWeek,
+    showTimeInMonthView,
     calendarNotificationsEnabled,
     calendarNotificationSound,
     calendarInvitationParsingEnabled,
@@ -54,6 +55,16 @@ export function CalendarSettings() {
             { value: '12h', label: t('time_format_12h') },
             { value: '24h', label: t('time_format_24h') },
           ]}
+        />
+      </SettingItem>
+
+      <SettingItem
+        label={t('show_time_in_month_view')}
+        description={t('show_time_in_month_view_desc')}
+      >
+        <ToggleSwitch
+          checked={showTimeInMonthView}
+          onChange={(checked) => updateSetting('showTimeInMonthView', checked)}
         />
       </SettingItem>
 

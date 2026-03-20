@@ -544,7 +544,7 @@ export default function ContactsPage() {
   };
 
   return (
-    <div className="flex h-dvh bg-background overflow-hidden">
+    <div className={cn("flex h-dvh bg-background overflow-hidden", isMobile && "flex-col")}>
       {/* Navigation Rail - desktop only */}
       {!isMobile && (
         <div className="w-14 bg-secondary flex flex-col flex-shrink-0" style={{ borderRight: '1px solid rgba(128, 128, 128, 0.3)' }}>

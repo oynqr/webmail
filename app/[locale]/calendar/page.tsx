@@ -25,7 +25,7 @@ import { CalendarDayView } from "@/components/calendar/calendar-day-view";
 import { CalendarAgendaView } from "@/components/calendar/calendar-agenda-view";
 import { MiniCalendar } from "@/components/calendar/mini-calendar";
 import { CalendarSidebarPanel } from "@/components/calendar/calendar-sidebar-panel";
-import { EventModal } from "@/components/calendar/event-modal";
+import { EventModal, type PendingEventPreview } from "@/components/calendar/event-modal";
 import { EventDetailPopover } from "@/components/calendar/event-detail-popover";
 import { ICalImportModal } from "@/components/calendar/ical-import-modal";
 import { ICalSubscriptionModal } from "@/components/calendar/ical-subscription-modal";
@@ -82,6 +82,7 @@ export default function CalendarPage() {
   const [pendingScopeAction, setPendingScopeAction] = useState<PendingScopeAction | null>(null);
   const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
   const [detailAnchorRect, setDetailAnchorRect] = useState<DOMRect | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<PendingEventPreview | null>(null);
   const hasFetched = useRef(false);
 
   // Sidebar resize state
@@ -268,12 +269,13 @@ export default function CalendarPage() {
   }, [closeDetail, openEditModal]);
 
   const handleHoverEvent = useCallback((event: CalendarEvent, anchorRect: DOMRect) => {
+    if (isMobile) return;
     if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); hoverTimerRef.current = null; }
     // Don't show hover popover if the sidebar is already open for this event
     if (showEventModal && editEvent?.id === event.id) return;
     setDetailEvent(event);
     setDetailAnchorRect(anchorRect);
-  }, [showEventModal, editEvent]);
+  }, [isMobile, showEventModal, editEvent]);
 
   const handleHoverLeave = useCallback(() => {
     hoverTimerRef.current = setTimeout(() => {
@@ -615,7 +617,7 @@ export default function CalendarPage() {
 
   const visibleEvents = useMemo(() =>
     events.filter((e) => {
-      if (!e.calendarIds) return false;
+      if (!e.start || !e.calendarIds) return false;
       const calIds = Object.keys(e.calendarIds);
       return calIds.some((id) => selectedCalendarIds.includes(id));
     }),
@@ -648,6 +650,7 @@ export default function CalendarPage() {
               onCreateAtTime={openCreateModal}
               firstDayOfWeek={firstDayOfWeek}
               isMobile={isMobile}
+              pendingPreview={pendingPreview}
             />
           );
         case "week":
@@ -664,6 +667,7 @@ export default function CalendarPage() {
               firstDayOfWeek={firstDayOfWeek}
               timeFormat={timeFormat}
               isMobile={isMobile}
+              pendingPreview={pendingPreview}
             />
           );
         case "day":
@@ -678,6 +682,7 @@ export default function CalendarPage() {
               onCreateAtTime={openCreateModal}
               timeFormat={timeFormat}
               isMobile={isMobile}
+              pendingPreview={pendingPreview}
             />
           );
         case "agenda":
@@ -708,7 +713,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="flex h-dvh bg-background overflow-hidden">
+    <div className={cn("flex h-dvh bg-background overflow-hidden", isMobile && "flex-col")}>
       {/* Left Navigation Rail */}
       {!isMobile && (
         <div className="w-14 bg-secondary flex flex-col flex-shrink-0" style={{ borderRight: '1px solid rgba(128, 128, 128, 0.3)' }}>
@@ -771,7 +776,7 @@ export default function CalendarPage() {
       )}
 
       {!inlineApp && (
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="flex flex-col flex-1 min-w-0 min-h-0">
         <CalendarToolbar
           selectedDate={selectedDate}
           viewMode={normalizedViewMode}
@@ -808,7 +813,8 @@ export default function CalendarPage() {
                 onDelete={handleDeleteEvent}
                 onDuplicate={handleDuplicateEvent}
                 onRsvp={handleRsvp}
-                onClose={() => { setShowEventModal(false); setEditEvent(null); }}
+                onClose={() => { setShowEventModal(false); setEditEvent(null); setPendingPreview(null); }}
+                onPreviewChange={setPendingPreview}
                 currentUserEmails={currentUserEmails}
                 isMobile={false}
               />
@@ -831,13 +837,15 @@ export default function CalendarPage() {
 
       {/* Mobile Bottom Navigation */}
       {isMobile && (
-        <NavigationRail
-          orientation="horizontal"
-          onManageApps={handleManageApps}
-          onInlineApp={handleInlineApp}
-          onCloseInlineApp={closeInlineApp}
-          activeAppId={inlineApp?.id ?? null}
-        />
+        <div className="shrink-0">
+          <NavigationRail
+            orientation="horizontal"
+            onManageApps={handleManageApps}
+            onInlineApp={handleInlineApp}
+            onCloseInlineApp={closeInlineApp}
+            activeAppId={inlineApp?.id ?? null}
+          />
+        </div>
       )}
 
       {detailEvent && detailAnchorRect && (

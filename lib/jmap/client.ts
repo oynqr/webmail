@@ -2066,6 +2066,11 @@ export class JMAPClient {
     return coreCapability?.maxCallsInRequest || 50;
   }
 
+  getMaxObjectsInGet(): number {
+    const coreCapability = this.capabilities["urn:ietf:params:jmap:core"] as { maxObjectsInGet?: number } | undefined;
+    return coreCapability?.maxObjectsInGet || 500;
+  }
+
   getEventSourceUrl(): string | null {
     if (!this.session) return null;
 
@@ -2428,26 +2433,62 @@ export class JMAPClient {
     }
   }
 
-  async getContacts(addressBookId?: string): Promise<ContactCard[]> {
-    try {
-      const accountId = this.getContactsAccountId();
-      const queryArgs: Record<string, unknown> = { accountId, limit: 1000 };
-      if (addressBookId) {
-        queryArgs.filter = { inAddressBook: addressBookId };
+  private async fetchPaginatedContacts(
+    accountId: string,
+    filter?: Record<string, unknown>,
+  ): Promise<ContactCard[]> {
+    const batchSize = this.getMaxObjectsInGet();
+    const allIds: string[] = [];
+    let position = 0;
+
+    // Paginate ContactCard/query to collect all IDs
+    for (;;) {
+      const queryArgs: Record<string, unknown> = { accountId, position, limit: batchSize };
+      if (filter) {
+        queryArgs.filter = filter;
       }
 
       const response = await this.request([
-        ["ContactCard/query", queryArgs, "0"],
-        ["ContactCard/get", {
-          accountId,
-          "#ids": { resultOf: "0", name: "ContactCard/query", path: "/ids" },
-        }, "1"],
+        ["ContactCard/query", queryArgs, "q"],
       ], this.contactUsing());
 
-      if (response.methodResponses?.[1]?.[0] === "ContactCard/get") {
-        return (response.methodResponses[1][1].list || []) as ContactCard[];
+      const queryResult = response.methodResponses?.[0];
+      if (queryResult?.[0] !== "ContactCard/query") break;
+
+      const ids: string[] = queryResult[1].ids || [];
+      allIds.push(...ids);
+
+      const total: number = queryResult[1].total ?? -1;
+      if (ids.length < batchSize || (total > 0 && allIds.length >= total)) {
+        break;
       }
-      return [];
+      position += ids.length;
+    }
+
+    if (allIds.length === 0) return [];
+
+    // Batch ContactCard/get to respect maxObjectsInGet
+    const allContacts: ContactCard[] = [];
+    for (let i = 0; i < allIds.length; i += batchSize) {
+      const chunk = allIds.slice(i, i + batchSize);
+      const response = await this.request([
+        ["ContactCard/get", { accountId, ids: chunk }, "g"],
+      ], this.contactUsing());
+
+      if (response.methodResponses?.[0]?.[0] === "ContactCard/get") {
+        const list = (response.methodResponses[0][1].list || []) as ContactCard[];
+        allContacts.push(...list);
+      }
+    }
+
+    return allContacts;
+  }
+
+  async getContacts(addressBookId?: string): Promise<ContactCard[]> {
+    try {
+      const accountId = this.getContactsAccountId();
+      const filter = addressBookId ? { inAddressBook: addressBookId } : undefined;
+      return await this.fetchPaginatedContacts(accountId, filter);
     } catch (error) {
       console.error('Failed to get contacts:', error);
       return [];
@@ -2465,29 +2506,19 @@ export class JMAPClient {
         const account = this.accounts[accountId];
 
         try {
-          const response = await this.request([
-            ["ContactCard/query", { accountId, limit: 1000 }, "0"],
-            ["ContactCard/get", {
-              accountId,
-              "#ids": { resultOf: "0", name: "ContactCard/query", path: "/ids" },
-            }, "1"],
-          ], this.contactUsing());
-
-          if (response.methodResponses?.[1]?.[0] === "ContactCard/get") {
-            const rawContacts = (response.methodResponses[1][1].list || []) as ContactCard[];
-            const contacts = rawContacts.map((contact) => ({
-              ...contact,
-              id: isPrimary ? contact.id : `${accountId}:${contact.id}`,
-              originalId: contact.id,
-              addressBookIds: isPrimary ? contact.addressBookIds : (contact.addressBookIds ? Object.fromEntries(
-                Object.entries(contact.addressBookIds).map(([bookId, v]) => [`${accountId}:${bookId}`, v])
-              ) : contact.addressBookIds),
-              accountId,
-              accountName: account?.name || (isPrimary ? this.username : accountId),
-              isShared: !isPrimary,
-            }));
-            allContacts.push(...contacts);
-          }
+          const rawContacts = await this.fetchPaginatedContacts(accountId);
+          const contacts = rawContacts.map((contact) => ({
+            ...contact,
+            id: isPrimary ? contact.id : `${accountId}:${contact.id}`,
+            originalId: contact.id,
+            addressBookIds: isPrimary ? contact.addressBookIds : (contact.addressBookIds ? Object.fromEntries(
+              Object.entries(contact.addressBookIds).map(([bookId, v]) => [`${accountId}:${bookId}`, v])
+            ) : contact.addressBookIds),
+            accountId,
+            accountName: account?.name || (isPrimary ? this.username : accountId),
+            isShared: !isPrimary,
+          }));
+          allContacts.push(...contacts);
         } catch (error) {
           console.error(`Failed to fetch contacts for account ${accountId}:`, error);
         }
@@ -2888,6 +2919,10 @@ export class JMAPClient {
         filter,
         limit: limit || 1000,
       };
+      // Expand recurring events into individual occurrences when a date range is provided
+      if (filter.after || filter.before) {
+        queryArgs.expandRecurrences = true;
+      }
       if (sort) {
         queryArgs.sort = sort;
       }

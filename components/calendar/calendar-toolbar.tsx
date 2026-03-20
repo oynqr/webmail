@@ -136,6 +136,20 @@ export function CalendarToolbar({
         {t("views.today")}
       </Button>
 
+      {!isMobile && (
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onPrev} aria-label={t("nav_prev")}>
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onNext} aria-label={t("nav_next")}>
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+          <span className="text-base font-semibold ml-2 select-none">
+            {getDateLabel()}
+          </span>
+        </div>
+      )}
+
       {isMobile && calendars && selectedCalendarIds && onToggleVisibility && (
         <div className="relative" ref={dropdownRef}>
           <Button
