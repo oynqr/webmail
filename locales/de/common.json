@@ -1858,7 +1858,9 @@
       "invitation_parsing": "E-Mail-Einladungen verarbeiten",
       "invitation_parsing_desc": "Kalendereinladungen in E-Mail-Anhängen erkennen und Kalenderaktionen anzeigen",
       "show_time_in_month_view": "Zeit in Monatsansicht anzeigen",
-      "show_time_in_month_view_desc": "Ereigniszeiten in der Monatskalenderansicht anzeigen"
+      "show_time_in_month_view_desc": "Ereigniszeiten in der Monatskalenderansicht anzeigen",
+      "show_week_numbers": "Kalenderwochen anzeigen",
+      "show_week_numbers_desc": "Kalenderwochen im Minikalender anzeigen"
     },
     "days": {
       "monday": "Montag",

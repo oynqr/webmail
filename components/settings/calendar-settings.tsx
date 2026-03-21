@@ -15,6 +15,7 @@ export function CalendarSettings() {
     timeFormat,
     firstDayOfWeek,
     showTimeInMonthView,
+    showWeekNumbers,
     calendarNotificationsEnabled,
     calendarNotificationSound,
     calendarInvitationParsingEnabled,
@@ -65,6 +66,16 @@ export function CalendarSettings() {
         <ToggleSwitch
           checked={showTimeInMonthView}
           onChange={(checked) => updateSetting('showTimeInMonthView', checked)}
+        />
+      </SettingItem>
+
+      <SettingItem
+        label={t('show_week_numbers')}
+        description={t('show_week_numbers_desc')}
+      >
+        <ToggleSwitch
+          checked={showWeekNumbers}
+          onChange={(checked) => updateSetting('showWeekNumbers', checked)}
         />
       </SettingItem>
 

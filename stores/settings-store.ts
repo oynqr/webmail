@@ -121,6 +121,7 @@ interface SettingsState {
 
   // Calendar
   showTimeInMonthView: boolean;
+  showWeekNumbers: boolean;
 
   // Calendar Notifications
   calendarNotificationsEnabled: boolean;
@@ -221,6 +222,7 @@ const DEFAULT_SETTINGS = {
 
   // Calendar
   showTimeInMonthView: false,
+  showWeekNumbers: false,
 
   // Calendar Notifications
   calendarNotificationsEnabled: true,
@@ -307,6 +309,7 @@ export const useSettingsStore = create<SettingsState>()(
           calendarNotificationSound: state.calendarNotificationSound,
           calendarInvitationParsingEnabled: state.calendarInvitationParsingEnabled,
           showTimeInMonthView: state.showTimeInMonthView,
+          showWeekNumbers: state.showWeekNumbers,
           toolbarPosition: state.toolbarPosition,
           senderFavicons: state.senderFavicons,
           folderIcons: state.folderIcons,

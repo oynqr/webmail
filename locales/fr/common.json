@@ -1858,7 +1858,9 @@
       "invitation_parsing": "Analyser les invitations par e-mail",
       "invitation_parsing_desc": "Détecter les invitations de calendrier dans les pièces jointes des e-mails et afficher les actions du calendrier",
       "show_time_in_month_view": "Afficher l'heure dans la vue mensuelle",
-      "show_time_in_month_view_desc": "Afficher les heures des événements dans la vue mensuelle du calendrier"
+      "show_time_in_month_view_desc": "Afficher les heures des événements dans la vue mensuelle du calendrier",
+      "show_week_numbers": "Afficher les numéros de semaine",
+      "show_week_numbers_desc": "Afficher les numéros de semaine dans le mini-calendrier"
     },
     "days": {
       "monday": "Lundi",

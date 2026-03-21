@@ -63,7 +63,7 @@ export default function CalendarPage() {
     setSelectedDate, setViewMode, toggleCalendarVisibility, updateCalendar,
     refreshAllSubscriptions,
   } = useCalendarStore();
-  const { firstDayOfWeek, timeFormat } = useSettingsStore();
+  const { firstDayOfWeek, timeFormat, showWeekNumbers } = useSettingsStore();
   const { identities } = useIdentityStore();
   const normalizedViewMode = isCalendarViewMode(viewMode) ? viewMode : "month";
 
@@ -751,6 +751,7 @@ export default function CalendarPage() {
               onChangeMonth={handleMiniMonthChange}
               events={events}
               firstDayOfWeek={firstDayOfWeek}
+              showWeekNumbers={showWeekNumbers}
             />
             <CalendarSidebarPanel
               calendars={calendars}

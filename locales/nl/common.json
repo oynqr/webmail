@@ -1858,7 +1858,9 @@
       "invitation_parsing": "E-mailuitnodigingen verwerken",
       "invitation_parsing_desc": "Kalenderuitnodigingen in e-mailbijlagen detecteren en kalenderacties tonen",
       "show_time_in_month_view": "Tijd weergeven in maandweergave",
-      "show_time_in_month_view_desc": "Evenementtijden weergeven in de maandkalenderweergave"
+      "show_time_in_month_view_desc": "Evenementtijden weergeven in de maandkalenderweergave",
+      "show_week_numbers": "Weeknummers weergeven",
+      "show_week_numbers_desc": "Weeknummers weergeven in de minikalender"
     },
     "days": {
       "monday": "Maandag",

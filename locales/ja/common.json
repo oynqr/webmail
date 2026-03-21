@@ -1858,7 +1858,9 @@
       "invitation_parsing": "メール招待を解析する",
       "invitation_parsing_desc": "メール添付のカレンダー招待を検出してカレンダー操作を表示する",
       "show_time_in_month_view": "月表示で時刻を表示",
-      "show_time_in_month_view_desc": "月カレンダー表示でイベントの時刻を表示する"
+      "show_time_in_month_view_desc": "月カレンダー表示でイベントの時刻を表示する",
+      "show_week_numbers": "週番号を表示",
+      "show_week_numbers_desc": "ミニカレンダーに週番号を表示する"
     },
     "days": {
       "monday": "月曜日",
