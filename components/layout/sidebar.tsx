@@ -521,12 +521,12 @@ export function Sidebar({
       )}
     >
       {/* Header */}
-      <div className={cn("flex items-center border-b border-border", isCollapsed ? "justify-center px-2 py-3" : "gap-2 px-4 py-3")}>
+      <div className={cn("flex items-center border-b border-border", isCollapsed ? "justify-center px-2 py-2" : "gap-1 px-2 py-2")}>
         <Button
           variant="ghost"
           size="icon"
           onClick={onSidebarClose}
-          className="lg:hidden h-11 w-11 flex-shrink-0"
+          className="lg:hidden h-9 w-9 flex-shrink-0"
           aria-label={t("close")}
         >
           <X className="w-5 h-5" />
@@ -547,7 +547,7 @@ export function Sidebar({
           variant="ghost"
           size="icon"
           onClick={toggleSidebarCollapsed}
-          className="hidden lg:flex flex-shrink-0"
+          className="hidden lg:flex h-8 w-8 flex-shrink-0"
           title={isCollapsed ? t("expand_tooltip") : t("collapse_tooltip")}
         >
           {isCollapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
