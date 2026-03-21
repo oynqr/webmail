@@ -33,6 +33,17 @@ export type AttachmentPosition = 'beside-sender' | 'below-header';
 export type ToolbarPosition = 'top' | 'below-subject';
 export type ArchiveMode = 'single' | 'year' | 'month';
 
+export type HoverAction = 'delete' | 'star' | 'markRead' | 'archive' | 'tag' | 'spam';
+
+export const ALL_HOVER_ACTIONS: { id: HoverAction; labelKey: string }[] = [
+  { id: 'delete', labelKey: 'delete' },
+  { id: 'star', labelKey: 'star' },
+  { id: 'markRead', labelKey: 'mark_read' },
+  { id: 'archive', labelKey: 'archive' },
+  { id: 'tag', labelKey: 'tag' },
+  { id: 'spam', labelKey: 'spam' },
+];
+
 export interface KeywordDefinition {
   id: string;     // Used as JMAP keyword suffix: $label:<id>
   label: string;  // Display name
@@ -97,6 +108,7 @@ interface SettingsState {
   attachmentPosition: AttachmentPosition;
   emailAlwaysLightMode: boolean; // Always render email content in light mode
   archiveMode: ArchiveMode; // How to organize archived emails: single folder, by year, or by year+month
+  hoverActions: HoverAction[]; // Quick actions shown on hover in mail list
 
   // Composer
   autoSaveDraftInterval: number; // milliseconds
@@ -196,6 +208,7 @@ const DEFAULT_SETTINGS = {
   attachmentPosition: 'beside-sender' as AttachmentPosition,
   emailAlwaysLightMode: false,
   archiveMode: 'single' as ArchiveMode,
+  hoverActions: ['delete', 'star', 'markRead', 'archive'] as HoverAction[],
 
   // Composer
   autoSaveDraftInterval: 60000, // 1 minute
@@ -284,6 +297,7 @@ export const useSettingsStore = create<SettingsState>()(
           mailAttachmentAction: state.mailAttachmentAction,
           attachmentPosition: state.attachmentPosition,
           archiveMode: state.archiveMode,
+          hoverActions: state.hoverActions,
           trustedSenders: state.trustedSenders,
           autoSaveDraftInterval: state.autoSaveDraftInterval,
           sendConfirmation: state.sendConfirmation,

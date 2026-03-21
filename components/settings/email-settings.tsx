@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSettingsStore } from '@/stores/settings-store';
-import type { ArchiveMode } from '@/stores/settings-store';
+import type { ArchiveMode, HoverAction } from '@/stores/settings-store';
+import { ALL_HOVER_ACTIONS } from '@/stores/settings-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { useEmailStore } from '@/stores/email-store';
+import { cn } from '@/lib/utils';
 import { SettingsSection, SettingItem, Select, ToggleSwitch } from './settings-section';
 import { TrustedSendersModal } from '@/components/trusted-senders-modal';
 import { ChevronRight, AlertTriangle, FolderSync, Loader2 } from 'lucide-react';
@@ -27,6 +29,7 @@ export function EmailSettings() {
     attachmentPosition,
     emailAlwaysLightMode,
     archiveMode,
+    hoverActions,
     trustedSenders,
     updateSetting,
   } = useSettingsStore();
@@ -184,6 +187,39 @@ export function EmailSettings() {
       <SettingItem label={t('show_preview.label')} description={t('show_preview.description')}>
         <ToggleSwitch checked={showPreview} onChange={(checked) => updateSetting('showPreview', checked)} />
       </SettingItem>
+
+      {/* Quick Hover Actions */}
+      <div className="py-3 border-b border-border space-y-3">
+        <div>
+          <label className="text-sm font-medium text-foreground">{t('hover_actions.label')}</label>
+          <p className="text-xs text-muted-foreground mt-1">{t('hover_actions.description')}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {ALL_HOVER_ACTIONS.map((action) => {
+            const isEnabled = hoverActions.includes(action.id);
+            return (
+              <button
+                key={action.id}
+                type="button"
+                onClick={() => {
+                  const newActions = isEnabled
+                    ? hoverActions.filter((a: HoverAction) => a !== action.id)
+                    : [...hoverActions, action.id];
+                  updateSetting('hoverActions', newActions);
+                }}
+                className={cn(
+                  'px-3 py-1.5 text-xs rounded-md transition-colors duration-150',
+                  isEnabled
+                    ? 'bg-primary text-primary-foreground font-medium'
+                    : 'bg-muted hover:bg-accent text-foreground'
+                )}
+              >
+                {t(`hover_actions.${action.labelKey}`)}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <SettingItem label={t('attachment_click_action.label')} description={t('attachment_click_action.description')}>
         <Select

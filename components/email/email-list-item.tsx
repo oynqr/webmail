@@ -14,6 +14,7 @@ import { useEmailDrag } from "@/hooks/use-email-drag";
 import { useLongPress } from "@/hooks/use-long-press";
 import { useUIStore } from "@/stores/ui-store";
 import { EmailIdentityBadge } from "./email-identity-badge";
+import { EmailHoverActions } from "./email-hover-actions";
 import { getEmailColorTag } from "@/lib/thread-utils";
 
 interface EmailListItemProps {
@@ -21,9 +22,15 @@ interface EmailListItemProps {
   selected?: boolean;
   onClick?: () => void;
   onContextMenu?: (e: React.MouseEvent, email: Email) => void;
+  onToggleStar?: () => void;
+  onMarkAsRead?: (read: boolean) => void;
+  onDelete?: () => void;
+  onArchive?: () => void;
+  onSetColorTag?: (color: string | null) => void;
+  onMarkAsSpam?: () => void;
 }
 
-export function EmailListItem({ email, selected, onClick, onContextMenu }: EmailListItemProps) {
+export function EmailListItem({ email, selected, onClick, onContextMenu, onToggleStar, onMarkAsRead, onDelete, onArchive, onSetColorTag, onMarkAsSpam }: EmailListItemProps) {
   const t = useTranslations('email_viewer');
   const { selectedEmailIds, toggleEmailSelection, selectRangeEmails, selectedMailbox, clearSelection } = useEmailStore();
   const showPreview = useSettingsStore((state) => state.showPreview);
@@ -74,7 +81,7 @@ export function EmailListItem({ email, selected, onClick, onContextMenu }: Email
       {...dragHandlers}
       {...longPressHandlers}
       className={cn(
-        "relative group cursor-pointer select-none transition-all duration-200 border-b border-border",
+        "relative group cursor-pointer select-none transition-shadow duration-200 border-b border-border overflow-hidden",
         // Apply color tag as background, with selected and unread states
         colorTag ? colorTag : (
           selected
@@ -217,6 +224,17 @@ export function EmailListItem({ email, selected, onClick, onContextMenu }: Email
           )}
         </div>
       </div>
+
+      {/* Hover Quick Actions */}
+      <EmailHoverActions
+        email={email}
+        onToggleStar={onToggleStar}
+        onMarkAsRead={onMarkAsRead}
+        onDelete={onDelete}
+        onArchive={onArchive}
+        onSetColorTag={onSetColorTag}
+        onMarkAsSpam={onMarkAsSpam}
+      />
     </div>
   );
 }

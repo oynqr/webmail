@@ -808,6 +808,17 @@
         "close": "Close",
         "invalid_email": "Please enter a valid email address",
         "already_added": "This sender is already trusted"
+      },
+      "hover_actions": {
+        "label": "Quick Hover Actions",
+        "description": "Choose which quick actions appear when hovering over an email in the list",
+        "delete": "Delete",
+        "star": "Star / Unstar",
+        "mark_read": "Mark Read / Unread",
+        "archive": "Archive",
+        "tag": "Tag",
+        "spam": "Mark as Spam",
+        "none_selected": "No actions selected"
       }
     },
     "composer": {

@@ -422,6 +422,12 @@ export function EmailList({
                       onEmailSelect={(email) => onEmailSelect?.(email)}
                       onContextMenu={openContextMenu}
                       onOpenConversation={onOpenConversation}
+                      onToggleStar={onToggleStar ? (email) => onToggleStar(email) : undefined}
+                      onMarkAsRead={onMarkAsRead ? (email, read) => onMarkAsRead(email, read) : undefined}
+                      onDelete={onDelete ? (email) => onDelete(email) : undefined}
+                      onArchive={onArchive ? (email) => onArchive(email) : undefined}
+                      onSetColorTag={onSetColorTag}
+                      onMarkAsSpam={onMarkAsSpam ? (email) => onMarkAsSpam(email) : undefined}
                     />
                   </div>
                 );

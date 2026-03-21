@@ -13,6 +13,7 @@ import { getThreadColorTag, getEmailColorTag } from "@/lib/thread-utils";
 import { useEmailDrag } from "@/hooks/use-email-drag";
 import { useLongPress } from "@/hooks/use-long-press";
 import { ThreadEmailItem } from "./thread-email-item";
+import { EmailHoverActions } from "./email-hover-actions";
 import { useTranslations } from "next-intl";
 
 interface ThreadListItemProps {
@@ -25,6 +26,12 @@ interface ThreadListItemProps {
   onEmailSelect: (email: Email) => void;
   onContextMenu?: (e: React.MouseEvent, email: Email) => void;
   onOpenConversation?: (thread: ThreadGroup) => void;
+  onToggleStar?: (email: Email) => void;
+  onMarkAsRead?: (email: Email, read: boolean) => void;
+  onDelete?: (email: Email) => void;
+  onArchive?: (email: Email) => void;
+  onSetColorTag?: (emailId: string, color: string | null) => void;
+  onMarkAsSpam?: (email: Email) => void;
 }
 
 interface SingleEmailItemProps {
@@ -34,10 +41,16 @@ interface SingleEmailItemProps {
   onContextMenu?: (e: React.MouseEvent, email: Email) => void;
   showPreview: boolean;
   colorTag: string | null;
+  onToggleStar?: () => void;
+  onMarkAsRead?: (read: boolean) => void;
+  onDelete?: () => void;
+  onArchive?: () => void;
+  onSetColorTag?: (color: string | null) => void;
+  onMarkAsSpam?: () => void;
 }
 
 const SingleEmailItem = React.forwardRef<HTMLDivElement, SingleEmailItemProps>(
-  function SingleEmailItem({ email, selected, onClick, onContextMenu, showPreview, colorTag }, ref) {
+  function SingleEmailItem({ email, selected, onClick, onContextMenu, showPreview, colorTag, onToggleStar, onMarkAsRead, onDelete, onArchive, onSetColorTag, onMarkAsSpam }, ref) {
     const isUnread = !email.keywords?.$seen;
     const isStarred = email.keywords?.$flagged;
     const sender = email.from?.[0];
@@ -100,7 +113,7 @@ const SingleEmailItem = React.forwardRef<HTMLDivElement, SingleEmailItemProps>(
         {...dragHandlers}
         {...longPressHandlers}
         className={cn(
-          "relative group cursor-pointer select-none transition-all duration-200 border-b border-border",
+          "relative group cursor-pointer select-none transition-shadow duration-200 border-b border-border overflow-hidden",
           resolvedColorTag ? resolvedColorTag : (
             selected
               ? "bg-accent"
@@ -216,6 +229,17 @@ const SingleEmailItem = React.forwardRef<HTMLDivElement, SingleEmailItemProps>(
             )}
           </div>
         </div>
+
+        {/* Hover Quick Actions */}
+        <EmailHoverActions
+          email={email}
+          onToggleStar={onToggleStar}
+          onMarkAsRead={onMarkAsRead}
+          onDelete={onDelete}
+          onArchive={onArchive}
+          onSetColorTag={onSetColorTag}
+          onMarkAsSpam={onMarkAsSpam}
+        />
       </div>
     );
   }
@@ -232,6 +256,12 @@ export const ThreadListItem = React.forwardRef<HTMLDivElement, ThreadListItemPro
     onEmailSelect,
     onContextMenu,
     onOpenConversation,
+    onToggleStar,
+    onMarkAsRead,
+    onDelete,
+    onArchive,
+    onSetColorTag,
+    onMarkAsSpam,
   }, ref) {
     const t = useTranslations('threads');
     const showPreview = useSettingsStore((state) => state.showPreview);
@@ -278,6 +308,12 @@ export const ThreadListItem = React.forwardRef<HTMLDivElement, ThreadListItemPro
           onContextMenu={onContextMenu}
           showPreview={showPreview}
           colorTag={colorTag}
+          onToggleStar={onToggleStar ? () => onToggleStar(latestEmail) : undefined}
+          onMarkAsRead={onMarkAsRead ? (read) => onMarkAsRead(latestEmail, read) : undefined}
+          onDelete={onDelete ? () => onDelete(latestEmail) : undefined}
+          onArchive={onArchive ? () => onArchive(latestEmail) : undefined}
+          onSetColorTag={onSetColorTag ? (color) => onSetColorTag(latestEmail.id, color) : undefined}
+          onMarkAsSpam={onMarkAsSpam ? () => onMarkAsSpam(latestEmail) : undefined}
         />
       );
     }
@@ -339,7 +375,7 @@ export const ThreadListItem = React.forwardRef<HTMLDivElement, ThreadListItemPro
           {...dragHandlers}
           {...threadLongPressHandlers}
           className={cn(
-            "relative group cursor-pointer select-none transition-all duration-200",
+            "relative group cursor-pointer select-none transition-shadow duration-200 overflow-hidden",
             colorTag ? colorTag : (
               isSelected
                 ? "bg-accent"
@@ -493,6 +529,17 @@ export const ThreadListItem = React.forwardRef<HTMLDivElement, ThreadListItemPro
               )}
             </div>
           </div>
+
+          {/* Hover Quick Actions for thread header */}
+          <EmailHoverActions
+            email={latestEmail}
+            onToggleStar={onToggleStar ? () => onToggleStar(latestEmail) : undefined}
+            onMarkAsRead={onMarkAsRead ? (read) => onMarkAsRead(latestEmail, read) : undefined}
+            onDelete={onDelete ? () => onDelete(latestEmail) : undefined}
+            onArchive={onArchive ? () => onArchive(latestEmail) : undefined}
+            onSetColorTag={onSetColorTag ? (color) => onSetColorTag(latestEmail.id, color) : undefined}
+            onMarkAsSpam={onMarkAsSpam ? () => onMarkAsSpam(latestEmail) : undefined}
+          />
         </div>
 
         {isExpanded && !isMobile && (
