@@ -5,7 +5,7 @@ import { formatDate } from "@/lib/utils";
 import { Email, ThreadGroup } from "@/lib/jmap/types";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
-import { Paperclip, Star, Circle, ChevronRight, ChevronDown, Loader2, MessageSquare, CheckSquare, Square } from "lucide-react";
+import { Paperclip, Star, Circle, ChevronRight, ChevronDown, Loader2, MessageSquare, CheckSquare, Square, Reply, Forward } from "lucide-react";
 import { useSettingsStore, KEYWORD_PALETTE } from "@/stores/settings-store";
 import { useUIStore } from "@/stores/ui-store";
 import { useEmailStore } from "@/stores/email-store";
@@ -53,6 +53,8 @@ const SingleEmailItem = React.forwardRef<HTMLDivElement, SingleEmailItemProps>(
   function SingleEmailItem({ email, selected, onClick, onContextMenu, showPreview, colorTag, onToggleStar, onMarkAsRead, onDelete, onArchive, onSetColorTag, onMarkAsSpam }, ref) {
     const isUnread = !email.keywords?.$seen;
     const isStarred = email.keywords?.$flagged;
+    const isAnswered = email.keywords?.$answered;
+    const isForwarded = email.keywords?.$forwarded;
     const sender = email.from?.[0];
     const { selectedMailbox, selectedEmailIds, toggleEmailSelection, selectRangeEmails, clearSelection } = useEmailStore();
     const emailKeywords = useSettingsStore((state) => state.emailKeywords);
@@ -182,6 +184,18 @@ const SingleEmailItem = React.forwardRef<HTMLDivElement, SingleEmailItemProps>(
                   {isStarred && (
                     <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                   )}
+                  {isAnswered && !isForwarded && (
+                    <Reply className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                  {isForwarded && !isAnswered && (
+                    <Forward className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                  {isAnswered && isForwarded && (
+                    <>
+                      <Reply className="w-3.5 h-3.5 text-muted-foreground" />
+                      <Forward className="w-3.5 h-3.5 text-muted-foreground" />
+                    </>
+                  )}
                   {email.hasAttachment && (
                     <Paperclip className="w-3.5 h-3.5 text-muted-foreground" />
                   )}
@@ -267,7 +281,7 @@ export const ThreadListItem = React.forwardRef<HTMLDivElement, ThreadListItemPro
     const showPreview = useSettingsStore((state) => state.showPreview);
     const density = useSettingsStore((state) => state.density);
     const isMobile = useUIStore((state) => state.isMobile);
-    const { latestEmail, participantNames, hasUnread, hasStarred, hasAttachment, emailCount } = thread;
+    const { latestEmail, participantNames, hasUnread, hasStarred, hasAttachment, hasAnswered, hasForwarded, emailCount } = thread;
 
     const { selectedMailbox, selectedEmailIds, toggleEmailSelection, selectRangeEmails, clearSelection } = useEmailStore();
 
@@ -481,6 +495,18 @@ export const ThreadListItem = React.forwardRef<HTMLDivElement, ThreadListItemPro
                   <div className="flex items-center gap-1.5">
                     {hasStarred && (
                       <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    )}
+                    {hasAnswered && !hasForwarded && (
+                      <Reply className="w-3.5 h-3.5 text-muted-foreground" />
+                    )}
+                    {hasForwarded && !hasAnswered && (
+                      <Forward className="w-3.5 h-3.5 text-muted-foreground" />
+                    )}
+                    {hasAnswered && hasForwarded && (
+                      <>
+                        <Reply className="w-3.5 h-3.5 text-muted-foreground" />
+                        <Forward className="w-3.5 h-3.5 text-muted-foreground" />
+                      </>
                     )}
                     {hasAttachment && (
                       <Paperclip className="w-3.5 h-3.5 text-muted-foreground" />

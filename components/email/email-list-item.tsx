@@ -6,7 +6,7 @@ import { formatDate } from "@/lib/utils";
 import { Email } from "@/lib/jmap/types";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
-import { Paperclip, Star, Circle, CheckSquare, Square, Tag } from "lucide-react";
+import { Paperclip, Star, Circle, CheckSquare, Square, Tag, Reply, Forward } from "lucide-react";
 import { useEmailStore } from "@/stores/email-store";
 import { useSettingsStore, KEYWORD_PALETTE } from "@/stores/settings-store";
 import { useAuthStore } from "@/stores/auth-store";
@@ -41,6 +41,8 @@ export function EmailListItem({ email, selected, onClick, onContextMenu, onToggl
   const isUnread = !email.keywords?.$seen;
   const isStarred = email.keywords?.$flagged;
   const isImportant = email.keywords?.["$important"];
+  const isAnswered = email.keywords?.$answered;
+  const isForwarded = email.keywords?.$forwarded;
   const sender = email.from?.[0];
 
   // Resolve color tag using keyword definitions from settings
@@ -175,6 +177,18 @@ export function EmailListItem({ email, selected, onClick, onContextMenu, onToggl
                   </span>
                 )}
                 <EmailIdentityBadge email={email} identities={identities} compact={true} />
+                {isAnswered && !isForwarded && (
+                  <Reply className="w-3.5 h-3.5 text-muted-foreground" />
+                )}
+                {isForwarded && !isAnswered && (
+                  <Forward className="w-3.5 h-3.5 text-muted-foreground" />
+                )}
+                {isAnswered && isForwarded && (
+                  <>
+                    <Reply className="w-3.5 h-3.5 text-muted-foreground" />
+                    <Forward className="w-3.5 h-3.5 text-muted-foreground" />
+                  </>
+                )}
                 {email.hasAttachment && (
                   <Paperclip className="w-3.5 h-3.5 text-muted-foreground" />
                 )}

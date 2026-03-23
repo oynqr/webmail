@@ -216,6 +216,11 @@ export class DemoJMAPClient implements IJMAPClient {
     if (email) email.keywords = { ...email.keywords, ...keywords };
   }
 
+  async setKeyword(emailId: string, keyword: string): Promise<void> {
+    const email = this.data.emails.find(e => e.id === emailId);
+    if (email) email.keywords[keyword] = true;
+  }
+
   async migrateKeyword(oldKeyword: string, newKeyword: string): Promise<number> {
     let count = 0;
     for (const email of this.data.emails) {

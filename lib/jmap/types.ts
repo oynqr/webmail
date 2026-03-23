@@ -142,6 +142,8 @@ export interface ThreadGroup {
   hasUnread: boolean;        // Any unread emails in thread
   hasStarred: boolean;       // Any starred emails in thread
   hasAttachment: boolean;    // Any email has attachment
+  hasAnswered: boolean;      // Any email has been replied to
+  hasForwarded: boolean;     // Any email has been forwarded
   emailCount: number;        // Total emails in thread
 }
 

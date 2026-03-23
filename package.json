@@ -86,7 +86,10 @@
     "vitest": "^4.0.16"
   },
   "overrides": {
-    "elliptic": "^6.6.1",
+    "elliptic": {
+      ".": "^6.6.1",
+      "webcrypto-liner": "$elliptic"
+    },
     "flatted": "^3.4.2",
     "undici": "^7.24.0"
   }

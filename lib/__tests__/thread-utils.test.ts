@@ -89,6 +89,22 @@ describe('groupEmailsByThread', () => {
     expect(groupEmailsByThread(emails)[0].hasAttachment).toBe(true);
   });
 
+  it('detects hasAnswered when an email has $answered', () => {
+    const emails = [
+      makeEmail({ id: 'e1', keywords: { $seen: true } }),
+      makeEmail({ id: 'e2', keywords: { $seen: true, $answered: true } }),
+    ];
+    expect(groupEmailsByThread(emails)[0].hasAnswered).toBe(true);
+  });
+
+  it('detects hasForwarded when an email has $forwarded', () => {
+    const emails = [
+      makeEmail({ id: 'e1', keywords: { $seen: true } }),
+      makeEmail({ id: 'e2', keywords: { $seen: true, $forwarded: true } }),
+    ];
+    expect(groupEmailsByThread(emails)[0].hasForwarded).toBe(true);
+  });
+
   it('returns empty array for empty input', () => {
     expect(groupEmailsByThread([])).toEqual([]);
   });
@@ -110,6 +126,8 @@ describe('sortThreadGroups', () => {
         hasUnread: false,
         hasStarred: false,
         hasAttachment: false,
+        hasAnswered: false,
+        hasForwarded: false,
         emailCount: 1,
       },
       {
@@ -120,6 +138,8 @@ describe('sortThreadGroups', () => {
         hasUnread: false,
         hasStarred: false,
         hasAttachment: false,
+        hasAnswered: false,
+        hasForwarded: false,
         emailCount: 1,
       },
     ];
@@ -169,6 +189,8 @@ describe('mergeThreadEmails', () => {
       hasUnread: false,
       hasStarred: false,
       hasAttachment: false,
+      hasAnswered: false,
+      hasForwarded: false,
       emailCount: 2,
     };
     const fetched = [
@@ -189,6 +211,8 @@ describe('mergeThreadEmails', () => {
       hasUnread: false,
       hasStarred: false,
       hasAttachment: false,
+      hasAnswered: false,
+      hasForwarded: false,
       emailCount: 1,
     };
     const fetched = [

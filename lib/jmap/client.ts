@@ -763,6 +763,19 @@ export class JMAPClient implements IJMAPClient {
     ]);
   }
 
+  async setKeyword(emailId: string, keyword: string): Promise<void> {
+    await this.request([
+      ["Email/set", {
+        accountId: this.accountId,
+        update: {
+          [emailId]: {
+            [`keywords/${keyword}`]: true,
+          },
+        },
+      }, "0"],
+    ]);
+  }
+
   async migrateKeyword(oldKeyword: string, newKeyword: string): Promise<number> {
     // Query all email IDs that have the old keyword
     const allIds: string[] = [];

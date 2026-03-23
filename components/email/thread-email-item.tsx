@@ -5,7 +5,7 @@ import { formatDate } from "@/lib/utils";
 import { Email } from "@/lib/jmap/types";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
-import { Paperclip, Star, Circle, CheckSquare, Square } from "lucide-react";
+import { Paperclip, Star, Circle, CheckSquare, Square, Reply, Forward } from "lucide-react";
 import { useEmailDrag } from "@/hooks/use-email-drag";
 import { useLongPress } from "@/hooks/use-long-press";
 import { useEmailStore } from "@/stores/email-store";
@@ -29,6 +29,8 @@ export function ThreadEmailItem({
 }: ThreadEmailItemProps) {
   const isUnread = !email.keywords?.$seen;
   const isStarred = email.keywords?.$flagged;
+  const isAnswered = email.keywords?.$answered;
+  const isForwarded = email.keywords?.$forwarded;
   const sender = email.from?.[0];
   const { selectedMailbox, selectedEmailIds, toggleEmailSelection, selectRangeEmails, clearSelection } = useEmailStore();
   const density = useSettingsStore((state) => state.density);
@@ -150,6 +152,18 @@ export function ThreadEmailItem({
             <div className="flex items-center gap-1 flex-shrink-0">
               {isStarred && (
                 <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+              )}
+              {isAnswered && !isForwarded && (
+                <Reply className="w-3 h-3 text-muted-foreground" />
+              )}
+              {isForwarded && !isAnswered && (
+                <Forward className="w-3 h-3 text-muted-foreground" />
+              )}
+              {isAnswered && isForwarded && (
+                <>
+                  <Reply className="w-3 h-3 text-muted-foreground" />
+                  <Forward className="w-3 h-3 text-muted-foreground" />
+                </>
               )}
               {email.hasAttachment && (
                 <Paperclip className="w-3 h-3 text-muted-foreground" />

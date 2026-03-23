@@ -444,8 +444,26 @@ export default function Home() {
     if (!client) return;
 
     try {
+      const effectiveMode = pendingDraft?.mode ?? composerMode;
+      const originalEmailId = selectedEmail?.id;
+
       await sendEmail(client, data.to, data.subject, data.body, data.cc, data.bcc, data.identityId, data.fromEmail, data.draftId, data.fromName, data.htmlBody, data.attachments);
       setShowComposer(false);
+
+      // Mark the original email with $answered or $forwarded keyword
+      if (originalEmailId && (effectiveMode === 'reply' || effectiveMode === 'replyAll')) {
+        try {
+          await client.setKeyword(originalEmailId, '$answered');
+        } catch (e) {
+          debug.error('Failed to set $answered keyword:', e);
+        }
+      } else if (originalEmailId && effectiveMode === 'forward') {
+        try {
+          await client.setKeyword(originalEmailId, '$forwarded');
+        } catch (e) {
+          debug.error('Failed to set $forwarded keyword:', e);
+        }
+      }
 
       // Refresh the current mailbox to update the UI
       await fetchEmails(client, selectedMailbox);
@@ -861,6 +879,8 @@ export default function Home() {
     // Append signature from the primary identity
     const finalBody = appendPlainTextSignature(body, primaryIdentity);
 
+    const originalEmailId = selectedEmail.id;
+
     // Send reply with just the body text
     await sendEmail(
       client,
@@ -874,6 +894,13 @@ export default function Home() {
       undefined,
       primaryIdentity?.name || undefined
     );
+
+    // Mark the original email as answered
+    try {
+      await client.setKeyword(originalEmailId, '$answered');
+    } catch (e) {
+      debug.error('Failed to set $answered keyword:', e);
+    }
 
     // Refresh emails to show the sent reply
     await fetchEmails(client, selectedMailbox);
