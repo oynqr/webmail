@@ -448,7 +448,8 @@ export function CalendarWeekView({
                   {pendingPreview && !pendingPreview.allDay && isSameDay(pendingPreview.start, day) && (
                     (() => {
                       const startMin = pendingPreview.start.getHours() * 60 + pendingPreview.start.getMinutes();
-                      const endMin = pendingPreview.end.getHours() * 60 + pendingPreview.end.getMinutes();
+                      let endMin = pendingPreview.end.getHours() * 60 + pendingPreview.end.getMinutes();
+                      if (endMin <= startMin) endMin = 1440;
                       const durationMin = Math.max(15, endMin - startMin);
                       const cal = calendars.find(c => c.id === pendingPreview.calendarId);
                       const color = cal?.color || "hsl(var(--primary))";

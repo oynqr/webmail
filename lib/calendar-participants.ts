@@ -15,11 +15,30 @@ export interface StatusCounts {
   'needs-action': number;
 }
 
+/**
+ * Check if a participant matches any of the given email addresses.
+ * Checks p.email, p.calendarAddress (mailto:...), and p.sendTo values.
+ */
+function participantMatchesEmail(p: CalendarParticipant, lowerEmails: string[]): boolean {
+  if (p.email && lowerEmails.includes(p.email.toLowerCase())) return true;
+  if (p.calendarAddress) {
+    const addr = p.calendarAddress.replace(/^mailto:/i, '').toLowerCase();
+    if (addr && lowerEmails.includes(addr)) return true;
+  }
+  if (p.sendTo) {
+    for (const addr of Object.values(p.sendTo)) {
+      const normalized = addr.replace(/^mailto:/i, '').toLowerCase();
+      if (normalized && lowerEmails.includes(normalized)) return true;
+    }
+  }
+  return false;
+}
+
 export function isOrganizer(event: CalendarEvent, userEmails: string[]): boolean {
   if (!event.participants) return false;
   const lower = userEmails.map(e => e.toLowerCase());
   return Object.values(event.participants).some(p =>
-    p.roles?.owner && lower.includes(p.email?.toLowerCase())
+    p.roles?.owner && participantMatchesEmail(p, lower)
   );
 }
 
@@ -27,7 +46,7 @@ export function getUserParticipantId(event: CalendarEvent, userEmails: string[])
   if (!event.participants) return null;
   const lower = userEmails.map(e => e.toLowerCase());
   for (const [id, p] of Object.entries(event.participants)) {
-    if (lower.includes(p.email?.toLowerCase())) return id;
+    if (participantMatchesEmail(p, lower)) return id;
   }
   return null;
 }
@@ -39,20 +58,29 @@ export function getUserStatus(
   if (!event.participants) return null;
   const lower = userEmails.map(e => e.toLowerCase());
   for (const p of Object.values(event.participants)) {
-    if (lower.includes(p.email?.toLowerCase())) return p.participationStatus;
+    if (participantMatchesEmail(p, lower)) return p.participationStatus;
   }
   return null;
 }
 
 export function getParticipantList(event: CalendarEvent): ParticipantInfo[] {
   if (!event.participants) return [];
-  return Object.entries(event.participants).map(([id, p]) => ({
-    id,
-    name: p.name || '',
-    email: p.email || '',
-    status: p.participationStatus || 'needs-action',
-    isOrganizer: !!p.roles?.owner,
-  }));
+  return Object.entries(event.participants).map(([id, p]) => {
+    let email = p.email || '';
+    if (!email && p.calendarAddress) {
+      email = p.calendarAddress.replace(/^mailto:/i, '');
+    }
+    if (!email && p.sendTo?.imip) {
+      email = p.sendTo.imip.replace(/^mailto:/i, '');
+    }
+    return {
+      id,
+      name: p.name || '',
+      email,
+      status: p.participationStatus || 'needs-action',
+      isOrganizer: !!p.roles?.owner,
+    };
+  });
 }
 
 export function getStatusCounts(event: CalendarEvent): StatusCounts {
@@ -76,7 +104,11 @@ export function buildParticipantMap(
 ): Record<string, Partial<CalendarParticipant>> {
   const participants: Record<string, Partial<CalendarParticipant>> = {};
 
-  participants['organizer'] = {
+  const generateId = () => typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `p-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+  participants[generateId()] = {
     '@type': 'Participant',
     name: organizer.name,
     email: organizer.email,
@@ -88,8 +120,8 @@ export function buildParticipantMap(
     kind: 'individual',
   };
 
-  attendees.forEach((a, i) => {
-    participants[`attendee-${i}`] = {
+  attendees.forEach((a) => {
+    participants[generateId()] = {
       '@type': 'Participant',
       name: a.name,
       email: a.email,

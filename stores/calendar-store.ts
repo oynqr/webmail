@@ -130,14 +130,17 @@ export const useCalendarStore = create<CalendarStore>()(
           let targetAccountId = event.accountId;
           const cleanEvent = { ...event };
           if (event.calendarIds) {
-            const calId = Object.keys(event.calendarIds)[0];
-            if (calId) {
+            const remapped: Record<string, boolean> = {};
+            for (const calId of Object.keys(event.calendarIds)) {
               const cal = get().calendars.find(c => c.id === calId);
               if (cal?.isShared && cal.originalId) {
                 targetAccountId = cal.accountId;
-                cleanEvent.calendarIds = { [cal.originalId]: true };
+                remapped[cal.originalId] = true;
+              } else {
+                remapped[calId] = true;
               }
             }
+            cleanEvent.calendarIds = remapped;
           }
           if (event.originalCalendarIds) {
             cleanEvent.calendarIds = event.originalCalendarIds;
@@ -185,12 +188,18 @@ export const useCalendarStore = create<CalendarStore>()(
               if (realEvent) {
                 const resolvedId = realEvent.originalId || realEvent.id;
                 if (storeEvent.recurrenceId) {
-                  // Recurring instance: patch the master event's recurrenceOverrides
-                  const patchUpdates: Record<string, unknown> = {};
+                  // Recurring instance: patch the master event's recurrenceOverrides.
+                  // Escape recurrenceId per RFC 6901: ~ → ~0, / → ~1
+                  const escapedRecurrenceId = storeEvent.recurrenceId.replace(/~/g, '~0').replace(/\//g, '~1');
+                  // Build override object with all changed properties
+                  const overrideObj: Record<string, unknown> = {};
                   for (const [key, value] of Object.entries(cleanUpdates as Record<string, unknown>)) {
                     if (['id', 'uid', '@type', 'calendarIds', 'recurrenceRules', 'recurrenceOverrides', 'excludedRecurrenceRules'].includes(key)) continue;
-                    patchUpdates[`recurrenceOverrides/${storeEvent.recurrenceId}/${key}`] = value;
+                    overrideObj[key] = value;
                   }
+                  const patchUpdates: Record<string, unknown> = {
+                    [`recurrenceOverrides/${escapedRecurrenceId}`]: overrideObj,
+                  };
                   await client.updateCalendarEvent(
                     resolvedId,
                     patchUpdates as unknown as Partial<CalendarEvent>,
@@ -261,12 +270,17 @@ export const useCalendarStore = create<CalendarStore>()(
                 const resolvedId = realEvent.originalId || realEvent.id;
                 if (storeEvent.recurrenceId) {
                   // Recurring instance: patch RSVP as recurrence override on master
-                  const overridePatch: Record<string, unknown> = {
-                    [`recurrenceOverrides/${storeEvent.recurrenceId}/${patchKey}`]: status,
+                  // Escape recurrenceId per RFC 6901: ~ → ~0, / → ~1
+                  const escapedRecId = storeEvent.recurrenceId.replace(/~/g, '~0').replace(/\//g, '~1');
+                  const overrideObj: Record<string, unknown> = {
+                    [patchKey]: status,
                   };
                   if (replyTo) {
-                    overridePatch[`recurrenceOverrides/${storeEvent.recurrenceId}/replyTo`] = replyTo;
+                    overrideObj['replyTo'] = replyTo;
                   }
+                  const overridePatch: Record<string, unknown> = {
+                    [`recurrenceOverrides/${escapedRecId}`]: overrideObj,
+                  };
                   await client.updateCalendarEvent(
                     resolvedId,
                     overridePatch as unknown as Partial<CalendarEvent>,
@@ -392,7 +406,7 @@ export const useCalendarStore = create<CalendarStore>()(
             imported++;
           } catch (error) {
             const msg = error instanceof Error ? error.message : '';
-            if (msg.includes('already exists') && src.uid) {
+            if ((msg.includes('already exists') || msg.includes('duplicate') || msg.includes('conflict')) && src.uid) {
               const { events: storeEvents } = get();
               const alreadyInStore = storeEvents.some((e) => e.uid === src.uid);
               if (alreadyInStore) {

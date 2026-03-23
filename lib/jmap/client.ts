@@ -2,6 +2,7 @@ import type { Email, Mailbox, StateChange, AccountStates, Thread, Identity, Emai
 import type { SieveScript, SieveCapabilities } from "./sieve-types";
 import type { IJMAPClient } from "./client-interface";
 import { toWildcardQuery } from "./search-utils";
+import { debug } from "@/lib/debug";
 
 // JMAP protocol types - these are intentionally flexible due to server variations
 interface JMAPSession {
@@ -1684,7 +1685,7 @@ export class JMAPClient implements IJMAPClient {
     lines.push('END:VCALENDAR');
     const icsContent = lines.join('\r\n') + '\r\n';
 
-    console.log('[iMIP DEBUG] Generated ICS:\n' + icsContent);
+    debug.log('[iMIP] Generated ICS:\n' + icsContent);
 
     const statusLabels: Record<string, string> = {
       ACCEPTED: 'Accepted',
@@ -1694,7 +1695,7 @@ export class JMAPClient implements IJMAPClient {
     const statusLabel = statusLabels[opts.status] || opts.status;
     const subject = `${statusLabel}: ${opts.summary || 'Event'}`;
 
-    console.log('[iMIP DEBUG] identityId:', finalIdentityId);
+    debug.log('[iMIP] identityId:', finalIdentityId);
 
     const emailId = `imip-reply-${Date.now()}`;
     const emailCreate: Record<string, unknown> = {
@@ -1727,27 +1728,27 @@ export class JMAPClient implements IJMAPClient {
       }, "1"],
     ];
 
-    console.log('[iMIP DEBUG] Sending JMAP request with', methodCalls.length, 'method calls');
-    console.log('[iMIP DEBUG] Email create payload:', JSON.stringify(emailCreate, null, 2));
+    debug.log('[iMIP] Sending JMAP request with', methodCalls.length, 'method calls');
+    debug.log('[iMIP] Email create payload:', JSON.stringify(emailCreate, null, 2));
 
     const response = await this.request(methodCalls);
 
-    console.log('[iMIP DEBUG] JMAP response:', JSON.stringify(response.methodResponses, null, 2));
+    debug.log('[iMIP] JMAP response:', JSON.stringify(response.methodResponses, null, 2));
 
     if (response.methodResponses) {
       for (const [methodName, result] of response.methodResponses) {
         if (methodName.endsWith('/error')) {
-          console.error('[iMIP DEBUG] method error:', methodName, result);
+          debug.error('[iMIP] method error:', methodName, result);
           throw new Error(result.description || `iMIP reply failed: ${result.type}`);
         }
         if (result.notCreated) {
           const firstError = Object.values(result.notCreated)[0] as { description?: string; type?: string };
-          console.error('[iMIP DEBUG] create error:', JSON.stringify(result.notCreated, null, 2));
+          debug.error('[iMIP] create error:', JSON.stringify(result.notCreated, null, 2));
           throw new Error(firstError?.description || firstError?.type || 'Failed to send iMIP reply');
         }
       }
     }
-    console.log('[iMIP DEBUG] sendImipReply completed successfully');
+    debug.log('[iMIP] sendImipReply completed successfully');
   }
 
   /**
@@ -1823,6 +1824,9 @@ export class JMAPClient implements IJMAPClient {
         const formatted = formatIcalDate(event.utcEnd, event.timeZone);
         lines.push(formatted.startsWith('TZID=') ? `DTEND;${formatted}` : `DTEND:${formatted}`);
       }
+    } else if (event.duration) {
+      // Fallback: emit DURATION when utcEnd is absent (RFC 5545 §3.6.1)
+      lines.push(`DURATION:${event.duration}`);
     }
 
     if (event.title) lines.push(`SUMMARY:${event.title}`);
@@ -1907,6 +1911,9 @@ export class JMAPClient implements IJMAPClient {
    */
   async sendImipCancellation(event: CalendarEvent): Promise<void> {
     if (!event.participants) return;
+    if (event.status && event.status !== 'cancelled') {
+      debug.warn('sendImipCancellation called on non-cancelled event, status:', event.status);
+    }
 
     const mailboxes = await this.getMailboxes();
     const sentMailbox = mailboxes.find(mb => mb.role === 'sent');
@@ -3202,7 +3209,7 @@ export class JMAPClient implements IJMAPClient {
         if (type !== 'Event' && 'progress' in obj && typeof obj.progress === 'string') return true;
         return false;
       }).map((e) => {
-        const task = e as unknown as CalendarTask;
+        const task = { ...e } as unknown as CalendarTask;
         // Normalize @type for tasks detected by fallback heuristic
         if (task['@type'] !== 'Task') {
           (task as unknown as Record<string, unknown>)['@type'] = 'Task';

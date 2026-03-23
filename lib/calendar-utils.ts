@@ -40,9 +40,7 @@ export function normalizeAllDayDuration(duration: string | undefined): string | 
 }
 
 export function buildAllDayDuration(start: Date, inclusiveEnd: Date): string {
-  const startDay = startOfDay(start);
-  const endDay = startOfDay(inclusiveEnd);
-  const dayCount = Math.max(1, Math.round((endDay.getTime() - startDay.getTime()) / 86400000) + 1);
+  const dayCount = Math.max(1, differenceInCalendarDays(startOfDay(inclusiveEnd), startOfDay(start)) + 1);
   return `P${dayCount}D`;
 }
 
@@ -113,7 +111,7 @@ export function layoutOverlappingEvents(
   for (const event of sorted) {
     const start = parseISO(event.start);
     const startMin = start.getHours() * 60 + start.getMinutes();
-    const endMin = startMin + Math.max(15, parseDuration(event.duration));
+    const endMin = Math.min(1440, startMin + Math.max(15, parseDuration(event.duration)));
     let placed = false;
     for (let col = 0; col < columns.length; col++) {
       if (columns[col].every(e => e.end <= startMin)) {
@@ -135,8 +133,9 @@ export function layoutOverlappingEvents(
 }
 
 export function formatSnapTime(minutes: number, timeFormat: "12h" | "24h"): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
+  const clamped = Math.max(0, Math.min(1440, minutes));
+  const h = Math.floor(clamped / 60) % 24;
+  const m = clamped % 60;
   if (timeFormat === "12h") {
     return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
   }

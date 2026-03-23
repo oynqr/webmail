@@ -59,10 +59,12 @@ function buildDuration(startDate: Date, endDate: Date): string {
   const minutes = totalMinutes % 60;
   let dur = "P";
   if (days > 0) dur += `${days}D`;
-  dur += "T";
-  if (hours > 0) dur += `${hours}H`;
-  if (minutes > 0) dur += `${minutes}M`;
-  if (dur === "PT") dur = "PT0M";
+  if (hours > 0 || minutes > 0) {
+    dur += "T";
+    if (hours > 0) dur += `${hours}H`;
+    if (minutes > 0) dur += `${minutes}M`;
+  }
+  if (dur === "P") dur = "PT0M";
   return dur;
 }
 
@@ -83,9 +85,9 @@ function getAlertLabel(event: CalendarEvent, t: ReturnType<typeof useTranslation
   if (!first || first.trigger["@type"] !== "OffsetTrigger") return null;
   const offset = first.trigger.offset;
   if (offset === "PT0S") return t("alerts.at_time");
-  const minMatch = offset.match(/-?PT?(\d+)M$/);
+  const minMatch = offset.match(/-?PT(\d+)M$/);
   if (minMatch) return t("alerts.minutes_before", { count: parseInt(minMatch[1]) });
-  const hourMatch = offset.match(/-?PT?(\d+)H$/);
+  const hourMatch = offset.match(/-?PT(\d+)H$/);
   if (hourMatch) return t("alerts.hours_before", { count: parseInt(hourMatch[1]) });
   const dayMatch = offset.match(/-?P(\d+)D/);
   if (dayMatch) return t("alerts.days_before", { count: parseInt(dayMatch[1]) });
@@ -209,9 +211,9 @@ export function EventModal({
     if (first.trigger["@type"] === "OffsetTrigger") {
       const offset = first.trigger.offset;
       if (offset === "PT0S") return "at_time";
-      const minMatch = offset.match(/-?PT?(\d+)M$/);
+      const minMatch = offset.match(/-?PT(\d+)M$/);
       if (minMatch) return minMatch[1] as AlertOption;
-      const hourMatch = offset.match(/-?PT?(\d+)H$/);
+      const hourMatch = offset.match(/-?PT(\d+)H$/);
       if (hourMatch) return String(parseInt(hourMatch[1]) * 60) as AlertOption;
       const dayMatch = offset.match(/-?P(\d+)D/);
       if (dayMatch) return String(parseInt(dayMatch[1]) * 1440) as AlertOption;
@@ -384,7 +386,11 @@ export function EventModal({
     if (!event || !onDuplicate) return;
     const start = parseISO(event.start);
     const newStart = addDays(start, 1);
+    const newUid = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
     const data: Partial<CalendarEvent> = {
+      uid: newUid,
       title: event.title,
       description: event.description,
       start: format(newStart, "yyyy-MM-dd'T'HH:mm:ss"),

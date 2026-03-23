@@ -251,10 +251,11 @@ function looksLikeReply(event: Partial<CalendarEvent>): boolean {
 
   const participants = Object.values(event.participants);
   const hasOrganizer = participants.some((participant) => isOrganizerParticipant(participant));
-  if (hasOrganizer) return false;
+  if (!hasOrganizer) return false;
 
   return participants.some((participant) =>
     participant.roles?.attendee
+    && !isOrganizerParticipant(participant)
     && (
       participant.participationStatus !== 'needs-action'
       || !!participant.participationComment
@@ -373,6 +374,10 @@ export function getInvitationMethod(
     return 'cancel';
   }
 
+  if (looksLikeReply(event)) {
+    return 'reply';
+  }
+
   if (event.participants && Object.keys(event.participants).length > 0) {
     const hasOrganizer = Object.values(event.participants).some(
       (p: CalendarParticipant) => isOrganizerParticipant(p)
@@ -380,10 +385,6 @@ export function getInvitationMethod(
     if (hasOrganizer) {
       return 'request';
     }
-  }
-
-  if (looksLikeReply(event)) {
-    return 'reply';
   }
 
   return 'unknown';
@@ -524,36 +525,40 @@ export function formatEventSummary(event: Partial<CalendarEvent>): EventSummary 
 }
 
 function addDurationToDate(start: string, duration: string, _timeZone?: string | null): string | null {
-  const match = duration.match(/^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/);
+  const match = duration.match(/^P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/);
   if (!match) return null;
 
-  const days = parseInt(match[1] || '0');
-  const hours = parseInt(match[2] || '0');
-  const minutes = parseInt(match[3] || '0');
-  const seconds = parseInt(match[4] || '0');
+  const weeks = parseInt(match[1] || '0');
+  const days = parseInt(match[2] || '0') + weeks * 7;
+  const hours = parseInt(match[3] || '0');
+  const minutes = parseInt(match[4] || '0');
+  const seconds = parseInt(match[5] || '0');
 
   const date = new Date(start);
   if (isNaN(date.getTime())) return null;
+
+  const isUTC = start.endsWith('Z') || start.includes('+');
+
+  if (isUTC) {
+    date.setUTCDate(date.getUTCDate() + days);
+    date.setUTCHours(date.getUTCHours() + hours);
+    date.setUTCMinutes(date.getUTCMinutes() + minutes);
+    date.setUTCSeconds(date.getUTCSeconds() + seconds);
+    return date.toISOString();
+  }
 
   date.setDate(date.getDate() + days);
   date.setHours(date.getHours() + hours);
   date.setMinutes(date.getMinutes() + minutes);
   date.setSeconds(date.getSeconds() + seconds);
 
-  // If the input is a local datetime (no UTC 'Z' suffix), return a local
-  // format string so that all-day date arithmetic isn't shifted by the
-  // browser's UTC offset (toISOString converts to UTC).
-  if (!start.endsWith('Z') && !start.includes('+')) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    const h = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-    const s = String(date.getSeconds()).padStart(2, '0');
-    return `${y}-${m}-${d}T${h}:${min}:${s}`;
-  }
-
-  return date.toISOString();
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  const s = String(date.getSeconds()).padStart(2, '0');
+  return `${y}-${m}-${d}T${h}:${min}:${s}`;
 }
 
 export function findParticipantByEmail(
