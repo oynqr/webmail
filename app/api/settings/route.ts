@@ -53,10 +53,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const settings = await loadUserSettings(username, serverUrl);
-    if (!settings) {
-      return NextResponse.json({ error: 'No settings found' }, { status: 404 });
-    }
-    return NextResponse.json({ settings });
+    return NextResponse.json({ settings: settings || null });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     const code = (error as NodeJS.ErrnoException).code;

@@ -510,10 +510,14 @@ export const useSettingsStore = create<SettingsState>()(
             },
           });
           if (!res.ok) {
-            syncLog('No server settings found (status', res.status + ')');
+            syncLog('Settings fetch failed (status', res.status + ')');
             return false;
           }
           const { settings } = await res.json();
+          if (!settings) {
+            syncLog('No server settings found yet');
+            return false;
+          }
           if (settings && typeof settings === 'object') {
             isLoadingFromServer = true;
             get().importSettings(JSON.stringify(settings));
