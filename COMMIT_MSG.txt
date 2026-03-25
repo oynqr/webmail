@@ -1,0 +1,16 @@
+refactor: update styling and color classes across components
+
+- Changed error message styling in ICalImportModal to use new color classes.
+- Updated task completion styling in TaskListView to use new success color classes.
+- Modified selected styling in ContactListItem tests to reflect new background class.
+- Adjusted duplicate warning styling in ContactImportDialog to use new warning color classes.
+- Refactored background and border colors in CalendarInvitationBanner for various statuses.
+- Updated email list item and viewer components to use new warning and success color classes.
+- Refined styling for unread indicators in email components.
+- Enhanced error fallback styling in error components to use new warning color classes.
+- Updated filter rule modal button hover styles to use new destructive color classes.
+- Added experimental feature descriptions in Plugins and Themes settings.
+- Refined vacation settings validation warning styling to use new warning color classes.
+- Updated toast component styles to use new color classes for different states.
+- Introduced a new built-in theme 'Qui' with specific color variables.
+- Adjusted email security status colors to use new warning color classes.
