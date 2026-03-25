@@ -6,6 +6,46 @@ import { sessionCookieName } from '@/lib/auth/session-cookie';
 import { saveUserSettings, loadUserSettings, deleteUserSettings } from '@/lib/settings-sync';
 import { configManager } from '@/lib/admin/config-manager';
 
+function classifyError(error: unknown): { message: string; status: number } {
+  const code = (error as NodeJS.ErrnoException).code;
+  const msg = error instanceof Error ? error.message : 'Unknown error';
+
+  switch (code) {
+    case 'EACCES':
+    case 'EPERM':
+      return {
+        message: 'Write permission denied on settings data directory. Check filesystem permissions for the SETTINGS_DATA_DIR (or data/settings/).',
+        status: 500,
+      };
+    case 'EROFS':
+      return {
+        message: 'Filesystem is read-only. Settings cannot be saved. Ensure the data directory is on a writable volume.',
+        status: 500,
+      };
+    case 'ENOSPC':
+      return {
+        message: 'No disk space available to save settings.',
+        status: 507,
+      };
+    case 'ENOENT':
+      return {
+        message: 'Settings data directory does not exist and could not be created. Check SETTINGS_DATA_DIR configuration.',
+        status: 500,
+      };
+    default:
+      if (msg.includes('SESSION_SECRET')) {
+        return {
+          message: 'Server configuration error: SESSION_SECRET is not set.',
+          status: 500,
+        };
+      }
+      return {
+        message: `Internal server error: ${msg}`,
+        status: 500,
+      };
+  }
+}
+
 function isEnabled(): boolean {
   return process.env.SETTINGS_SYNC_ENABLED === 'true' && !!process.env.SESSION_SECRET;
 }
@@ -59,7 +99,8 @@ export async function GET(request: NextRequest) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     const code = (error as NodeJS.ErrnoException).code;
     logger.error('Settings load error', { error: message, code });
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const classified = classifyError(error);
+    return NextResponse.json({ error: classified.message }, { status: classified.status });
   }
 }
 
@@ -99,7 +140,8 @@ export async function POST(request: NextRequest) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     const code = (error as NodeJS.ErrnoException).code;
     logger.error('Settings save error', { error: message, code });
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const classified = classifyError(error);
+    return NextResponse.json({ error: classified.message }, { status: classified.status });
   }
 }
 
@@ -121,7 +163,10 @@ export async function DELETE(request: NextRequest) {
     await deleteUserSettings(username, serverUrl);
     return NextResponse.json({ ok: true });
   } catch (error) {
-    logger.error('Settings delete error', { error: error instanceof Error ? error.message : 'Unknown error' });
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    const code = (error as NodeJS.ErrnoException).code;
+    logger.error('Settings delete error', { error: message, code });
+    const classified = classifyError(error);
+    return NextResponse.json({ error: classified.message }, { status: classified.status });
   }
 }

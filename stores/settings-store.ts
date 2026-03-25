@@ -510,7 +510,8 @@ export const useSettingsStore = create<SettingsState>()(
             },
           });
           if (!res.ok) {
-            syncLog('Settings fetch failed (status', res.status + ')');
+            const body = await res.json().catch(() => ({}));
+            syncLog('Settings fetch failed:', body.error || `status ${res.status}`);
             return false;
           }
           const { settings } = await res.json();
@@ -647,11 +648,13 @@ if (typeof window !== 'undefined') {
       syncWarn('Settings sync endpoint returned 404, disabling sync');
       syncEnabled = false;
     } else if (res.status >= 500 && retries > 0) {
-      syncWarn('Settings sync got server error, retrying...');
+      const body = await res.json().catch(() => ({}));
+      syncWarn('Settings sync got server error:', body.error || `status ${res.status}`, '- retrying...');
       await new Promise((r) => setTimeout(r, 2000));
       return syncToServer(retries - 1);
     } else if (!res.ok) {
-      syncError('Settings sync failed with status', res.status);
+      const body = await res.json().catch(() => ({}));
+      syncError('Settings sync failed:', body.error || `status ${res.status}`);
     } else {
       syncLog('Settings synced to server successfully');
     }
