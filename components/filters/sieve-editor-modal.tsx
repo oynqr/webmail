@@ -93,7 +93,7 @@ export function SieveEditorModal({
         </div>
 
         <div className="px-6 py-4 flex-1 overflow-hidden flex flex-col space-y-4">
-          <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-700 dark:text-amber-400">
+          <div className="flex items-start gap-2 p-3 rounded-md bg-warning/10 border border-warning/20 text-sm text-warning">
             <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <p>{t("warning")}</p>
           </div>
@@ -131,8 +131,8 @@ export function SieveEditorModal({
             <div
               className={`flex items-start gap-2 p-3 rounded-md text-sm ${
                 validationResult.isValid
-                  ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400"
-                  : "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400"
+                  ? "bg-success/10 border border-success/20 text-success"
+                  : "bg-destructive/10 border border-destructive/20 text-destructive"
               }`}
             >
               {validationResult.isValid ? (
@@ -157,7 +157,7 @@ export function SieveEditorModal({
           )}
 
           {showSaveWarning && (
-            <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-700 dark:text-amber-400">
+            <div className="flex items-start gap-2 p-3 rounded-md bg-warning/10 border border-warning/20 text-sm text-warning">
               <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
               <p>{t("save_warning")}</p>
             </div>

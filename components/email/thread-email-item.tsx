@@ -85,9 +85,9 @@ export function ThreadEmailItem({
         "pl-12 pr-4",
         "border-l-2 border-l-transparent",
         selected
-          ? "bg-blue-200 dark:bg-blue-900/50 border-l-primary"
+          ? "bg-selection border-l-primary"
           : "hover:bg-muted/50",
-        isUnread && !selected && "bg-amber-50 dark:bg-amber-900/20",
+        isUnread && !selected && "bg-warning/10",
         !isLast && "border-b border-border/30",
         isChecked && "ring-2 ring-primary/20 bg-accent/40",
         isDragging && "opacity-50 scale-[0.98] ring-2 ring-primary/30",
@@ -121,7 +121,7 @@ export function ThreadEmailItem({
         {/* Unread indicator */}
         {isUnread && (
           <div className="absolute left-7 top-1/2 -translate-y-1/2">
-            <Circle className="w-1.5 h-1.5 fill-blue-600 text-blue-600 dark:fill-blue-400 dark:text-blue-400" />
+            <Circle className="w-1.5 h-1.5 fill-unread text-unread" />
           </div>
         )}
 

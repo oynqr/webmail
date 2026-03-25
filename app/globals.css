@@ -23,6 +23,39 @@
   --color-popover: #ffffff;
   --color-popover-foreground: #0f172a;
 
+  /* Sidebar */
+  --color-sidebar: #f8fafc;
+  --color-sidebar-foreground: #0f172a;
+  --color-sidebar-border: #e2e8f0;
+  --color-sidebar-accent: #f1f5f9;
+  --color-sidebar-accent-foreground: #0f172a;
+
+  /* Card */
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+
+  /* Semantic status colors */
+  --color-success: #22c55e;
+  --color-success-foreground: #ffffff;
+  --color-warning: #eab308;
+  --color-warning-foreground: #ffffff;
+  --color-info: #3b82f6;
+  --color-info-foreground: #ffffff;
+
+  /* Selection states */
+  --color-selection: #dbeafe;
+  --color-selection-foreground: #1e40af;
+
+  /* Unread indicator */
+  --color-unread: #3b82f6;
+
+  /* Chart colors */
+  --color-chart-1: #3b82f6;
+  --color-chart-2: #22c55e;
+  --color-chart-3: #f59e0b;
+  --color-chart-4: #ef4444;
+  --color-chart-5: #8b5cf6;
+
   /* Settings variables */
   --font-size-base: 16px;
   --list-item-height: 48px;
@@ -54,6 +87,39 @@
   --color-destructive-foreground: #fafafa;
   --color-popover: #1c1c1c;
   --color-popover-foreground: #fafafa;
+
+  /* Sidebar */
+  --color-sidebar: #0a0a0a;
+  --color-sidebar-foreground: #fafafa;
+  --color-sidebar-border: #262626;
+  --color-sidebar-accent: #1a1a1a;
+  --color-sidebar-accent-foreground: #fafafa;
+
+  /* Card */
+  --color-card: #141414;
+  --color-card-foreground: #fafafa;
+
+  /* Semantic status colors */
+  --color-success: #16a34a;
+  --color-success-foreground: #ffffff;
+  --color-warning: #ca8a04;
+  --color-warning-foreground: #ffffff;
+  --color-info: #60a5fa;
+  --color-info-foreground: #ffffff;
+
+  /* Selection states */
+  --color-selection: rgba(59, 130, 246, 0.25);
+  --color-selection-foreground: #93c5fd;
+
+  /* Unread indicator */
+  --color-unread: #60a5fa;
+
+  /* Chart colors */
+  --color-chart-1: #60a5fa;
+  --color-chart-2: #4ade80;
+  --color-chart-3: #fbbf24;
+  --color-chart-4: #f87171;
+  --color-chart-5: #a78bfa;
 }
 
 @theme inline {
@@ -74,6 +140,27 @@
   --color-destructive-foreground: var(--color-destructive-foreground);
   --color-popover: var(--color-popover);
   --color-popover-foreground: var(--color-popover-foreground);
+  --color-sidebar: var(--color-sidebar);
+  --color-sidebar-foreground: var(--color-sidebar-foreground);
+  --color-sidebar-border: var(--color-sidebar-border);
+  --color-sidebar-accent: var(--color-sidebar-accent);
+  --color-sidebar-accent-foreground: var(--color-sidebar-accent-foreground);
+  --color-card: var(--color-card);
+  --color-card-foreground: var(--color-card-foreground);
+  --color-success: var(--color-success);
+  --color-success-foreground: var(--color-success-foreground);
+  --color-warning: var(--color-warning);
+  --color-warning-foreground: var(--color-warning-foreground);
+  --color-info: var(--color-info);
+  --color-info-foreground: var(--color-info-foreground);
+  --color-selection: var(--color-selection);
+  --color-selection-foreground: var(--color-selection-foreground);
+  --color-unread: var(--color-unread);
+  --color-chart-1: var(--color-chart-1);
+  --color-chart-2: var(--color-chart-2);
+  --color-chart-3: var(--color-chart-3);
+  --color-chart-4: var(--color-chart-4);
+  --color-chart-5: var(--color-chart-5);
 }
 
 * {
@@ -163,21 +250,16 @@ body {
 }
 
 .email-content blockquote {
-  border-left: 3px solid #d1d5db;
+  border-left: 3px solid var(--color-border);
   padding-left: 1rem;
   margin: 1rem 0;
-  color: #4b5563;
+  color: var(--color-muted-foreground);
   font-style: italic;
 }
 
-.dark .email-content blockquote {
-  border-left-color: #4b5563;
-  color: #9ca3af;
-}
-
 .email-content pre {
-  background-color: #f5f5f7;
-  border: 1px solid #e5e7eb;
+  background-color: var(--color-muted);
+  border: 1px solid var(--color-border);
   border-radius: 0.375rem;
   padding: 1rem;
   font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
@@ -186,23 +268,13 @@ body {
   margin: 1rem 0;
 }
 
-.dark .email-content pre {
-  background-color: #1f2937;
-  border-color: #374151;
-}
-
 .email-content code {
-  background-color: #f3f4f6;
+  background-color: var(--color-muted);
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
   font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
   font-size: 0.875rem;
-  color: #dc2626;
-}
-
-.dark .email-content code {
-  background-color: #374151;
-  color: #f87171;
+  color: var(--color-destructive);
 }
 
 .email-content h1,
@@ -282,26 +354,15 @@ body {
 .email-content table[border="1"] th,
 .email-content table[border="1"] td {
   padding: 0.625rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   text-align: left;
 }
 
 .email-content table.data-table th,
 .email-content table[border="1"] th {
-  background-color: #f9fafb;
+  background-color: var(--color-muted);
   font-weight: 600;
-  color: #374151;
-}
-
-.dark .email-content table.data-table th,
-.dark .email-content table[border="1"] th {
-  background-color: #1f2937;
-  color: #d1d5db;
-}
-
-.dark .email-content table.data-table td,
-.dark .email-content table[border="1"] td {
-  border-color: #374151;
+  color: var(--color-foreground);
 }
 
 /* Reset styles for layout tables (commonly used in HTML emails) */
@@ -323,26 +384,17 @@ body {
 
 .email-content hr {
   border: none;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-border);
   margin: 1.5rem 0;
-}
-
-.dark .email-content hr {
-  border-top-color: #374151;
 }
 
 /* Email thread quoted text */
 .email-content .quoted-text {
-  border-left: 3px solid #d1d5db;
+  border-left: 3px solid var(--color-border);
   padding-left: 1rem;
   margin: 1rem 0;
-  color: #4b5563;
+  color: var(--color-muted-foreground);
   opacity: 0.8;
-}
-
-.dark .email-content .quoted-text {
-  border-left-color: #4b5563;
-  color: #9ca3af;
 }
 
 /* Toast animations */

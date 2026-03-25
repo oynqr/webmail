@@ -297,7 +297,7 @@ export function EventDetailPopover({
             <p className="text-xs text-muted-foreground mt-0.5 pl-[18px]">
               {calendar.name}
               {event.status === "tentative" && (
-                <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-warning/15 text-warning">
                   {t("detail.tentative")}
                 </span>
               )}
@@ -507,8 +507,8 @@ export function EventDetailPopover({
               onClick={() => onRsvp("accepted")}
               className={
                 userCurrentStatus === "accepted"
-                  ? "bg-green-600 hover:bg-green-700 text-white dark:bg-green-500 dark:hover:bg-green-600"
-                  : "text-green-600 dark:text-green-400 border-green-300 dark:border-green-700 hover:bg-green-50 dark:hover:bg-green-950"
+                  ? "bg-success hover:bg-success/80 text-success-foreground"
+                  : "text-success border-success/30 hover:bg-success/10"
               }
             >
               {userCurrentStatus === "accepted" && <Check className="w-3.5 h-3.5 mr-1" />}
@@ -520,8 +520,8 @@ export function EventDetailPopover({
               onClick={() => onRsvp("tentative")}
               className={
                 userCurrentStatus === "tentative"
-                  ? "bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-500 dark:hover:bg-amber-600"
-                  : "border border-amber-500 text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950"
+                  ? "bg-warning hover:bg-warning/80 text-warning-foreground"
+                  : "border border-warning/30 text-warning hover:bg-warning/10"
               }
             >
               {userCurrentStatus === "tentative" && <Check className="w-3.5 h-3.5 mr-1" />}
@@ -533,8 +533,8 @@ export function EventDetailPopover({
               onClick={() => onRsvp("declined")}
               className={
                 userCurrentStatus === "declined"
-                  ? "bg-red-600 hover:bg-red-700 text-white dark:bg-red-500 dark:hover:bg-red-600"
-                  : "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+                  ? "bg-destructive hover:bg-destructive/80 text-destructive-foreground"
+                  : "text-destructive hover:bg-destructive/10"
               }
             >
               {userCurrentStatus === "declined" && <Check className="w-3.5 h-3.5 mr-1" />}
@@ -548,7 +548,7 @@ export function EventDetailPopover({
       <div className="px-4 py-2.5 border-t border-border flex items-center gap-1.5">
         {showDeleteConfirm ? (
           <div className="flex items-center gap-2 w-full">
-            <span className="text-sm text-red-600 dark:text-red-400 flex-1">
+            <span className="text-sm text-destructive flex-1">
               {t("form.delete_confirm")}
             </span>
             <Button
@@ -611,9 +611,9 @@ function ParticipantStatusBadge({
   t: ReturnType<typeof useTranslations>;
 }) {
   const colors: Record<string, string> = {
-    accepted: "text-green-600 dark:text-green-400",
-    declined: "text-red-600 dark:text-red-400",
-    tentative: "text-amber-600 dark:text-amber-400",
+    accepted: "text-success",
+    declined: "text-destructive",
+    tentative: "text-warning",
     "needs-action": "text-muted-foreground",
   };
   const labels: Record<string, string> = {

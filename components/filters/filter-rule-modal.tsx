@@ -299,7 +299,7 @@ export function FilterRuleModal({
                     type="button"
                     onClick={() => removeCondition(index)}
                     disabled={conditions.length <= 1}
-                    className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                    className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors disabled:opacity-30 disabled:pointer-events-none"
                     aria-label={t("delete_rule")}
                   >
                     <Trash2 className="w-4 h-4" />
@@ -387,7 +387,7 @@ export function FilterRuleModal({
                     type="button"
                     onClick={() => removeAction(index)}
                     disabled={actions.length <= 1}
-                    className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                    className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors disabled:opacity-30 disabled:pointer-events-none"
                     aria-label={t("delete_rule")}
                   >
                     <Trash2 className="w-4 h-4" />

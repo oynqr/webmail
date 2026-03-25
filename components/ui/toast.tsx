@@ -36,17 +36,17 @@ const icons = {
 };
 
 const iconContainerStyles = {
-  success: "bg-emerald-500 text-white",
-  error: "bg-red-500 text-white",
-  info: "bg-blue-500 text-white",
-  warning: "bg-amber-500 text-white",
+  success: "bg-success text-success-foreground",
+  error: "bg-destructive text-destructive-foreground",
+  info: "bg-info text-info-foreground",
+  warning: "bg-warning text-warning-foreground",
 };
 
 const progressBarStyles = {
-  success: "bg-emerald-500",
-  error: "bg-red-500",
-  info: "bg-blue-500",
-  warning: "bg-amber-500",
+  success: "bg-success",
+  error: "bg-destructive",
+  info: "bg-info",
+  warning: "bg-warning",
 };
 
 export function ToastItem({ toast, onClose }: ToastProps) {

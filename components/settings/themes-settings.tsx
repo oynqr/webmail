@@ -69,7 +69,8 @@ export function ThemesSettings() {
   };
 
   return (
-    <SettingsSection title="Themes" description="Customize the appearance with color themes. Upload .zip theme files or activate built-in presets.">
+    <SettingsSection title="Themes" description="Customize the appearance with color themes. Upload .zip theme files or activate built-in presets." experimental experimentalDescription="Themes is an experimental feature. Custom themes may not cover all UI elements, and theme formats could change in future updates. Built-in presets are stable, but uploaded themes may require updates after application upgrades.">
+
       {/* Theme Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {/* Default theme card */}

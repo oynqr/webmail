@@ -52,7 +52,7 @@ describe('ContactListItem', () => {
   it('applies selected styling', () => {
     const { container } = render(<ContactListItem contact={contact} {...baseProps} isSelected={true} />);
     const div = container.firstElementChild;
-    expect(div?.className).toContain('bg-blue-200');
+    expect(div?.className).toContain('bg-selection');
   });
 
   it('shows email as display name when no name exists', () => {

@@ -733,9 +733,9 @@ export default function LoginPage() {
                     )}
                   </Button>
                 ) : oauthDiscoveryDone ? (
-                  <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-amber-700 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-amber-700 dark:text-amber-400">
+                  <div className="p-3.5 bg-warning/10 border border-warning/20 rounded-xl flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-warning">
                       {t("error.oauth_discovery_failed")}
                     </p>
                   </div>
@@ -941,9 +941,9 @@ export default function LoginPage() {
                 )}
 
                 {oauthEnabled && oauthDiscoveryDone && !oauthMetadata && (
-                  <div className="mt-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-amber-700 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-amber-700 dark:text-amber-400">
+                  <div className="mt-2 p-3 bg-warning/10 border border-warning/20 rounded-xl flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-warning">
                       {t("error.oauth_discovery_failed")}
                     </p>
                   </div>

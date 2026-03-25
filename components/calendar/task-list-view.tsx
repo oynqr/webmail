@@ -204,7 +204,7 @@ export function TaskListView({
                 className={cn(
                   "mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors",
                   isCompleted
-                    ? "bg-green-500 border-green-500 text-white"
+                    ? "bg-success border-success text-success-foreground"
                     : "border-muted-foreground/40 hover:border-primary"
                 )}
                 aria-label={isCompleted ? t("tasks.mark_incomplete") : t("tasks.mark_complete")}

@@ -68,7 +68,7 @@ export function PluginsSettings() {
   };
 
   return (
-    <SettingsSection title="Plugins" description="Manage installed plugins. Upload plugin .zip files to add new functionality.">
+    <SettingsSection title="Plugins" description="Manage installed plugins. Upload plugin .zip files to add new functionality." experimental experimentalDescription="Plugins is an experimental feature. The plugin API is not yet stable and may change between releases, which could break existing plugins. Plugins run in a sandboxed environment but have access to your data within the application. Only install plugins from sources you trust.">
       {/* Plugin List */}
       {plugins.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">

@@ -182,7 +182,7 @@ export function CalendarDayView({
                         className={cn(
                           "flex-shrink-0 w-3.5 h-3.5 rounded-full border flex items-center justify-center",
                           isCompleted
-                            ? "bg-green-500 border-green-500 text-white"
+                            ? "bg-success border-success text-success-foreground"
                             : "border-muted-foreground/40 hover:border-primary"
                         )}
                       >
@@ -288,8 +288,8 @@ export function CalendarDayView({
                 style={{ top: (nowMinutes / 60) * HOUR_HEIGHT }}
               >
                 <div className="flex items-center">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 -ml-1" />
-                  <div className="flex-1 h-px bg-red-500" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-destructive -ml-1" />
+                  <div className="flex-1 h-px bg-destructive" />
                 </div>
               </div>
             )}

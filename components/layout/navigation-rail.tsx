@@ -73,10 +73,10 @@ function StorageQuotaCircle({ quota, usagePercent }: { quota: { used: number; to
 
   const free = quota.total - quota.used;
   const strokeColor = usagePercent > 90
-    ? "stroke-red-500 dark:stroke-red-400"
+    ? "stroke-destructive"
     : usagePercent > 70
-      ? "stroke-amber-500 dark:stroke-amber-400"
-      : "stroke-green-500 dark:stroke-green-400";
+      ? "stroke-warning"
+      : "stroke-success";
 
   return (
     <div className="relative">
@@ -123,10 +123,10 @@ function StorageQuotaCircle({ quota, usagePercent }: { quota: { used: number; to
               className={cn(
                 "h-1.5 rounded-full transition-all",
                 usagePercent > 90
-                  ? "bg-red-500 dark:bg-red-400"
+                  ? "bg-destructive"
                   : usagePercent > 70
-                    ? "bg-amber-500 dark:bg-amber-400"
-                    : "bg-green-500 dark:bg-green-400"
+                    ? "bg-warning"
+                    : "bg-success"
               )}
               style={{ width: `${usagePercent}%` }}
             />

@@ -252,8 +252,8 @@ export default function AdminPluginsPage() {
                 </div>
                 {plugin.permissions.length > 0 && (
                   <div className="flex items-center gap-1 mt-1">
-                    <AlertTriangle className="w-3 h-3 text-amber-500" />
-                    <span className="text-xs text-amber-600 dark:text-amber-400">
+                    <AlertTriangle className="w-3 h-3 text-warning" />
+                    <span className="text-xs text-warning">
                       Permissions: {plugin.permissions.join(', ')}
                     </span>
                   </div>

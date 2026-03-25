@@ -240,7 +240,7 @@ export function VacationSettings() {
       {validationWarnings.length > 0 && (
         <div className="space-y-2">
           {validationWarnings.map((warning, i) => (
-            <div key={i} className="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-400">
+            <div key={i} className="flex items-start gap-2 text-sm text-warning">
               <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
               <span>{warning}</span>
             </div>

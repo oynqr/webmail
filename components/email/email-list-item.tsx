@@ -87,15 +87,15 @@ export function EmailListItem({ email, selected, onClick, onContextMenu, onToggl
         // Apply color tag as background, with selected and unread states
         colorTag ? colorTag : (
           selected
-            ? "bg-blue-200 dark:bg-blue-900/50"
+            ? "bg-selection"
             : "bg-background"
         ),
         selected && !colorTag && "shadow-sm",
         !colorTag && !selected && "hover:bg-muted hover:shadow-sm",
         colorTag && "hover:brightness-95 dark:hover:brightness-110",
-        isUnread && !selected && !colorTag && "bg-amber-50 dark:bg-amber-900/20",
+        isUnread && !selected && !colorTag && "bg-warning/10",
         // Add visual feedback for checked state
-        isChecked && "ring-2 ring-primary/20 bg-blue-100 dark:bg-blue-900/30",
+        isChecked && "ring-2 ring-primary/20 bg-selection/60",
         // Drag state visual feedback
         isDragging && "opacity-50 scale-[0.98] ring-2 ring-primary/30",
         // Long press visual feedback
@@ -140,7 +140,7 @@ export function EmailListItem({ email, selected, onClick, onContextMenu, onToggl
         {/* Unread indicator */}
         {isUnread && (
           <div className="absolute left-1 top-1/2 -translate-y-1/2">
-            <Circle className="w-2 h-2 fill-blue-600 text-blue-600 dark:fill-blue-400 dark:text-blue-400" />
+            <Circle className="w-2 h-2 fill-unread text-unread" />
           </div>
         )}
 
@@ -172,7 +172,7 @@ export function EmailListItem({ email, selected, onClick, onContextMenu, onToggl
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                 )}
                 {isImportant && (
-                  <span className="px-1.5 py-0.5 text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded font-medium">
+                  <span className="px-1.5 py-0.5 text-xs bg-warning/15 text-warning dark:text-warning rounded font-medium">
                     Important
                   </span>
                 )}

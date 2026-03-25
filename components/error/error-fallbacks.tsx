@@ -94,7 +94,7 @@ export function EmailViewerErrorFallback({ resetError, t }: FallbackProps) {
 export function ComposerErrorFallback({ resetError, t }: FallbackProps) {
   return (
     <div className="flex flex-col h-full bg-background border rounded-lg items-center justify-center p-8">
-      <AlertCircle className="w-10 h-10 text-amber-500 mb-3" />
+      <AlertCircle className="w-10 h-10 text-warning mb-3" />
       <p className="text-sm text-muted-foreground text-center mb-4">
         {t("composer_error")}
       </p>

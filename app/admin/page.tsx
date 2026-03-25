@@ -105,18 +105,18 @@ export default function AdminDashboardPage() {
     <div className="max-w-3xl space-y-8">
       {/* Warnings */}
       {warnings.map((msg, i) => (
-        <div key={i} className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 p-4">
-          <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-          <p className="text-sm text-amber-700 dark:text-amber-300">{msg}</p>
+        <div key={i} className="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/10 p-4">
+          <AlertTriangle className="w-5 h-5 text-warning mt-0.5 shrink-0" />
+          <p className="text-sm text-warning">{msg}</p>
         </div>
       ))}
 
       {status && !status.lastLogin && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 p-4">
-          <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+        <div className="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/10 p-4">
+          <AlertTriangle className="w-5 h-5 text-warning mt-0.5 shrink-0" />
           <div>
-            <p className="text-sm font-medium text-amber-800 dark:text-amber-200">First login detected</p>
-            <p className="text-sm text-amber-700 dark:text-amber-300 mt-0.5">
+            <p className="text-sm font-medium text-warning">First login detected</p>
+            <p className="text-sm text-warning/80 mt-0.5">
               Remember to remove ADMIN_PASSWORD from your .env file now that the hash is stored securely.
             </p>
           </div>

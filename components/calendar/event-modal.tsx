@@ -530,8 +530,8 @@ export function EventModal({
                   variant={userCurrentStatus === "accepted" ? "default" : "outline"}
                   onClick={() => handleRsvp("accepted")}
                   className={userCurrentStatus === "accepted"
-                    ? "bg-green-600 hover:bg-green-700 text-white dark:bg-green-500 dark:hover:bg-green-600"
-                    : "text-green-600 dark:text-green-400 border-green-300 dark:border-green-700 hover:bg-green-50 dark:hover:bg-green-950"}
+                    ? "bg-success hover:bg-success/80 text-success-foreground"
+                    : "text-success border-success/30 hover:bg-success/10"}
                 >
                   {userCurrentStatus === "accepted" && <Check className="w-4 h-4 mr-1" />}
                   {t("participants.accepted")}
@@ -541,8 +541,8 @@ export function EventModal({
                   variant={userCurrentStatus === "tentative" ? "default" : "outline"}
                   onClick={() => handleRsvp("tentative")}
                   className={userCurrentStatus === "tentative"
-                    ? "bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-500 dark:hover:bg-amber-600"
-                    : "border border-amber-500 text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950"}
+                    ? "bg-warning hover:bg-warning/80 text-warning-foreground"
+                    : "border border-warning/30 text-warning hover:bg-warning/10"}
                 >
                   {userCurrentStatus === "tentative" && <Check className="w-4 h-4 mr-1" />}
                   {t("participants.tentative")}
@@ -552,8 +552,8 @@ export function EventModal({
                   variant={userCurrentStatus === "declined" ? "default" : "ghost"}
                   onClick={() => handleRsvp("declined")}
                   className={userCurrentStatus === "declined"
-                    ? "bg-red-600 hover:bg-red-700 text-white dark:bg-red-500 dark:hover:bg-red-600"
-                    : "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"}
+                    ? "bg-destructive hover:bg-destructive/80 text-destructive-foreground"
+                    : "text-destructive hover:bg-destructive/10"}
                 >
                   {userCurrentStatus === "declined" && <Check className="w-4 h-4 mr-1" />}
                   {t("participants.declined")}
@@ -701,8 +701,8 @@ export function EventModal({
             {onDelete && (
               showDeleteConfirm ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-red-600 dark:text-red-400">{t("form.delete_confirm")}</span>
-                  <Button variant="outline" size="sm" onClick={() => { onDelete(event.id, hasParticipants || undefined); onClose(); }} className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700">
+                  <span className="text-sm text-destructive">{t("form.delete_confirm")}</span>
+                  <Button variant="outline" size="sm" onClick={() => { onDelete(event.id, hasParticipants || undefined); onClose(); }} className="text-destructive border-destructive/30">
                     {t("events.delete")}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => setShowDeleteConfirm(false)}>
@@ -710,7 +710,7 @@ export function EventModal({
                   </Button>
                 </div>
               ) : (
-                <Button variant="ghost" size="sm" onClick={() => setShowDeleteConfirm(true)} className="text-red-600 dark:text-red-400">
+                <Button variant="ghost" size="sm" onClick={() => setShowDeleteConfirm(true)} className="text-destructive">
                   <Trash2 className="w-4 h-4 mr-1" />
                   {t("events.delete")}
                 </Button>
@@ -997,9 +997,9 @@ function StatusBadge({ status, isOrganizer, t }: {
     return <span className="text-xs text-primary">{t("participants.organizer")}</span>;
   }
   const colors: Record<string, string> = {
-    accepted: "text-green-600 dark:text-green-400",
-    declined: "text-red-600 dark:text-red-400",
-    tentative: "text-amber-600 dark:text-amber-400",
+    accepted: "text-success",
+    declined: "text-destructive",
+    tentative: "text-warning",
     "needs-action": "text-muted-foreground",
   };
   const labels: Record<string, string> = {

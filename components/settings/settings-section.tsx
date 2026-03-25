@@ -1,16 +1,29 @@
 import { ReactNode } from 'react';
-import { Lock } from 'lucide-react';
+import { Lock, FlaskConical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SettingsSectionProps {
   title: string;
   description?: string;
   children: ReactNode;
+  experimental?: boolean;
+  experimentalDescription?: string;
 }
 
-export function SettingsSection({ title, description, children }: SettingsSectionProps) {
+export function SettingsSection({ title, description, children, experimental, experimentalDescription }: SettingsSectionProps) {
   return (
     <div className="space-y-4">
+      {experimental && (
+        <div className="flex gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 dark:border-amber-700 dark:bg-amber-950/30">
+          <FlaskConical className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Experimental Feature</p>
+            {experimentalDescription && (
+              <p className="text-xs text-amber-700 dark:text-amber-400/80 mt-1">{experimentalDescription}</p>
+            )}
+          </div>
+        </div>
+      )}
       <div>
         <h3 className="text-lg font-medium text-foreground">{title}</h3>
         {description && (

@@ -171,11 +171,11 @@ function getParticipationLabel(
 function getParticipationTone(status: string | null): string {
   switch (status) {
     case 'accepted':
-      return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      return 'bg-success/15 text-success';
     case 'tentative':
-      return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      return 'bg-warning/15 text-warning';
     case 'declined':
-      return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+      return 'bg-destructive/15 text-destructive';
     default:
       return 'bg-muted text-muted-foreground';
   }
@@ -731,9 +731,9 @@ export function CalendarInvitationBanner({ email }: CalendarInvitationBannerProp
 
   if (state === 'error') {
     return (
-      <div className="rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 px-4 py-3 flex items-center gap-2.5">
-        <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
-        <span className="text-sm text-red-600 dark:text-red-400">{t('parse_error')}</span>
+      <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 flex items-center gap-2.5">
+        <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0" />
+        <span className="text-sm text-destructive">{t('parse_error')}</span>
       </div>
     );
   }
@@ -744,7 +744,7 @@ export function CalendarInvitationBanner({ email }: CalendarInvitationBannerProp
       <div className="flex items-center justify-between px-4 py-2.5 bg-muted/30 border-b border-border">
         <div className="flex items-center gap-2 min-w-0">
           {isCancellation ? (
-            <CalendarX className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
+            <CalendarX className="w-4 h-4 text-destructive flex-shrink-0" />
           ) : (
             <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
           )}
@@ -808,19 +808,19 @@ export function CalendarInvitationBanner({ email }: CalendarInvitationBannerProp
               <span className={cn(
                 "rounded-full px-2 py-0.5 text-[11px] font-medium",
                 parsedEvent.status === 'cancelled'
-                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                  : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                  ? "bg-destructive/15 text-destructive"
+                  : "bg-warning/15 text-warning"
               )}>
                 {t(`event_status_${parsedEvent.status}`)}
               </span>
             )}
             {existingEvent && (
-              <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+              <span className="rounded-full bg-success/15 px-2 py-0.5 text-[11px] font-medium text-success">
                 {t('already_in_calendar')}
               </span>
             )}
             {userIsOrganizer && (
-              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+              <span className="rounded-full bg-info/15 px-2 py-0.5 text-[11px] font-medium text-info">
                 {t('organizer_role')}
               </span>
             )}
@@ -833,7 +833,7 @@ export function CalendarInvitationBanner({ email }: CalendarInvitationBannerProp
               </span>
             )}
             {actionFeedback && (
-              <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+              <span className="rounded-full bg-success/15 px-2 py-0.5 text-[11px] font-medium text-success">
                 {actionFeedback}
               </span>
             )}
@@ -877,8 +877,8 @@ export function CalendarInvitationBanner({ email }: CalendarInvitationBannerProp
           <div className={cn(
             'flex items-start gap-1.5 text-xs rounded-md px-3 py-2',
             trustAssessment.level === 'warning'
-              ? 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/50'
-              : 'bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50'
+              ? 'bg-destructive/10 text-destructive border border-destructive/20'
+              : 'bg-warning/10 text-warning border border-warning/20'
           )}>
             <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
             <span>{trustMessage}</span>
@@ -887,7 +887,7 @@ export function CalendarInvitationBanner({ email }: CalendarInvitationBannerProp
 
         {/* Action error */}
         {actionError && (
-          <div className="flex items-start gap-1.5 text-xs text-red-600 dark:text-red-400 rounded-md px-3 py-2 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50">
+          <div className="flex items-start gap-1.5 text-xs text-destructive rounded-md px-3 py-2 bg-destructive/10 border border-destructive/20">
             <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
             <span>{actionError}</span>
           </div>
@@ -905,8 +905,8 @@ export function CalendarInvitationBanner({ email }: CalendarInvitationBannerProp
               className={cn(
                 "inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-md transition-colors min-h-[36px] disabled:opacity-50 border",
                 currentRsvp === 'accepted'
-                  ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"
-                  : "text-muted-foreground hover:text-green-700 dark:hover:text-green-400 border-border hover:border-green-300 dark:hover:border-green-800 hover:bg-green-50 dark:hover:bg-green-950/20"
+                  ? "bg-success/15 text-success border-success/20"
+                  : "text-muted-foreground hover:text-success border-border hover:border-success/30 hover:bg-success/10"
               )}
             >
               <Check className="w-3.5 h-3.5" />
@@ -919,8 +919,8 @@ export function CalendarInvitationBanner({ email }: CalendarInvitationBannerProp
               className={cn(
                 "inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-md transition-colors min-h-[36px] disabled:opacity-50 border",
                 currentRsvp === 'tentative'
-                  ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800"
-                  : "text-muted-foreground hover:text-amber-700 dark:hover:text-amber-400 border-border hover:border-amber-300 dark:hover:border-amber-800 hover:bg-amber-50 dark:hover:bg-amber-950/20"
+                  ? "bg-warning/15 text-warning border-warning/20"
+                  : "text-muted-foreground hover:text-warning border-border hover:border-warning/30 hover:bg-warning/10"
               )}
             >
               <HelpCircle className="w-3.5 h-3.5" />
@@ -933,8 +933,8 @@ export function CalendarInvitationBanner({ email }: CalendarInvitationBannerProp
               className={cn(
                 "inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-md transition-colors min-h-[36px] disabled:opacity-50 border",
                 currentRsvp === 'declined'
-                  ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800"
-                  : "text-muted-foreground hover:text-red-700 dark:hover:text-red-400 border-border hover:border-red-300 dark:hover:border-red-800 hover:bg-red-50 dark:hover:bg-red-950/20"
+                  ? "bg-destructive/15 text-destructive border-destructive/20"
+                  : "text-muted-foreground hover:text-destructive border-border hover:border-destructive/30 hover:bg-destructive/10"
               )}
             >
               <X className="w-3.5 h-3.5" />

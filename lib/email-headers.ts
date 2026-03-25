@@ -154,10 +154,10 @@ export function getSecurityStatus(result?: string): {
     case 'neutral':
     case 'temperror':
       return {
-        color: 'text-amber-700 dark:text-amber-400',
+        color: 'text-warning',
         icon: 'alert',
         bgColor: 'bg-gray-50 dark:bg-gray-800',
-        borderColor: 'border-l-4 border-amber-600 dark:border-amber-500'
+        borderColor: 'border-l-4 border-warning'
       };
     default:
       return {

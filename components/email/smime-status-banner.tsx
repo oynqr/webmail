@@ -83,10 +83,10 @@ export function SmimeStatusBanner({ status, onUnlockKey, className }: SmimeStatu
   if (items.length === 0) return null;
 
   const variantStyles = {
-    success: 'bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800',
-    warning: 'bg-yellow-50 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
-    error: 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800',
-    info: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+    success: 'bg-success/10 text-success border-success/30',
+    warning: 'bg-warning/10 text-warning border-warning/30',
+    error: 'bg-destructive/10 text-destructive border-destructive/30',
+    info: 'bg-info/10 text-info border-info/30',
   };
 
   return (

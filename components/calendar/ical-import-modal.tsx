@@ -349,7 +349,7 @@ export function ICalImportModal({ calendars, client, onClose }: ICalImportModalP
           )}
 
           {error && (
-            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 rounded-md px-3 py-2">
+            <div className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">
               {error}
             </div>
           )}

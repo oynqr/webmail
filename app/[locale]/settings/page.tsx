@@ -69,6 +69,7 @@ interface TabDef {
   label: string;
   icon: LucideIcon;
   group: TabGroup;
+  experimental?: boolean;
 }
 
 const tabIcons: Record<Tab, LucideIcon> = {
@@ -162,8 +163,8 @@ export default function SettingsPage() {
     { id: 'contacts', label: t('tabs.contacts'), icon: tabIcons.contacts, group: 'apps' },
     ...(supportsFiles ? [{ id: 'files' as Tab, label: t('tabs.files'), icon: tabIcons.files, group: 'apps' as TabGroup }] : []),
     ...(isFeatureEnabled('sidebarAppsEnabled') ? [{ id: 'sidebar_apps' as Tab, label: t('tabs.sidebar_apps'), icon: tabIcons.sidebar_apps, group: 'apps' as TabGroup }] : []),
-    ...(isFeatureEnabled('themesEnabled') ? [{ id: 'themes' as Tab, label: 'Themes', icon: tabIcons.themes, group: 'system' as TabGroup }] : []),
-    ...(isFeatureEnabled('pluginsEnabled') ? [{ id: 'plugins' as Tab, label: 'Plugins', icon: tabIcons.plugins, group: 'system' as TabGroup }] : []),
+    ...(isFeatureEnabled('themesEnabled') ? [{ id: 'themes' as Tab, label: 'Themes', icon: tabIcons.themes, group: 'system' as TabGroup, experimental: true }] : []),
+    ...(isFeatureEnabled('pluginsEnabled') ? [{ id: 'plugins' as Tab, label: 'Plugins', icon: tabIcons.plugins, group: 'system' as TabGroup, experimental: true }] : []),
     { id: 'advanced', label: t('tabs.advanced'), icon: tabIcons.advanced, group: 'system' },
   ];
 
@@ -290,6 +291,11 @@ export default function SettingsPage() {
                       <span className="flex items-center gap-3">
                         <Icon className="w-4 h-4 text-muted-foreground" />
                         {tab.label}
+                        {tab.experimental && (
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-warning/15 text-warning">
+                            Experimental
+                          </span>
+                        )}
                       </span>
                       <ChevronRight className="w-4 h-4 text-muted-foreground" />
                     </button>
@@ -396,6 +402,11 @@ export default function SettingsPage() {
                         activeTab === tab.id ? 'text-accent-foreground' : 'text-muted-foreground'
                       )} />
                       {tab.label}
+                      {tab.experimental && (
+                        <span className="ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-warning/15 text-warning shrink-0">
+                          Experimental
+                        </span>
+                      )}
                     </button>
                   );
                 })}

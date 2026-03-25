@@ -205,7 +205,7 @@ export function ContactImportDialog({
                       )}
                     </div>
                     {isDupe && (
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400 flex-shrink-0">
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-warning/15 text-warning flex-shrink-0">
                         {t("import.duplicate")}
                       </span>
                     )}

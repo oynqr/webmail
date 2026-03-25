@@ -59,9 +59,9 @@ export function ContactListItem({ contact, isSelected, isChecked, hasSelection, 
       className={cn(
         "w-full flex items-center cursor-pointer select-none transition-all duration-200 border-b border-border",
         isSelected
-          ? "bg-blue-200 dark:bg-blue-900/50 shadow-sm"
+          ? "bg-selection shadow-sm"
           : "bg-background hover:bg-muted hover:shadow-sm",
-        isChecked && !isSelected && "ring-2 ring-primary/20 bg-blue-100 dark:bg-blue-900/30",
+        isChecked && !isSelected && "ring-2 ring-primary/20 bg-selection/60",
       )}
       style={{ gap: 'var(--density-item-gap)', paddingInline: '16px', paddingBlock: 'var(--density-item-py)' }}
     >

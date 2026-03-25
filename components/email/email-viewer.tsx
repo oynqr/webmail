@@ -3541,7 +3541,7 @@ export function EmailViewer({
                   ) : null;
                 })()}
                 {isImportant && (
-                  <span className="px-1.5 lg:px-2 py-0.5 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-medium whitespace-nowrap flex-shrink-0 self-center">
+                  <span className="px-1.5 lg:px-2 py-0.5 bg-warning/15 text-warning rounded-full text-xs font-medium whitespace-nowrap flex-shrink-0 self-center">
                     {t('important')}
                   </span>
                 )}
@@ -4372,9 +4372,9 @@ export function EmailViewer({
 
         {/* Draft Banner */}
         {isDraft && (
-          <div className="border-b border-border bg-amber-50 dark:bg-amber-950/30">
+          <div className="border-b border-border bg-warning/10">
             <div className="max-w-4xl mx-auto px-6 py-2.5 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+              <div className="flex items-center gap-2 text-warning">
                 <File className="w-4 h-4" />
                 <span className="text-sm font-medium">{t('draft_banner')}</span>
               </div>
