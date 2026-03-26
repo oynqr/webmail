@@ -861,7 +861,15 @@
         "archive": "Archivieren",
         "tag": "Schlagwort",
         "spam": "Als Spam markieren",
-        "none_selected": "Keine Aktionen ausgewählt"
+        "none_selected": "Keine Aktionen ausgewählt",
+        "mode_label": "Anzeigemodus",
+        "mode_inline": "Eingebettet",
+        "mode_floating": "Schwebend",
+        "corner_label": "Schwebende Position",
+        "corner_top-left": "Oben links",
+        "corner_top-right": "Oben rechts",
+        "corner_bottom-left": "Unten links",
+        "corner_bottom-right": "Unten rechts"
       },
       "default_mail_program": {
         "label": "Standard-E-Mail-Programm",

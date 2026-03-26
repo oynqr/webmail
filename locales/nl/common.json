@@ -861,7 +861,15 @@
         "archive": "Archiveren",
         "tag": "Label",
         "spam": "Markeer als spam",
-        "none_selected": "Geen acties geselecteerd"
+        "none_selected": "Geen acties geselecteerd",
+        "mode_label": "Weergavemodus",
+        "mode_inline": "Inline",
+        "mode_floating": "Zwevend",
+        "corner_label": "Zwevende positie",
+        "corner_top-left": "Linksboven",
+        "corner_top-right": "Rechtsboven",
+        "corner_bottom-left": "Linksonder",
+        "corner_bottom-right": "Rechtsonder"
       },
       "default_mail_program": {
         "label": "Standaard e-mailprogramma",

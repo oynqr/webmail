@@ -35,6 +35,8 @@ export type ToolbarPosition = 'top' | 'below-subject';
 export type ArchiveMode = 'single' | 'year' | 'month';
 
 export type HoverAction = 'delete' | 'star' | 'markRead' | 'archive' | 'tag' | 'spam';
+export type HoverActionsMode = 'inline' | 'floating';
+export type HoverActionsCorner = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
 
 export const ALL_HOVER_ACTIONS: { id: HoverAction; labelKey: string }[] = [
   { id: 'delete', labelKey: 'delete' },
@@ -110,6 +112,8 @@ interface SettingsState {
   emailAlwaysLightMode: boolean; // Always render email content in light mode
   archiveMode: ArchiveMode; // How to organize archived emails: single folder, by year, or by year+month
   hoverActions: HoverAction[]; // Quick actions shown on hover in mail list
+  hoverActionsMode: HoverActionsMode; // Display mode: inline (current) or floating corner
+  hoverActionsCorner: HoverActionsCorner; // Corner for floating mode
 
   // Composer
   autoSaveDraftInterval: number; // milliseconds
@@ -226,6 +230,8 @@ const DEFAULT_SETTINGS = {
   emailAlwaysLightMode: false,
   archiveMode: 'single' as ArchiveMode,
   hoverActions: ['delete', 'star', 'markRead', 'archive'] as HoverAction[],
+  hoverActionsMode: 'inline' as HoverActionsMode,
+  hoverActionsCorner: 'top-right' as HoverActionsCorner,
 
   // Composer
   autoSaveDraftInterval: 60000, // 1 minute
@@ -331,6 +337,8 @@ export const useSettingsStore = create<SettingsState>()(
           attachmentPosition: state.attachmentPosition,
           archiveMode: state.archiveMode,
           hoverActions: state.hoverActions,
+          hoverActionsMode: state.hoverActionsMode,
+          hoverActionsCorner: state.hoverActionsCorner,
           disableThreading: state.disableThreading,
           trustedSenders: state.trustedSenders,
           autoSaveDraftInterval: state.autoSaveDraftInterval,

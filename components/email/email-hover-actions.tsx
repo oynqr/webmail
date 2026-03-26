@@ -54,6 +54,13 @@ const ACTION_CONFIG: Record<HoverAction, {
   },
 };
 
+const CORNER_CLASSES = {
+  'top-right': 'top-1 right-1',
+  'top-left': 'top-1 left-1',
+  'bottom-right': 'bottom-1 right-1',
+  'bottom-left': 'bottom-1 left-1',
+} as const;
+
 export function EmailHoverActions({
   email,
   onToggleStar,
@@ -64,6 +71,8 @@ export function EmailHoverActions({
   onMarkAsSpam,
 }: EmailHoverActionsProps) {
   const hoverActions = useSettingsStore((state) => state.hoverActions);
+  const hoverActionsMode = useSettingsStore((state) => state.hoverActionsMode);
+  const hoverActionsCorner = useSettingsStore((state) => state.hoverActionsCorner);
   const t = useTranslations("settings.email_behavior.hover_actions");
 
   const isUnread = !email.keywords?.$seen;
@@ -96,42 +105,59 @@ export function EmailHoverActions({
     }
   };
 
+  const actionButtons = hoverActions.map((actionId) => {
+    const config = ACTION_CONFIG[actionId];
+    if (!config) return null;
+    const Icon = config.icon;
+
+    const DisplayIcon = actionId === "markRead"
+      ? (isUnread ? MailOpen : Mail)
+      : actionId === "star" && isStarred
+        ? Star
+        : Icon;
+
+    return (
+      <button
+        key={actionId}
+        onClick={(e) => handleAction(e, actionId)}
+        title={t(config.titleKey)}
+        className={cn(
+          "p-1.5 rounded-md transition-colors duration-100 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/10",
+          config.className,
+        )}
+      >
+        <DisplayIcon
+          className={cn(
+            "w-4 h-4",
+            actionId === "star" && isStarred && "fill-amber-400 text-amber-400",
+          )}
+        />
+      </button>
+    );
+  });
+
+  if (hoverActionsMode === 'floating') {
+    return (
+      <div
+        className={cn(
+          "absolute z-10 hidden group-hover:flex items-center",
+          CORNER_CLASSES[hoverActionsCorner],
+        )}
+      >
+        <div className="flex items-center gap-0.5 bg-muted rounded-lg px-1.5 py-0.5 shadow-md border border-border">
+          {actionButtons}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="absolute right-0 top-0 bottom-0 z-10 hidden group-hover:flex items-center"
     >
       <div className="w-8 h-full bg-gradient-to-r from-transparent to-muted" />
       <div className="flex items-center gap-0.5 h-full bg-muted pr-3 pl-0.5">
-        {hoverActions.map((actionId) => {
-          const config = ACTION_CONFIG[actionId];
-          if (!config) return null;
-        const Icon = config.icon;
-
-          const DisplayIcon = actionId === "markRead"
-            ? (isUnread ? MailOpen : Mail)
-            : actionId === "star" && isStarred
-              ? Star
-              : Icon;
-
-          return (
-            <button
-              key={actionId}
-              onClick={(e) => handleAction(e, actionId)}
-              title={t(config.titleKey)}
-              className={cn(
-                "p-1.5 rounded-md transition-colors duration-100 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/10",
-                config.className,
-              )}
-            >
-              <DisplayIcon
-                className={cn(
-                  "w-4 h-4",
-                  actionId === "star" && isStarred && "fill-amber-400 text-amber-400",
-                )}
-              />
-            </button>
-          );
-        })}
+        {actionButtons}
       </div>
     </div>
   );

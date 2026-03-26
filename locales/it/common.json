@@ -861,7 +861,15 @@
         "archive": "Archivia",
         "tag": "Etichetta",
         "spam": "Segna come spam",
-        "none_selected": "Nessuna azione selezionata"
+        "none_selected": "Nessuna azione selezionata",
+        "mode_label": "Modalità di visualizzazione",
+        "mode_inline": "In linea",
+        "mode_floating": "Fluttuante",
+        "corner_label": "Posizione fluttuante",
+        "corner_top-left": "In alto a sinistra",
+        "corner_top-right": "In alto a destra",
+        "corner_bottom-left": "In basso a sinistra",
+        "corner_bottom-right": "In basso a destra"
       },
       "default_mail_program": {
         "label": "Programma di posta predefinito",

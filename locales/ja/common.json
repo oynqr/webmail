@@ -861,7 +861,15 @@
         "archive": "アーカイブ",
         "tag": "タグ",
         "spam": "スパムとしてマーク",
-        "none_selected": "アクションが選択されていません"
+        "none_selected": "アクションが選択されていません",
+        "mode_label": "表示モード",
+        "mode_inline": "インライン",
+        "mode_floating": "フローティング",
+        "corner_label": "フローティング位置",
+        "corner_top-left": "左上",
+        "corner_top-right": "右上",
+        "corner_bottom-left": "左下",
+        "corner_bottom-right": "右下"
       },
       "default_mail_program": {
         "label": "既定のメールプログラム",

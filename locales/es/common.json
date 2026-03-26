@@ -861,7 +861,15 @@
         "archive": "Archivar",
         "tag": "Etiqueta",
         "spam": "Marcar como spam",
-        "none_selected": "No hay acciones seleccionadas"
+        "none_selected": "No hay acciones seleccionadas",
+        "mode_label": "Modo de visualización",
+        "mode_inline": "En línea",
+        "mode_floating": "Flotante",
+        "corner_label": "Posición flotante",
+        "corner_top-left": "Arriba izquierda",
+        "corner_top-right": "Arriba derecha",
+        "corner_bottom-left": "Abajo izquierda",
+        "corner_bottom-right": "Abajo derecha"
       },
       "default_mail_program": {
         "label": "Programa de correo predeterminado",

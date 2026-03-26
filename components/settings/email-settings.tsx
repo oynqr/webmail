@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useConfig } from '@/hooks/use-config';
 import { useSettingsStore } from '@/stores/settings-store';
-import type { ArchiveMode, HoverAction } from '@/stores/settings-store';
+import type { ArchiveMode, HoverAction, HoverActionsMode, HoverActionsCorner } from '@/stores/settings-store';
 import { ALL_HOVER_ACTIONS } from '@/stores/settings-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { useEmailStore } from '@/stores/email-store';
@@ -47,6 +47,8 @@ export function EmailSettings() {
     emailAlwaysLightMode,
     archiveMode,
     hoverActions,
+    hoverActionsMode,
+    hoverActionsCorner,
     trustedSenders,
     updateSetting,
   } = useSettingsStore();
@@ -251,6 +253,52 @@ export function EmailSettings() {
             );
           })}
         </div>
+
+        {/* Hover Actions Display Mode */}
+        <div className="pt-2 space-y-2">
+          <label className="text-xs font-medium text-foreground">{t('hover_actions.mode_label')}</label>
+          <div className="flex gap-2">
+            {(['inline', 'floating'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => updateSetting('hoverActionsMode', mode)}
+                className={cn(
+                  'px-3 py-1.5 text-xs rounded-md transition-colors duration-150',
+                  hoverActionsMode === mode
+                    ? 'bg-primary text-primary-foreground font-medium'
+                    : 'bg-muted hover:bg-accent text-foreground'
+                )}
+              >
+                {t(`hover_actions.mode_${mode}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Corner Selection (only when floating) */}
+        {hoverActionsMode === 'floating' && (
+          <div className="pt-1 space-y-2">
+            <label className="text-xs font-medium text-foreground">{t('hover_actions.corner_label')}</label>
+            <div className="grid grid-cols-2 gap-2 w-48">
+              {(['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const).map((corner) => (
+                <button
+                  key={corner}
+                  type="button"
+                  onClick={() => updateSetting('hoverActionsCorner', corner)}
+                  className={cn(
+                    'px-2 py-1.5 text-xs rounded-md transition-colors duration-150 text-center',
+                    hoverActionsCorner === corner
+                      ? 'bg-primary text-primary-foreground font-medium'
+                      : 'bg-muted hover:bg-accent text-foreground'
+                  )}
+                >
+                  {t(`hover_actions.corner_${corner}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       )}
 

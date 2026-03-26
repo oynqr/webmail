@@ -861,7 +861,15 @@
         "archive": "Archive",
         "tag": "Tag",
         "spam": "Mark as Spam",
-        "none_selected": "No actions selected"
+        "none_selected": "No actions selected",
+        "mode_label": "Display Mode",
+        "mode_inline": "Inline",
+        "mode_floating": "Floating",
+        "corner_label": "Floating Position",
+        "corner_top-left": "Top Left",
+        "corner_top-right": "Top Right",
+        "corner_bottom-left": "Bottom Left",
+        "corner_bottom-right": "Bottom Right"
       },
       "default_mail_program": {
         "label": "Default Mail Program",

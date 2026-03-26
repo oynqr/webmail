@@ -861,7 +861,15 @@
         "archive": "Архивировать",
         "tag": "Тег",
         "spam": "Отметить как спам",
-        "none_selected": "Действия не выбраны"
+        "none_selected": "Действия не выбраны",
+        "mode_label": "Режим отображения",
+        "mode_inline": "Встроенный",
+        "mode_floating": "Плавающий",
+        "corner_label": "Позиция плавающих действий",
+        "corner_top-left": "Вверху слева",
+        "corner_top-right": "Вверху справа",
+        "corner_bottom-left": "Внизу слева",
+        "corner_bottom-right": "Внизу справа"
       },
       "default_mail_program": {
         "label": "Почтовая программа по умолчанию",
