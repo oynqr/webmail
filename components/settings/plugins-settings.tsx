@@ -5,7 +5,7 @@ import { usePluginStore } from '@/stores/plugin-store';
 import { usePolicyStore } from '@/stores/policy-store';
 import { SettingsSection, SettingItem, ToggleSwitch } from './settings-section';
 import { cn } from '@/lib/utils';
-import { Upload, Trash2, AlertTriangle, Puzzle } from 'lucide-react';
+import { Upload, Trash2, AlertTriangle, Puzzle, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/stores/toast-store';
 import type { InstalledPlugin, PluginStatus, SettingFieldSchema } from '@/lib/plugin-types';
@@ -20,7 +20,7 @@ const STATUS_COLORS: Record<PluginStatus, string> = {
 
 export function PluginsSettings() {
   const { plugins, installPlugin, uninstallPlugin, enablePlugin, disablePlugin, updatePluginSettings } = usePluginStore();
-  const { isFeatureEnabled } = usePolicyStore();
+  const { isFeatureEnabled, isPluginForceEnabled } = usePolicyStore();
   const [isUploading, setIsUploading] = useState(false);
   const [expandedPlugin, setExpandedPlugin] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,6 +53,7 @@ export function PluginsSettings() {
   };
 
   const handleToggle = async (plugin: InstalledPlugin) => {
+    if (isPluginForceEnabled(plugin.id)) return;
     if (plugin.enabled) {
       disablePlugin(plugin.id);
       toast.info(`Plugin "${plugin.name}" disabled`);
@@ -83,6 +84,7 @@ export function PluginsSettings() {
               key={plugin.id}
               plugin={plugin}
               isExpanded={expandedPlugin === plugin.id}
+              isForceEnabled={isPluginForceEnabled(plugin.id)}
               onToggleExpand={() => setExpandedPlugin(expandedPlugin === plugin.id ? null : plugin.id)}
               onToggle={() => handleToggle(plugin)}
               onUninstall={() => handleUninstall(plugin)}
@@ -121,13 +123,14 @@ export function PluginsSettings() {
 interface PluginCardProps {
   plugin: InstalledPlugin;
   isExpanded: boolean;
+  isForceEnabled: boolean;
   onToggleExpand: () => void;
   onToggle: () => void;
   onUninstall: () => void;
   onUpdateSettings: (settings: Record<string, unknown>) => void;
 }
 
-function PluginCard({ plugin, isExpanded, onToggleExpand, onToggle, onUninstall, onUpdateSettings }: PluginCardProps) {
+function PluginCard({ plugin, isExpanded, isForceEnabled, onToggleExpand, onToggle, onUninstall, onUpdateSettings }: PluginCardProps) {
   return (
     <div className={cn(
       'rounded-lg border transition-colors',
@@ -141,6 +144,11 @@ function PluginCard({ plugin, isExpanded, onToggleExpand, onToggle, onUninstall,
             <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-medium', STATUS_COLORS[plugin.status])}>
               {plugin.status}
             </span>
+            {isForceEnabled && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 flex items-center gap-0.5">
+                <Lock className="w-2.5 h-2.5" /> Admin enforced
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             <span className="text-xs text-muted-foreground">{plugin.author}</span>
@@ -150,7 +158,7 @@ function PluginCard({ plugin, isExpanded, onToggleExpand, onToggle, onUninstall,
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          <ToggleSwitch checked={plugin.enabled} onChange={onToggle} />
+          <ToggleSwitch checked={plugin.enabled} onChange={onToggle} disabled={isForceEnabled} />
         </div>
       </div>
 

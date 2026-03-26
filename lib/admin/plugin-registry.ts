@@ -27,6 +27,7 @@ export interface ServerPlugin {
   permissions: string[];
   entrypoint: string;
   enabled: boolean;
+  forceEnabled?: boolean;
   installedAt: string;
   updatedAt: string;
 }
@@ -39,6 +40,7 @@ export interface ServerTheme {
   description: string;
   variants: string[];
   enabled: boolean;
+  forceEnabled?: boolean;
   installedAt: string;
   updatedAt: string;
 }
@@ -113,7 +115,7 @@ export async function savePlugin(
   await writeJsonFile(pluginRegistryPath(), registry);
 }
 
-export async function updatePluginMeta(id: string, updates: Partial<Pick<ServerPlugin, 'enabled'>>): Promise<ServerPlugin | null> {
+export async function updatePluginMeta(id: string, updates: Partial<Pick<ServerPlugin, 'enabled' | 'forceEnabled'>>): Promise<ServerPlugin | null> {
   const registry = await getPluginRegistry();
   const idx = registry.plugins.findIndex(p => p.id === id);
   if (idx < 0) return null;
@@ -182,7 +184,7 @@ export async function saveTheme(
   await writeJsonFile(themeRegistryPath(), registry);
 }
 
-export async function updateThemeMeta(id: string, updates: Partial<Pick<ServerTheme, 'enabled'>>): Promise<ServerTheme | null> {
+export async function updateThemeMeta(id: string, updates: Partial<Pick<ServerTheme, 'enabled' | 'forceEnabled'>>): Promise<ServerTheme | null> {
   const registry = await getThemeRegistry();
   const idx = registry.themes.findIndex(t => t.id === id);
   if (idx < 0) return null;

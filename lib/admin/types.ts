@@ -74,6 +74,10 @@ export interface SettingsPolicy {
   features: FeatureGates;
   defaults: Record<string, unknown>;
   themePolicy: ThemePolicy;
+  /** Plugin IDs that are force-enabled (users cannot disable) */
+  forceEnabledPlugins: string[];
+  /** Theme IDs that are force-enabled (users cannot deactivate) */
+  forceEnabledThemes: string[];
 }
 
 export const DEFAULT_POLICY: SettingsPolicy = {
@@ -81,6 +85,8 @@ export const DEFAULT_POLICY: SettingsPolicy = {
   features: { ...DEFAULT_FEATURE_GATES },
   defaults: {},
   themePolicy: { ...DEFAULT_THEME_POLICY },
+  forceEnabledPlugins: [],
+  forceEnabledThemes: [],
 };
 
 export interface AuditEntry {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Upload, Trash2, Power, AlertTriangle, Loader2, Package, Save, Shield } from 'lucide-react';
+import { Upload, Trash2, Power, PowerOff, AlertTriangle, Loader2, Package, Save, Shield, Lock, LockOpen } from 'lucide-react';
 import type { SettingsPolicy } from '@/lib/admin/types';
 import { DEFAULT_POLICY } from '@/lib/admin/types';
 
@@ -13,6 +13,7 @@ interface PluginEntry {
   description: string;
   type: string;
   enabled: boolean;
+  forceEnabled?: boolean;
   permissions: string[];
   installedAt: string;
   updatedAt: string;
@@ -130,6 +131,88 @@ export default function AdminPluginsPage() {
     }
   }
 
+  async function toggleForceEnabled(id: string, forceEnabled: boolean) {
+    setMessage(null);
+    // If force-enabling, also ensure the plugin is enabled
+    const body: Record<string, unknown> = { id, forceEnabled };
+    if (forceEnabled) body.enabled = true;
+
+    const res = await fetch('/api/admin/plugins', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (res.ok) {
+      setPlugins(prev => prev.map(p => p.id === id ? { ...p, forceEnabled, ...(forceEnabled ? { enabled: true } : {}) } : p));
+      // Also update policy
+      setPolicy(prev => {
+        const current = prev.forceEnabledPlugins || [];
+        return {
+          ...prev,
+          forceEnabledPlugins: forceEnabled
+            ? [...current.filter(pid => pid !== id), id]
+            : current.filter(pid => pid !== id),
+        };
+      });
+      setPolicyDirty(true);
+    } else {
+      const data = await res.json();
+      setMessage({ type: 'error', text: data.error || 'Update failed' });
+    }
+  }
+
+  async function forceEnableAll() {
+    setMessage(null);
+    const disabled = plugins.filter(p => !p.enabled);
+    if (disabled.length === 0) {
+      setMessage({ type: 'success', text: 'All plugins are already enabled' });
+      return;
+    }
+    let failed = 0;
+    for (const p of disabled) {
+      const res = await fetch('/api/admin/plugins', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: p.id, enabled: true }),
+      });
+      if (!res.ok) failed++;
+    }
+    setPlugins(prev => prev.map(p => failed === 0 ? { ...p, enabled: true } : p));
+    if (failed === 0) {
+      await fetchPlugins();
+      setMessage({ type: 'success', text: `All ${disabled.length} plugin(s) enabled` });
+    } else {
+      await fetchPlugins();
+      setMessage({ type: 'error', text: `${failed} plugin(s) failed to enable` });
+    }
+  }
+
+  async function forceDisableAll() {
+    setMessage(null);
+    const enabled = plugins.filter(p => p.enabled);
+    if (enabled.length === 0) {
+      setMessage({ type: 'success', text: 'All plugins are already disabled' });
+      return;
+    }
+    let failed = 0;
+    for (const p of enabled) {
+      const res = await fetch('/api/admin/plugins', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: p.id, enabled: false }),
+      });
+      if (!res.ok) failed++;
+    }
+    if (failed === 0) {
+      await fetchPlugins();
+      setMessage({ type: 'success', text: `All ${enabled.length} plugin(s) disabled` });
+    } else {
+      await fetchPlugins();
+      setMessage({ type: 'error', text: `${failed} plugin(s) failed to disable` });
+    }
+  }
+
   async function deletePlugin(id: string, name: string) {
     if (!confirm(`Remove plugin "${name}"? This cannot be undone.`)) return;
 
@@ -214,6 +297,32 @@ export default function AdminPluginsPage() {
               <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-background shadow transition-transform ${pluginsEnabled ? 'translate-x-[18px]' : 'translate-x-[3px]'}`} />
             </button>
           </div>
+
+          {/* Force enable / disable all */}
+          {plugins.length > 0 && (
+            <div className="px-4 py-3 flex items-center justify-between gap-4">
+              <div>
+                <span className="text-sm text-foreground">Force Enable / Disable All</span>
+                <p className="text-xs text-muted-foreground mt-0.5">Bulk toggle all deployed plugins at once</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={forceEnableAll}
+                  className="inline-flex items-center gap-1.5 h-7 px-3 rounded-md bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700 transition-colors"
+                >
+                  <Power className="w-3.5 h-3.5" />
+                  Enable All
+                </button>
+                <button
+                  onClick={forceDisableAll}
+                  className="inline-flex items-center gap-1.5 h-7 px-3 rounded-md bg-muted text-muted-foreground text-xs font-medium hover:bg-accent hover:text-foreground transition-colors"
+                >
+                  <PowerOff className="w-3.5 h-3.5" />
+                  Disable All
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -243,6 +352,11 @@ export default function AdminPluginsPage() {
                     <span className={`text-xs px-1.5 py-0.5 rounded ${plugin.enabled ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
                       {plugin.enabled ? 'Enabled' : 'Disabled'}
                     </span>
+                    {plugin.forceEnabled && (
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> Forced
+                      </span>
+                    )}
                   </div>
                 {plugin.description && (
                   <p className="text-xs text-muted-foreground mt-0.5 truncate">{plugin.description}</p>
@@ -261,6 +375,13 @@ export default function AdminPluginsPage() {
               </div>
 
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => toggleForceEnabled(plugin.id, !plugin.forceEnabled)}
+                  title={plugin.forceEnabled ? 'Remove force-enable (users can disable)' : 'Force enable (users cannot disable)'}
+                  className={`p-2 rounded-md transition-colors ${plugin.forceEnabled ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:hover:bg-amber-950/50' : 'hover:bg-accent text-muted-foreground hover:text-foreground'}`}
+                >
+                  {plugin.forceEnabled ? <Lock className="w-4 h-4" /> : <LockOpen className="w-4 h-4" />}
+                </button>
                 <button
                   onClick={() => togglePlugin(plugin.id, !plugin.enabled)}
                   title={plugin.enabled ? 'Disable' : 'Enable'}

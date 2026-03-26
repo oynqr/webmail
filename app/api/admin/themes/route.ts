@@ -160,22 +160,26 @@ export async function PATCH(request: NextRequest) {
     if ('error' in result) return result.error;
 
     const ip = getClientIP(request);
-    const { id, enabled } = await request.json();
+    const { id, enabled, forceEnabled } = await request.json();
 
     if (!id || typeof id !== 'string') {
       return NextResponse.json({ error: 'Missing theme id' }, { status: 400 });
     }
-    if (typeof enabled !== 'boolean') {
-      return NextResponse.json({ error: 'enabled must be a boolean' }, { status: 400 });
+    if (typeof enabled !== 'boolean' && typeof forceEnabled !== 'boolean') {
+      return NextResponse.json({ error: 'enabled or forceEnabled must be a boolean' }, { status: 400 });
     }
 
+    const updates: { enabled?: boolean; forceEnabled?: boolean } = {};
+    if (typeof enabled === 'boolean') updates.enabled = enabled;
+    if (typeof forceEnabled === 'boolean') updates.forceEnabled = forceEnabled;
+
     const { updateThemeMeta } = await import('@/lib/admin/plugin-registry');
-    const updated = await updateThemeMeta(id, { enabled });
+    const updated = await updateThemeMeta(id, updates);
     if (!updated) {
       return NextResponse.json({ error: 'Theme not found' }, { status: 404 });
     }
 
-    await auditLog('theme.update', { id, enabled }, ip);
+    await auditLog('theme.update', { id, ...updates }, ip);
     return NextResponse.json({ theme: updated });
   } catch (error) {
     logger.error('Theme update error', { error: error instanceof Error ? error.message : 'Unknown error' });

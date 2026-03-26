@@ -13,6 +13,8 @@ interface PolicyState {
   getEffectiveDefault: (key: string) => unknown;
   getThemePolicy: () => ThemePolicy;
   isThemeDisabled: (themeId: string, isBuiltIn: boolean) => boolean;
+  isPluginForceEnabled: (pluginId: string) => boolean;
+  isThemeForceEnabled: (themeId: string) => boolean;
 }
 
 export const usePolicyStore = create<PolicyState>()((set, get) => ({
@@ -65,5 +67,13 @@ export const usePolicyStore = create<PolicyState>()((set, get) => ({
       return (tp.disabledBuiltinThemes || []).includes(themeId);
     }
     return (tp.disabledThemes || []).includes(themeId);
+  },
+
+  isPluginForceEnabled: (pluginId) => {
+    return (get().policy.forceEnabledPlugins || []).includes(pluginId);
+  },
+
+  isThemeForceEnabled: (themeId) => {
+    return (get().policy.forceEnabledThemes || []).includes(themeId);
   },
 }));

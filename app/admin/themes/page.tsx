@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Upload, Trash2, Power, Loader2, Palette, Save, Shield } from 'lucide-react';
+import { Upload, Trash2, Power, PowerOff, Loader2, Palette, Save, Shield, Lock, LockOpen } from 'lucide-react';
 import type { SettingsPolicy } from '@/lib/admin/types';
 import { DEFAULT_POLICY, DEFAULT_THEME_POLICY } from '@/lib/admin/types';
 
@@ -19,6 +19,7 @@ interface ThemeEntry {
   description: string;
   variants: string[];
   enabled: boolean;
+  forceEnabled?: boolean;
   installedAt: string;
   updatedAt: string;
 }
@@ -198,6 +199,85 @@ export default function AdminThemesPage() {
     }
   }
 
+  async function toggleForceEnabled(id: string, forceEnabled: boolean) {
+    setMessage(null);
+    const body: Record<string, unknown> = { id, forceEnabled };
+    if (forceEnabled) body.enabled = true;
+
+    const res = await fetch('/api/admin/themes', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (res.ok) {
+      setThemes(prev => prev.map(t => t.id === id ? { ...t, forceEnabled, ...(forceEnabled ? { enabled: true } : {}) } : t));
+      setPolicy(prev => {
+        const current = prev.forceEnabledThemes || [];
+        return {
+          ...prev,
+          forceEnabledThemes: forceEnabled
+            ? [...current.filter(tid => tid !== id), id]
+            : current.filter(tid => tid !== id),
+        };
+      });
+      setPolicyDirty(true);
+    } else {
+      const data = await res.json();
+      setMessage({ type: 'error', text: data.error || 'Update failed' });
+    }
+  }
+
+  async function forceEnableAll() {
+    setMessage(null);
+    const disabled = themes.filter(t => !t.enabled);
+    if (disabled.length === 0) {
+      setMessage({ type: 'success', text: 'All themes are already enabled' });
+      return;
+    }
+    let failed = 0;
+    for (const t of disabled) {
+      const res = await fetch('/api/admin/themes', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: t.id, enabled: true }),
+      });
+      if (!res.ok) failed++;
+    }
+    if (failed === 0) {
+      await fetchThemes();
+      setMessage({ type: 'success', text: `All ${disabled.length} theme(s) enabled` });
+    } else {
+      await fetchThemes();
+      setMessage({ type: 'error', text: `${failed} theme(s) failed to enable` });
+    }
+  }
+
+  async function forceDisableAll() {
+    setMessage(null);
+    const enabled = themes.filter(t => t.enabled);
+    if (enabled.length === 0) {
+      setMessage({ type: 'success', text: 'All themes are already disabled' });
+      return;
+    }
+    let failed = 0;
+    for (const t of enabled) {
+      const res = await fetch('/api/admin/themes', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: t.id, enabled: false }),
+      });
+      if (!res.ok) failed++;
+    }
+    if (failed === 0) {
+      await fetchThemes();
+      setMessage({ type: 'success', text: `All ${enabled.length} theme(s) disabled` });
+    } else {
+      await fetchThemes();
+      setMessage({ type: 'error', text: `${failed} theme(s) failed to disable` });
+    }
+  }
+
   async function deleteTheme(id: string, name: string) {
     if (!confirm(`Remove theme "${name}"? This cannot be undone.`)) return;
 
@@ -297,6 +377,32 @@ export default function AdminThemesPage() {
               <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-background shadow transition-transform ${userThemesEnabled ? 'translate-x-[18px]' : 'translate-x-[3px]'}`} />
             </button>
           </div>
+
+          {/* Force enable / disable all */}
+          {themes.length > 0 && (
+            <div className="px-4 py-3 flex items-center justify-between gap-4">
+              <div>
+                <span className="text-sm text-foreground">Force Enable / Disable All</span>
+                <p className="text-xs text-muted-foreground mt-0.5">Bulk toggle all deployed themes at once</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={forceEnableAll}
+                  className="inline-flex items-center gap-1.5 h-7 px-3 rounded-md bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700 transition-colors"
+                >
+                  <Power className="w-3.5 h-3.5" />
+                  Enable All
+                </button>
+                <button
+                  onClick={forceDisableAll}
+                  className="inline-flex items-center gap-1.5 h-7 px-3 rounded-md bg-muted text-muted-foreground text-xs font-medium hover:bg-accent hover:text-foreground transition-colors"
+                >
+                  <PowerOff className="w-3.5 h-3.5" />
+                  Disable All
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Default Theme */}
           <div className="px-4 py-3">
@@ -399,6 +505,11 @@ export default function AdminThemesPage() {
                     <span className={`text-xs px-1.5 py-0.5 rounded ${theme.enabled ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
                       {theme.enabled ? 'Enabled' : 'Disabled'}
                     </span>
+                    {theme.forceEnabled && (
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> Forced
+                      </span>
+                    )}
                   </div>
                   {theme.description && (
                     <p className="text-xs text-muted-foreground mt-0.5 truncate">{theme.description}</p>
@@ -409,6 +520,13 @@ export default function AdminThemesPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => toggleForceEnabled(theme.id, !theme.forceEnabled)}
+                    title={theme.forceEnabled ? 'Remove force-enable (users can deactivate)' : 'Force enable (users cannot deactivate)'}
+                    className={`p-2 rounded-md transition-colors ${theme.forceEnabled ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:hover:bg-amber-950/50' : 'hover:bg-accent text-muted-foreground hover:text-foreground'}`}
+                  >
+                    {theme.forceEnabled ? <Lock className="w-4 h-4" /> : <LockOpen className="w-4 h-4" />}
+                  </button>
                   <button
                     onClick={() => toggleTheme(theme.id, !theme.enabled)}
                     title={theme.enabled ? 'Disable' : 'Enable'}

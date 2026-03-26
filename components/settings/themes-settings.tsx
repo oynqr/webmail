@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useThemeStore } from '@/stores/theme-store';
 import { SettingsSection, SettingItem } from './settings-section';
 import { cn } from '@/lib/utils';
-import { Upload, Trash2, Check, Palette } from 'lucide-react';
+import { Upload, Trash2, Check, Palette, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/stores/toast-store';
 import type { InstalledTheme } from '@/lib/plugin-types';
@@ -14,7 +14,7 @@ export function ThemesSettings() {
   const { installedThemes, activeThemeId, installTheme, uninstallTheme, activateTheme } = useThemeStore();
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { isFeatureEnabled, isThemeDisabled, getThemePolicy } = usePolicyStore();
+  const { isFeatureEnabled, isThemeDisabled, getThemePolicy, isThemeForceEnabled } = usePolicyStore();
   const canUpload = isFeatureEnabled('userThemesEnabled');
   const themePolicy = getThemePolicy();
 
@@ -93,6 +93,7 @@ export function ThemesSettings() {
             isActive={activeThemeId === theme.id}
             isBuiltIn={theme.builtIn}
             isDefault={themePolicy.defaultThemeId === theme.id}
+            isForceEnabled={isThemeForceEnabled(theme.id)}
             variants={theme.variants}
             onActivate={() => handleActivate(theme.id)}
             onRemove={!theme.builtIn ? () => handleUninstall(theme) : undefined}
@@ -135,12 +136,13 @@ interface ThemeCardProps {
   isActive: boolean;
   isBuiltIn: boolean;
   isDefault?: boolean;
+  isForceEnabled?: boolean;
   variants?: ('light' | 'dark')[];
   onActivate: () => void;
   onRemove?: () => void;
 }
 
-function ThemeCard({ name, author, preview, isActive, isDefault, variants, onActivate, onRemove }: ThemeCardProps) {
+function ThemeCard({ name, author, preview, isActive, isDefault, isForceEnabled, variants, onActivate, onRemove }: ThemeCardProps) {
   return (
     <button
       onClick={onActivate}
@@ -165,6 +167,11 @@ function ThemeCard({ name, author, preview, isActive, isDefault, variants, onAct
         <div className="flex items-center justify-between gap-1">
           <span className="text-sm font-medium text-foreground truncate">{name}</span>
           <div className="flex items-center gap-1 flex-shrink-0">
+            {isForceEnabled && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 font-medium flex items-center gap-0.5" title="Admin enforced">
+                <Lock className="w-2.5 h-2.5" />
+              </span>
+            )}
             {isDefault && (
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">Default</span>
             )}

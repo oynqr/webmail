@@ -181,22 +181,26 @@ export async function PATCH(request: NextRequest) {
     if ('error' in result) return result.error;
 
     const ip = getClientIP(request);
-    const { id, enabled } = await request.json();
+    const { id, enabled, forceEnabled } = await request.json();
 
     if (!id || typeof id !== 'string') {
       return NextResponse.json({ error: 'Missing plugin id' }, { status: 400 });
     }
-    if (typeof enabled !== 'boolean') {
-      return NextResponse.json({ error: 'enabled must be a boolean' }, { status: 400 });
+    if (typeof enabled !== 'boolean' && typeof forceEnabled !== 'boolean') {
+      return NextResponse.json({ error: 'enabled or forceEnabled must be a boolean' }, { status: 400 });
     }
 
+    const updates: { enabled?: boolean; forceEnabled?: boolean } = {};
+    if (typeof enabled === 'boolean') updates.enabled = enabled;
+    if (typeof forceEnabled === 'boolean') updates.forceEnabled = forceEnabled;
+
     const { updatePluginMeta } = await import('@/lib/admin/plugin-registry');
-    const updated = await updatePluginMeta(id, { enabled });
+    const updated = await updatePluginMeta(id, updates);
     if (!updated) {
       return NextResponse.json({ error: 'Plugin not found' }, { status: 404 });
     }
 
-    await auditLog('plugin.update', { id, enabled }, ip);
+    await auditLog('plugin.update', { id, ...updates }, ip);
     return NextResponse.json({ plugin: updated });
   } catch (error) {
     logger.error('Plugin update error', { error: error instanceof Error ? error.message : 'Unknown error' });
