@@ -1,4 +1,4 @@
-import type { FilterRule, FilterCondition, FilterAction, FilterMetadata } from '@/lib/jmap/sieve-types';
+import type { FilterRule, FilterCondition, FilterAction, FilterMetadata, VacationSieveConfig } from '@/lib/jmap/sieve-types';
 import { debug } from '@/lib/debug';
 
 const HEADER_MAP: Record<string, string> = {
@@ -78,9 +78,13 @@ function generateActions(actions: FilterAction[]): string[] {
   });
 }
 
-function computeRequires(rules: FilterRule[]): string[] {
+function computeRequires(rules: FilterRule[], vacation?: VacationSieveConfig): string[] {
   const extensions = new Set<string>();
   const enabledRules = rules.filter(r => r.enabled);
+
+  if (vacation?.isEnabled) {
+    extensions.add('vacation');
+  }
 
   for (const rule of enabledRules) {
     for (const condition of rule.conditions) {
@@ -110,8 +114,11 @@ function computeRequires(rules: FilterRule[]): string[] {
   return [...extensions].sort();
 }
 
-export function generateScript(rules: FilterRule[]): string {
+export function generateScript(rules: FilterRule[], vacation?: VacationSieveConfig): string {
   const metadata: FilterMetadata = { version: 1, rules };
+  if (vacation?.isEnabled) {
+    metadata.vacation = vacation;
+  }
   const metadataJson = JSON.stringify(metadata);
   const lines: string[] = [];
 
@@ -120,9 +127,20 @@ export function generateScript(rules: FilterRule[]): string {
   lines.push('@metadata:end */');
   lines.push('');
 
-  const requires = computeRequires(rules);
+  const requires = computeRequires(rules, vacation);
   if (requires.length > 0) {
     lines.push(`require [${requires.map(r => `"${r}"`).join(', ')}];`);
+  }
+
+  if (vacation?.isEnabled) {
+    lines.push('');
+    lines.push('# Vacation auto-reply');
+    const vacationParts: string[] = [];
+    if (vacation.subject) {
+      vacationParts.push(`:subject "${escapeString(vacation.subject)}"`);
+    }
+    vacationParts.push(`"${escapeString(vacation.textBody || '')}"`);
+    lines.push(`vacation ${vacationParts.join(' ')};`);
   }
 
   const enabledRules = rules.filter(r => r.enabled);

@@ -1,9 +1,10 @@
-import type { FilterRule, FilterMetadata } from '@/lib/jmap/sieve-types';
+import type { FilterRule, FilterMetadata, VacationSieveConfig } from '@/lib/jmap/sieve-types';
 import { debug } from '@/lib/debug';
 
 export interface ParseResult {
   rules: FilterRule[];
   isOpaque: boolean;
+  vacation?: VacationSieveConfig;
 }
 
 const OPAQUE: ParseResult = { rules: [], isOpaque: true };
@@ -64,5 +65,5 @@ export function parseScript(content: string): ParseResult {
     if (!isValidRule(rule)) return OPAQUE;
   }
 
-  return { rules: metadata.rules, isOpaque: false };
+  return { rules: metadata.rules, isOpaque: false, vacation: metadata.vacation };
 }

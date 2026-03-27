@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { IJMAPClient } from '@/lib/jmap/client-interface';
-import type { FilterRule, SieveCapabilities } from '@/lib/jmap/sieve-types';
+import type { FilterRule, SieveCapabilities, VacationSieveConfig } from '@/lib/jmap/sieve-types';
 import { parseScript } from '@/lib/sieve/parser';
 import { generateScript } from '@/lib/sieve/generator';
 import { debug } from '@/lib/debug';
@@ -15,6 +15,7 @@ interface FilterStore {
   activeScriptId: string | null;
   isOpaque: boolean;
   rawScript: string;
+  vacationSettings: VacationSieveConfig | null;
 
   setSupported: (supported: boolean) => void;
   fetchFilters: (client: IJMAPClient) => Promise<void>;
@@ -27,6 +28,7 @@ interface FilterStore {
   toggleRule: (ruleId: string) => void;
   setRawScript: (content: string) => void;
   resetToVisualBuilder: () => void;
+  syncVacationToScript: (client: IJMAPClient, vacation: VacationSieveConfig) => Promise<void>;
   clearState: () => void;
 }
 
@@ -40,6 +42,7 @@ export const useFilterStore = create<FilterStore>()((set, get) => ({
   activeScriptId: null,
   isOpaque: false,
   rawScript: '',
+  vacationSettings: null,
 
   setSupported: (supported) => set({ isSupported: supported }),
 
@@ -67,10 +70,10 @@ export const useFilterStore = create<FilterStore>()((set, get) => ({
 
       if (result.isOpaque) {
         debug.log('Sieve script is opaque (hand-edited)');
-        set({ isLoading: false, isOpaque: true, rules: [] });
+        set({ isLoading: false, isOpaque: true, rules: [], vacationSettings: result.vacation || null });
       } else {
         debug.log('Parsed', result.rules.length, 'filter rules');
-        set({ isLoading: false, isOpaque: false, rules: result.rules });
+        set({ isLoading: false, isOpaque: false, rules: result.rules, vacationSettings: result.vacation || null });
       }
     } catch (error) {
       debug.error('Failed to fetch filters:', error);
@@ -84,13 +87,13 @@ export const useFilterStore = create<FilterStore>()((set, get) => ({
   saveFilters: async (client) => {
     set({ isSaving: true, error: null });
     try {
-      const { isOpaque, rawScript, rules, activeScriptId } = get();
+      const { isOpaque, rawScript, rules, activeScriptId, vacationSettings } = get();
 
       let content: string;
       if (isOpaque) {
         content = rawScript;
       } else {
-        content = generateScript(rules);
+        content = generateScript(rules, vacationSettings || undefined);
       }
 
       if (activeScriptId) {
@@ -152,6 +155,24 @@ export const useFilterStore = create<FilterStore>()((set, get) => ({
 
   resetToVisualBuilder: () => set({ isOpaque: false, rawScript: '', rules: [] }),
 
+  syncVacationToScript: async (client, vacation) => {
+    const state = get();
+    if (!state.isSupported) return;
+
+    // Ensure filters are loaded first
+    if (state.activeScriptId === null && !state.isLoading) {
+      await get().fetchFilters(client);
+    }
+
+    set({ vacationSettings: vacation });
+
+    // Only re-save if we have a parseable script (not opaque)
+    const currentState = get();
+    if (!currentState.isOpaque) {
+      await get().saveFilters(client);
+    }
+  },
+
   clearState: () => set({
     rules: [],
     isLoading: false,
@@ -162,5 +183,6 @@ export const useFilterStore = create<FilterStore>()((set, get) => ({
     activeScriptId: null,
     isOpaque: false,
     rawScript: '',
+    vacationSettings: null,
   }),
 }));

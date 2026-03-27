@@ -49,7 +49,14 @@ export interface FilterRule {
   stopProcessing: boolean;
 }
 
+export interface VacationSieveConfig {
+  isEnabled: boolean;
+  subject: string;
+  textBody: string;
+}
+
 export interface FilterMetadata {
   version: 1;
   rules: FilterRule[];
+  vacation?: VacationSieveConfig;
 }

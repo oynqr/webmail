@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { generateScript } from '@/lib/sieve/generator';
 import { parseScript } from '@/lib/sieve/parser';
 import type { FilterRule } from '@/lib/jmap/sieve-types';
+import type { VacationSieveConfig } from '@/lib/jmap/sieve-types';
 
 const makeRule = (overrides: Partial<FilterRule> = {}): FilterRule => ({
   id: 'rule-1',
@@ -112,6 +113,62 @@ describe('sieve generator', () => {
       const rules = [makeRule({ stopProcessing: true })];
       const script = generateScript(rules);
       expect(script).toContain('stop;');
+    });
+  });
+
+  describe('vacation support', () => {
+    const vacation: VacationSieveConfig = {
+      isEnabled: true,
+      subject: 'Out of Office',
+      textBody: 'I am currently away.',
+    };
+
+    it('should generate vacation block when vacation is enabled', () => {
+      const script = generateScript([], vacation);
+      expect(script).toContain('require ["vacation"]');
+      expect(script).toContain('vacation :subject "Out of Office" "I am currently away.";');
+    });
+
+    it('should not generate vacation block when vacation is disabled', () => {
+      const disabled: VacationSieveConfig = { isEnabled: false, subject: '', textBody: '' };
+      const script = generateScript([], disabled);
+      expect(script).not.toContain('vacation');
+    });
+
+    it('should generate vacation block without subject when subject is empty', () => {
+      const noSubject: VacationSieveConfig = { isEnabled: true, subject: '', textBody: 'Away' };
+      const script = generateScript([], noSubject);
+      expect(script).toContain('vacation "Away";');
+      expect(script).not.toContain(':subject');
+    });
+
+    it('should include both vacation and filter rules', () => {
+      const rules = [makeRule()];
+      const script = generateScript(rules, vacation);
+      expect(script).toContain('"vacation"');
+      expect(script).toContain('"fileinto"');
+      expect(script).toContain('vacation :subject "Out of Office"');
+      expect(script).toContain('fileinto "Archive"');
+    });
+
+    it('should preserve vacation settings in metadata round-trip', () => {
+      const rules = [makeRule()];
+      const script = generateScript(rules, vacation);
+      const parsed = parseScript(script);
+      expect(parsed.isOpaque).toBe(false);
+      expect(parsed.vacation).toEqual(vacation);
+      expect(parsed.rules).toHaveLength(1);
+    });
+
+    it('should escape special characters in vacation text', () => {
+      const special: VacationSieveConfig = {
+        isEnabled: true,
+        subject: 'Re: "Test"',
+        textBody: 'Line with "quotes" and \\backslash',
+      };
+      const script = generateScript([], special);
+      expect(script).toContain(':subject "Re: \\"Test\\""');
+      expect(script).toContain('"Line with \\"quotes\\" and \\\\backslash"');
     });
   });
 });
