@@ -69,6 +69,7 @@ export default function CalendarPage() {
   } = useCalendarStore();
   const { firstDayOfWeek, timeFormat, showWeekNumbers, enableCalendarTasks, showTasksOnCalendar } = useSettingsStore();
   const taskStore = useTaskStore();
+  const fetchTasksFn = useTaskStore(state => state.fetchTasks);
   const { identities } = useIdentityStore();
   const normalizedViewMode = isCalendarViewMode(viewMode) ? viewMode : "month";
 
@@ -184,9 +185,9 @@ export default function CalendarPage() {
   // Fetch tasks when tasks view is active or when tasks are shown on calendar grid
   useEffect(() => {
     if (client && enableCalendarTasks && (normalizedViewMode === "tasks" || showTasksOnCalendar)) {
-      taskStore.fetchTasks(client);
+      fetchTasksFn(client);
     }
-  }, [client, enableCalendarTasks, normalizedViewMode, showTasksOnCalendar, taskStore]);
+  }, [client, enableCalendarTasks, normalizedViewMode, showTasksOnCalendar, fetchTasksFn]);
 
   useEffect(() => {
     if (client && calendars.length > 0 && dateRange) {
