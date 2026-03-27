@@ -12,6 +12,7 @@ import { useEmailStore } from "@/stores/email-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { toast } from "@/stores/toast-store";
 import type { FilterRule } from "@/lib/jmap/sieve-types";
+import { useVacationStore } from "@/stores/vacation-store";
 import {
   Plus,
   GripVertical,
@@ -21,6 +22,7 @@ import {
   Loader2,
   Filter,
   RotateCcw,
+  PalmtreeIcon,
 } from "lucide-react";
 
 function RuleSummary({ rule }: { rule: FilterRule }) {
@@ -137,6 +139,7 @@ export function FilterSettings() {
     isSupported,
     isOpaque,
     rawScript,
+    vacationSettings,
     fetchFilters,
     saveFilters,
     addRule,
@@ -148,6 +151,8 @@ export function FilterSettings() {
     resetToVisualBuilder,
     validateScript,
   } = useFilterStore();
+
+  const vacationEnabled = useVacationStore((s) => s.isEnabled) || vacationSettings?.isEnabled;
 
   const [editingRule, setEditingRule] = useState<FilterRule | undefined>();
   const [showRuleModal, setShowRuleModal] = useState(false);
@@ -389,7 +394,33 @@ export function FilterSettings() {
           </div>
         )}
 
-        {!isOpaque && rules.length === 0 && (
+        {!isOpaque && vacationEnabled && (
+          <button
+            type="button"
+            onClick={() => {
+              try { localStorage.setItem('settings-active-tab', 'vacation'); } catch { /* ignore */ }
+              window.dispatchEvent(new CustomEvent('settings-tab-change', { detail: 'vacation' }));
+            }}
+            className="flex items-center gap-3 w-full p-3 rounded-md border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors text-left"
+          >
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/40">
+              <PalmtreeIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                {t("vacation_active")}
+              </p>
+              <p className="text-xs text-green-600/70 dark:text-green-400/70">
+                {t("vacation_active_description")}
+              </p>
+            </div>
+            <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+              {t("vacation_configure")} &rarr;
+            </span>
+          </button>
+        )}
+
+        {!isOpaque && rules.length === 0 && !vacationEnabled && (
           <div className="flex flex-col items-center py-8 text-muted-foreground">
             <Filter className="w-10 h-10 mb-3 opacity-40" />
             <p className="text-sm">{t("no_rules")}</p>

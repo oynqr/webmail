@@ -130,6 +130,19 @@ export default function SettingsPage() {
     });
   }, [checkAuth]);
 
+  // Listen for tab change events from child components
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const tab = (e as CustomEvent).detail as Tab;
+      if (tab) {
+        setActiveTab(tab);
+        try { localStorage.setItem('settings-active-tab', tab); } catch { /* ignore */ }
+      }
+    };
+    window.addEventListener('settings-tab-change', handler);
+    return () => window.removeEventListener('settings-tab-change', handler);
+  }, []);
+
   useEffect(() => {
     if (initialCheckDone && !isAuthenticated && !authLoading) {
       try { sessionStorage.setItem('redirect_after_login', window.location.pathname); } catch { /* ignore */ }
