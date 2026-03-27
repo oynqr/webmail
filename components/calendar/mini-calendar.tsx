@@ -7,9 +7,10 @@ import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addMonths, subMonths, addYears, subYears, setMonth, setYear,
   eachDayOfInterval, getMonth, getYear, getISOWeek, getWeek,
-  isSameDay, isSameMonth, isToday, format, parseISO,
+  isSameDay, isSameMonth, isToday, format,
 } from "date-fns";
 import { cn } from "@/lib/utils";
+import { getEventDayBounds } from "@/lib/calendar-utils";
 import type { CalendarEvent } from "@/lib/jmap/types";
 
 type PickerView = "days" | "months" | "years";
@@ -54,7 +55,14 @@ export function MiniCalendar({
   const eventDates = useMemo(() => {
     const set = new Set<string>();
     events.forEach(e => {
-      try { set.add(format(parseISO(e.start), "yyyy-MM-dd")); } catch { /* skip */ }
+      try {
+        const { startDay, endDay } = getEventDayBounds(e);
+        const cursor = new Date(startDay);
+        while (cursor <= endDay) {
+          set.add(format(cursor, "yyyy-MM-dd"));
+          cursor.setDate(cursor.getDate() + 1);
+        }
+      } catch { /* skip */ }
     });
     return set;
   }, [events]);

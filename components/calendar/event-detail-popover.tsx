@@ -12,6 +12,7 @@ import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent, Calendar, CalendarParticipant } from "@/lib/jmap/types";
 import { parseDuration, getEventColor } from "./event-card";
+import { getEventEndDate, getEventStartDate } from "@/lib/calendar-utils";
 import {
   isOrganizer,
   getUserParticipantId,
@@ -138,9 +139,9 @@ export function EventDetailPopover({
   const [isSavingNote, setIsSavingNote] = useState(false);
 
   const color = getEventColor(event, calendar);
-  const startDate = parseISO(event.start);
+  const startDate = getEventStartDate(event);
   const durationMinutes = parseDuration(event.duration);
-  const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
+  const endDate = getEventEndDate(event);
 
   const locationName = useMemo(() => {
     if (!event.locations) return null;

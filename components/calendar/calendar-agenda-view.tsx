@@ -2,11 +2,11 @@
 
 import { useMemo, useRef, useEffect, useCallback } from "react";
 import { useTranslations, useFormatter } from "next-intl";
-import { format, parseISO, isToday, isTomorrow, startOfDay } from "date-fns";
+import { format, isToday, isTomorrow, startOfDay } from "date-fns";
 import { MapPin, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { parseDuration, getEventColor } from "./event-card";
-import { getEventDayBounds, getPrimaryCalendarId } from "@/lib/calendar-utils";
+import { getEventDayBounds, getEventEndDate, getEventStartDate, getPrimaryCalendarId } from "@/lib/calendar-utils";
 import { getParticipantCount } from "@/lib/calendar-participants";
 import type { CalendarEvent, Calendar } from "@/lib/jmap/types";
 
@@ -49,7 +49,7 @@ export function CalendarAgendaView({
 
   const grouped = useMemo(() => {
     const sorted = [...events].sort((a, b) =>
-      parseISO(a.start).getTime() - parseISO(b.start).getTime()
+      getEventStartDate(a).getTime() - getEventStartDate(b).getTime()
     );
 
     const groups: DayGroup[] = [];
@@ -144,9 +144,9 @@ export function CalendarAgendaView({
               const calId = getPrimaryCalendarId(ev);
               const calendar = calId ? calendarMap.get(calId) : undefined;
               const color = getEventColor(ev, calendar);
-              const start = parseISO(ev.start);
+              const start = getEventStartDate(ev);
               const durMin = parseDuration(ev.duration);
-              const end = new Date(start.getTime() + durMin * 60000);
+              const end = getEventEndDate(ev);
               const locationName = ev.locations
                 ? Object.values(ev.locations)[0]?.name
                 : null;

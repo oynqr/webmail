@@ -8,7 +8,7 @@ import { X, Trash2, Check, Users, CalendarDays, Copy, Pencil, Clock, MapPin, Vid
 import { format, parseISO, addHours, addDays } from "date-fns";
 import type { CalendarEvent, Calendar, CalendarParticipant } from "@/lib/jmap/types";
 import { parseDuration, getEventColor } from "./event-card";
-import { buildAllDayDuration, getEventDisplayEndDate, getPrimaryCalendarId } from "@/lib/calendar-utils";
+import { buildAllDayDuration, getEventDisplayEndDate, getEventEndDate, getEventStartDate, getPrimaryCalendarId } from "@/lib/calendar-utils";
 import { ParticipantInput } from "./participant-input";
 import {
   isOrganizer,
@@ -159,7 +159,7 @@ export function EventModal({
   }, [event, existingParticipants]);
 
   const getInitialStart = (): Date => {
-    if (event?.start) return parseISO(event.start);
+    if (event?.start) return getEventStartDate(event);
     if (defaultDate) {
       const d = new Date(defaultDate);
       if (defaultEndDate) return d;
@@ -177,9 +177,7 @@ export function EventModal({
       if (event.showWithoutTime) {
         return getEventDisplayEndDate(event);
       }
-      const s = parseISO(event.start);
-      const dur = parseDuration(event.duration);
-      return new Date(s.getTime() + dur * 60000);
+      return getEventEndDate(event);
     }
     if (defaultEndDate) return new Date(defaultEndDate);
     return addHours(getInitialStart(), 1);
@@ -384,7 +382,7 @@ export function EventModal({
 
   const handleDuplicate = useCallback(() => {
     if (!event || !onDuplicate) return;
-    const start = parseISO(event.start);
+    const start = getEventStartDate(event);
     const newStart = addDays(start, 1);
     const newUid = typeof crypto !== 'undefined' && crypto.randomUUID
       ? crypto.randomUUID()
@@ -456,9 +454,9 @@ export function EventModal({
   const hasParticipants = attendees.length > 0 || (event?.participants && Object.keys(event.participants).length > 0);
 
   if (isAttendeeMode && event) {
-    const startD = parseISO(event.start);
+    const startD = getEventStartDate(event);
     const durMin = parseDuration(event.duration);
-    const endD = new Date(startD.getTime() + durMin * 60000);
+    const endD = getEventEndDate(event);
     const locationName = event.locations ? Object.values(event.locations)[0]?.name : null;
     const participants = getParticipantList(event);
 
@@ -567,9 +565,9 @@ export function EventModal({
 
   // View mode: read-only display of event details with Edit button
   if (mode === "view" && event) {
-    const startD = parseISO(event.start);
+    const startD = getEventStartDate(event);
     const durMin = parseDuration(event.duration);
-    const endD = new Date(startD.getTime() + durMin * 60000);
+    const endD = getEventEndDate(event);
     const locationName = event.locations ? Object.values(event.locations)[0]?.name || null : null;
     const virtualLoc = event.virtualLocations ? Object.values(event.virtualLocations)[0]?.uri || null : null;
     const viewParticipants = getParticipantList(event);

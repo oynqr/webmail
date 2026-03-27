@@ -39,6 +39,7 @@ import { InlineAppView } from "@/components/layout/inline-app-view";
 import { useSidebarApps } from "@/hooks/use-sidebar-apps";
 import { ResizeHandle } from "@/components/layout/resize-handle";
 import { sanitizeOutgoingCalendarEventData } from "@/lib/calendar-event-normalization";
+import { getEventStartDate } from "@/lib/calendar-utils";
 import { useTaskStore } from "@/stores/task-store";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent, CalendarParticipant } from "@/lib/jmap/types";
@@ -385,12 +386,16 @@ export default function CalendarPage() {
     }
   }, [client, fetchEvents]);
 
-  const focusCalendarOnEvent = useCallback((event: Pick<CalendarEvent, "start">) => {
+  const focusCalendarOnEvent = useCallback((event: Pick<Partial<CalendarEvent>, "start" | "utcStart" | "showWithoutTime">) => {
     if (!event.start) {
       return;
     }
 
-    const eventDate = parseISO(event.start);
+    const eventDate = getEventStartDate({
+      start: event.start,
+      utcStart: event.utcStart ?? null,
+      showWithoutTime: event.showWithoutTime ?? false,
+    });
     if (Number.isNaN(eventDate.getTime())) {
       return;
     }

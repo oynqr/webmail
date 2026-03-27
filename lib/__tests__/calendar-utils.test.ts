@@ -7,6 +7,7 @@ import {
   getEventDayBounds,
   getEventDisplayEndDate,
   getEventEndDate,
+  getEventStartDate,
   getTimedEventBoundsForDay,
   isTimedEventFullDayOnDate,
   layoutOverlappingEvents,
@@ -96,7 +97,21 @@ describe('calendar-utils all-day handling', () => {
       utcEnd: '2026-03-14T11:00:00Z',
     });
 
-    expectLocalDateParts(getEventDisplayEndDate(event), 2026, 3, 14, 11);
+    expect(getEventDisplayEndDate(event).toISOString()).toBe('2026-03-14T11:00:00.000Z');
+  });
+
+  it('prefers utc timestamps for timed events with an event timezone', () => {
+    const event = makeEvent({
+      start: '2026-03-15T09:00:00',
+      duration: 'PT1H',
+      timeZone: 'America/New_York',
+      showWithoutTime: false,
+      utcStart: '2026-03-15T13:00:00Z',
+      utcEnd: '2026-03-15T14:00:00Z',
+    });
+
+    expect(getEventStartDate(event).toISOString()).toBe('2026-03-15T13:00:00.000Z');
+    expect(getEventEndDate(event).toISOString()).toBe('2026-03-15T14:00:00.000Z');
   });
 
   it('clips timed multi-day events to the visible day bounds', () => {
@@ -109,7 +124,7 @@ describe('calendar-utils all-day handling', () => {
     });
 
     expect(getTimedEventBoundsForDay(event, new Date('2026-03-14T00:00:00Z'))).toMatchObject({
-      startMinutes: 1320,
+      startMinutes: 1380,
       endMinutes: 1440,
       continuesBefore: false,
       continuesAfter: true,
@@ -117,7 +132,7 @@ describe('calendar-utils all-day handling', () => {
 
     expect(getTimedEventBoundsForDay(event, new Date('2026-03-15T00:00:00Z'))).toMatchObject({
       startMinutes: 0,
-      endMinutes: 120,
+      endMinutes: 180,
       continuesBefore: true,
       continuesAfter: false,
     });
@@ -137,7 +152,7 @@ describe('calendar-utils all-day handling', () => {
     expect(layout).toHaveLength(1);
     expect(layout[0]).toMatchObject({
       startMinutes: 0,
-      endMinutes: 120,
+      endMinutes: 180,
       column: 0,
       totalColumns: 1,
       continuesBefore: true,

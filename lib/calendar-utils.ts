@@ -21,6 +21,13 @@ export interface TimedEventLayout {
   continuesAfter: boolean;
 }
 
+export function getEventStartDate(
+  event: Pick<CalendarEvent, 'start' | 'utcStart' | 'showWithoutTime'>,
+): Date {
+  const source = !event.showWithoutTime && event.utcStart ? event.utcStart : event.start;
+  return parseISO(source);
+}
+
 export function packWeekSegments(rawSegments: CalendarWeekSegment[]): CalendarWeekSegment[] {
   rawSegments.sort((left, right) => {
     if (left.startIndex !== right.startIndex) return left.startIndex - right.startIndex;
@@ -28,7 +35,7 @@ export function packWeekSegments(rawSegments: CalendarWeekSegment[]): CalendarWe
     if (left.event.showWithoutTime !== right.event.showWithoutTime) {
       return left.event.showWithoutTime ? -1 : 1;
     }
-    const timeDiff = parseISO(left.event.start).getTime() - parseISO(right.event.start).getTime();
+    const timeDiff = getEventStartDate(left.event).getTime() - getEventStartDate(right.event).getTime();
     if (timeDiff !== 0) return timeDiff;
     return (left.event.title || "").localeCompare(right.event.title || "");
   });
@@ -48,14 +55,19 @@ export function packWeekSegments(rawSegments: CalendarWeekSegment[]): CalendarWe
 }
 
 export function getEventEndDate(event: CalendarEvent): Date {
-  const start = parseISO(event.start);
+  if (!event.showWithoutTime && event.utcEnd) {
+    return parseISO(event.utcEnd);
+  }
+
+  const start = getEventStartDate(event);
   if (!event.duration) return start;
   return new Date(start.getTime() + parseDuration(event.duration) * 60000);
 }
 
 export function getEventDisplayEndDate(event: CalendarEvent): Date {
   const end = getEventEndDate(event);
-  if (!event.showWithoutTime || end.getTime() <= parseISO(event.start).getTime()) {
+  const start = getEventStartDate(event);
+  if (!event.showWithoutTime || end.getTime() <= start.getTime()) {
     return end;
   }
   return subMilliseconds(end, 1);
@@ -63,7 +75,7 @@ export function getEventDisplayEndDate(event: CalendarEvent): Date {
 
 export function getEventDayBounds(event: CalendarEvent): { startDay: Date; endDay: Date } {
   return {
-    startDay: startOfDay(parseISO(event.start)),
+    startDay: startOfDay(getEventStartDate(event)),
     endDay: startOfDay(getEventDisplayEndDate(event)),
   };
 }
@@ -74,7 +86,7 @@ export function getTimedEventBoundsForDay(
 ): { startMinutes: number; endMinutes: number; continuesBefore: boolean; continuesAfter: boolean } | null {
   if (event.showWithoutTime) return null;
 
-  const eventStart = parseISO(event.start);
+  const eventStart = getEventStartDate(event);
   const eventEnd = getEventEndDate(event);
   const dayStart = startOfDay(day);
   const nextDayStart = addDays(dayStart, 1);

@@ -4,9 +4,10 @@ import { useCallback, useState, type CSSProperties, type DragEvent } from "react
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent, Calendar } from "@/lib/jmap/types";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { Users } from "lucide-react";
 import { getParticipantCount } from "@/lib/calendar-participants";
+import { getEventEndDate, getEventStartDate } from "@/lib/calendar-utils";
 import { useSettingsStore } from "@/stores/settings-store";
 
 interface EventCardProps {
@@ -68,14 +69,14 @@ export function EventCard({ event, calendar, variant, onClick, onMouseEnter, onM
   const t = useTranslations("calendar");
   const [isBeingDragged, setIsBeingDragged] = useState(false);
   const color = getEventColor(event, calendar);
-  const startDate = parseISO(event.start);
+  const startDate = getEventStartDate(event);
   const timeFormat = useSettingsStore((state) => state.timeFormat);
   const showTimeInMonthView = useSettingsStore((state) => state.showTimeInMonthView);
   const timeFmt = timeFormat === "12h" ? "h:mm a" : "HH:mm";
 
   const calendarName = calendar?.name || "";
   const durationMinutes = parseDuration(event.duration);
-  const endTime = new Date(startDate.getTime() + durationMinutes * 60000);
+  const endTime = getEventEndDate(event);
   const timeString = `${format(startDate, timeFmt)} – ${format(endTime, timeFmt)}`;
   const ariaLabel = `${event.title || t("events.no_title")}, ${timeString}${calendarName ? `, ${calendarName}` : ""}`;
 

@@ -7,6 +7,7 @@ import { X, Upload, Check, Loader2, RefreshCw, Globe } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import type { CalendarEvent, Calendar } from "@/lib/jmap/types";
 import type { IJMAPClient } from '@/lib/jmap/client-interface';
+import { getEventStartDate } from "@/lib/calendar-utils";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { toast } from "@/stores/toast-store";
@@ -195,7 +196,7 @@ export function ICalImportModal({ calendars, client, onClose }: ICalImportModalP
   const formatEventDate = (event: Partial<CalendarEvent>): string => {
     if (!event.start) return "";
     try {
-      const date = parseISO(event.start);
+      const date = getEventStartDate(event as CalendarEvent);
       const timeFmt = timeFormat === "12h" ? "h:mm a" : "HH:mm";
       return event.showWithoutTime
         ? format(date, "MMM d, yyyy")
