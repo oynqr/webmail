@@ -2528,14 +2528,21 @@ export function EmailViewer({
 
     // If email has native dark mode, let it handle its own theming
     // Otherwise, use CSS filter inversion for dark mode (preserves layout)
+    // Re-invert leaf media elements so they appear normal.
+    // Container selectors (bgcolor, background, etc.) use :not(:has(...)) to avoid
+    // double re-inverting images nested inside those containers.
     const darkModeCSS = isDark && !emailHasNativeDarkMode ? `
       html { background: #1a1a1a; }
       body { filter: invert(1) hue-rotate(180deg); }
-      img, video, picture, svg, canvas, object, embed,
-      [style*="background-image"], [style*="background:"],
-      [background], [bgcolor],
-      td[background], table[background],
-      img[src], input[type="image"] {
+      img, video, svg, canvas, object, embed, input[type="image"] {
+        filter: invert(1) hue-rotate(180deg);
+      }
+      [style*="background-image"]:not(:has(img, video, svg, canvas, object, embed)),
+      [style*="background:"]:not(:has(img, video, svg, canvas, object, embed)),
+      [background]:not(:has(img, video, svg, canvas, object, embed)),
+      [bgcolor]:not(:has(img, video, svg, canvas, object, embed)),
+      td[background]:not(:has(img, video, svg, canvas, object, embed)),
+      table[background]:not(:has(img, video, svg, canvas, object, embed)) {
         filter: invert(1) hue-rotate(180deg);
       }
     ` : '';
@@ -2574,11 +2581,35 @@ export function EmailViewer({
           a.setAttribute('target', '_blank');
           a.setAttribute('rel', 'noopener noreferrer');
         });
+
+        // Dark mode: re-invert elements with stylesheet-defined background images
+        // (CSS attribute selectors only catch inline styles, not <style> block rules)
+        if (isDark && !emailHasNativeDarkMode) {
+          const win = doc.defaultView;
+          if (win) {
+            doc.body.querySelectorAll('*').forEach(el => {
+              const htmlEl = el as HTMLElement;
+              // Skip elements already handled by CSS attribute selectors
+              if (htmlEl.style.backgroundImage || htmlEl.style.background ||
+                  htmlEl.hasAttribute('background') || htmlEl.hasAttribute('bgcolor')) return;
+              // Skip leaf media elements (already re-inverted by CSS)
+              const tag = htmlEl.tagName;
+              if (['IMG', 'VIDEO', 'SVG', 'CANVAS', 'OBJECT', 'EMBED'].includes(tag)) return;
+              const computed = win.getComputedStyle(htmlEl);
+              if (computed.backgroundImage && computed.backgroundImage !== 'none') {
+                // Only re-invert if this container doesn't have media children
+                if (!htmlEl.querySelector('img, video, svg, canvas, object, embed')) {
+                  htmlEl.style.filter = 'invert(1) hue-rotate(180deg)';
+                }
+              }
+            });
+          }
+        }
       }
     } catch {
       // Cross-origin restrictions - iframe will still display content
     }
-  }, []);
+  }, [isDark, emailHasNativeDarkMode]);
 
   // Export email as .eml file
   const handleExportEmail = async () => {
