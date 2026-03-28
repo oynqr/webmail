@@ -23,13 +23,22 @@
   ],
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "test:translations": "vitest run lib/__tests__/translations.test.ts",
     "prepare": "husky",
     "typecheck": "tsc --noEmit"
+  },
+  "files": [
+    ".next/standalone/",
+    ".next/static/",
+    "public/"
+  ],
+  "main": ".next/standalone/server.js",
+  "bin": {
+    "bulwark-webmail-server": ".next/standalone/server.js"
   },
   "dependencies": {
     "@tanstack/react-virtual": "^3.13.24",
