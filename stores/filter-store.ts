@@ -52,8 +52,12 @@ export const useFilterStore = create<FilterStore>()((set, get) => ({
       const capabilities = client.getSieveCapabilities();
       set({ sieveCapabilities: capabilities });
 
-      const scripts = await client.getSieveScripts();
-      debug.log('Sieve scripts fetched:', scripts.length);
+      const allScripts = await client.getSieveScripts();
+      debug.log('Sieve scripts fetched:', allScripts.length);
+
+      // Skip the server-managed 'vacation' script (RFC 9661 §4) — it can only
+      // be modified via VacationResponse/set, not SieveScript/set.
+      const scripts = allScripts.filter(s => s.name !== 'vacation');
 
       const activeScript = scripts.find(s => s.isActive) || scripts[0];
       if (!activeScript) {
@@ -163,7 +167,9 @@ export const useFilterStore = create<FilterStore>()((set, get) => ({
 
       // Always re-fetch scripts from the server to get the current state
       // after Stalwart may have rewritten the active script.
-      const scripts = await client.getSieveScripts();
+      const allScripts = await client.getSieveScripts();
+      // Skip the server-managed 'vacation' script (RFC 9661 §4)
+      const scripts = allScripts.filter(s => s.name !== 'vacation');
       const activeScript = scripts.find(s => s.isActive) || scripts[0];
 
       let rules = previousRules;

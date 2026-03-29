@@ -339,5 +339,39 @@ describe('filter-store', () => {
       await useFilterStore.getState().fetchFilters(mockClient as unknown as IJMAPClient);
       expect(useFilterStore.getState().rawScript).toBe(script);
     });
+
+    it('should skip the server-managed vacation script', async () => {
+      const { generateScript } = await import('@/lib/sieve/generator');
+      const rules = [makeRule({ name: 'MyFilter' })];
+      const script = generateScript(rules);
+
+      const mockClient = {
+        getSieveCapabilities: () => null,
+        getSieveScripts: async () => [
+          { id: 'vac-1', name: 'vacation', blobId: 'bv', isActive: true },
+          { id: 's1', name: 'filters', blobId: 'b1', isActive: false },
+        ],
+        getSieveScriptContent: async (blobId: string) => {
+          if (blobId === 'b1') return script;
+          return 'require "vacation"; vacation "I am away";';
+        },
+      };
+      await useFilterStore.getState().fetchFilters(mockClient as unknown as IJMAPClient);
+      // Should pick the 'filters' script, not the 'vacation' one
+      expect(useFilterStore.getState().activeScriptId).toBe('s1');
+      expect(useFilterStore.getState().rules[0].name).toBe('MyFilter');
+    });
+
+    it('should handle only vacation script present (no filter scripts)', async () => {
+      const mockClient = {
+        getSieveCapabilities: () => null,
+        getSieveScripts: async () => [
+          { id: 'vac-1', name: 'vacation', blobId: 'bv', isActive: true },
+        ],
+      };
+      await useFilterStore.getState().fetchFilters(mockClient as unknown as IJMAPClient);
+      expect(useFilterStore.getState().activeScriptId).toBeNull();
+      expect(useFilterStore.getState().rules).toEqual([]);
+    });
   });
 });
