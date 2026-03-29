@@ -1981,7 +1981,14 @@
       "enable_tasks": "Abilita attività",
       "enable_tasks_desc": "Mostra una vista attività nel calendario per gestire le cose da fare",
       "show_tasks_on_calendar": "Mostra attività nel calendario",
-      "show_tasks_on_calendar_desc": "Mostra gli indicatori delle attività nelle viste giornaliera e settimanale del calendario"
+      "show_tasks_on_calendar_desc": "Mostra gli indicatori delle attività nelle viste giornaliera e settimanale del calendario",
+      "hover_preview": "Anteprima al passaggio del mouse",
+      "hover_preview_desc": "Mostra un popover dettagliato al passaggio del mouse sugli eventi del calendario",
+      "hover_preview_instant": "Istantaneo",
+      "hover_preview_delay_500ms": "Ritardo di 0,5 secondi",
+      "hover_preview_delay_1s": "Ritardo di 1 secondo",
+      "hover_preview_delay_2s": "Ritardo di 2 secondi",
+      "hover_preview_off": "Disabilitato"
     },
     "days": {
       "monday": "Lunedì",

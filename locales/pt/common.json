@@ -1981,7 +1981,14 @@
       "enable_tasks": "Ativar tarefas",
       "enable_tasks_desc": "Mostrar uma visualização de tarefas no calendário para gerenciar pendências",
       "show_tasks_on_calendar": "Mostrar tarefas no calendário",
-      "show_tasks_on_calendar_desc": "Exibir marcadores de tarefas nas visualizações diária e semanal do calendário"
+      "show_tasks_on_calendar_desc": "Exibir marcadores de tarefas nas visualizações diária e semanal do calendário",
+      "hover_preview": "Pré-visualização ao passar o rato",
+      "hover_preview_desc": "Mostrar um popover de detalhes ao passar o rato sobre eventos do calendário",
+      "hover_preview_instant": "Instantâneo",
+      "hover_preview_delay_500ms": "Atraso de 0,5 segundos",
+      "hover_preview_delay_1s": "Atraso de 1 segundo",
+      "hover_preview_delay_2s": "Atraso de 2 segundos",
+      "hover_preview_off": "Desativado"
     },
     "days": {
       "monday": "Segunda-feira",

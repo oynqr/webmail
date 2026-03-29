@@ -1981,7 +1981,14 @@
       "enable_tasks": "Включить задачи",
       "enable_tasks_desc": "Показывать представление задач в календаре для управления делами",
       "show_tasks_on_calendar": "Показывать задачи в календаре",
-      "show_tasks_on_calendar_desc": "Отображать чипы задач в видах «день» и «неделя»"
+      "show_tasks_on_calendar_desc": "Отображать чипы задач в видах «день» и «неделя»",
+      "hover_preview": "Предпросмотр при наведении",
+      "hover_preview_desc": "Показывать всплывающее окно с деталями при наведении на события календаря",
+      "hover_preview_instant": "Мгновенно",
+      "hover_preview_delay_500ms": "Задержка 0,5 секунды",
+      "hover_preview_delay_1s": "Задержка 1 секунда",
+      "hover_preview_delay_2s": "Задержка 2 секунды",
+      "hover_preview_off": "Отключено"
     },
     "days": {
       "monday": "Понедельник",

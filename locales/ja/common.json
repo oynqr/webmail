@@ -1981,7 +1981,14 @@
       "enable_tasks": "タスクを有効化",
       "enable_tasks_desc": "カレンダーにタスク表示を追加して、ToDoを管理します",
       "show_tasks_on_calendar": "カレンダーにタスクを表示",
-      "show_tasks_on_calendar_desc": "日表示と週表示にタスクチップを表示します"
+      "show_tasks_on_calendar_desc": "日表示と週表示にタスクチップを表示します",
+      "hover_preview": "イベントホバープレビュー",
+      "hover_preview_desc": "カレンダーイベントにマウスを合わせたときに詳細ポップオーバーを表示",
+      "hover_preview_instant": "即時",
+      "hover_preview_delay_500ms": "0.5秒遅延",
+      "hover_preview_delay_1s": "1秒遅延",
+      "hover_preview_delay_2s": "2秒遅延",
+      "hover_preview_off": "無効"
     },
     "days": {
       "monday": "月曜日",

@@ -1981,7 +1981,14 @@
       "enable_tasks": "Activer les tâches",
       "enable_tasks_desc": "Afficher une vue des tâches dans le calendrier pour gérer les choses à faire",
       "show_tasks_on_calendar": "Afficher les tâches dans le calendrier",
-      "show_tasks_on_calendar_desc": "Afficher les pastilles des tâches dans les vues jour et semaine du calendrier"
+      "show_tasks_on_calendar_desc": "Afficher les pastilles des tâches dans les vues jour et semaine du calendrier",
+      "hover_preview": "Aperçu au survol",
+      "hover_preview_desc": "Afficher un popover de détails au survol des événements du calendrier",
+      "hover_preview_instant": "Instantané",
+      "hover_preview_delay_500ms": "Délai de 0,5 seconde",
+      "hover_preview_delay_1s": "Délai de 1 seconde",
+      "hover_preview_delay_2s": "Délai de 2 secondes",
+      "hover_preview_off": "Désactivé"
     },
     "days": {
       "monday": "Lundi",

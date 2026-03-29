@@ -1981,7 +1981,14 @@
       "enable_tasks": "Taken inschakelen",
       "enable_tasks_desc": "Een takenweergave in de agenda tonen om to-do's te beheren",
       "show_tasks_on_calendar": "Taken in agenda tonen",
-      "show_tasks_on_calendar_desc": "Taaklabels tonen in dag- en weekweergave van de agenda"
+      "show_tasks_on_calendar_desc": "Taaklabels tonen in dag- en weekweergave van de agenda",
+      "hover_preview": "Voorvertoning bij hover",
+      "hover_preview_desc": "Toon een detailpopover bij het hoveren over agenda-evenementen",
+      "hover_preview_instant": "Direct",
+      "hover_preview_delay_500ms": "0,5 seconde vertraging",
+      "hover_preview_delay_1s": "1 seconde vertraging",
+      "hover_preview_delay_2s": "2 seconden vertraging",
+      "hover_preview_off": "Uitgeschakeld"
     },
     "days": {
       "monday": "Maandag",

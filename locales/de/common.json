@@ -1981,7 +1981,14 @@
       "enable_tasks": "Aufgaben aktivieren",
       "enable_tasks_desc": "Eine Aufgabenansicht im Kalender zum Verwalten von To-dos anzeigen",
       "show_tasks_on_calendar": "Aufgaben im Kalender anzeigen",
-      "show_tasks_on_calendar_desc": "Aufgabenmarkierungen in der Tages- und Wochenansicht anzeigen"
+      "show_tasks_on_calendar_desc": "Aufgabenmarkierungen in der Tages- und Wochenansicht anzeigen",
+      "hover_preview": "Ereignis-Hover-Vorschau",
+      "hover_preview_desc": "Ein Detail-Popover anzeigen, wenn über Kalender-Ereignisse gehovert wird",
+      "hover_preview_instant": "Sofort",
+      "hover_preview_delay_500ms": "0,5 Sekunden Verzögerung",
+      "hover_preview_delay_1s": "1 Sekunde Verzögerung",
+      "hover_preview_delay_2s": "2 Sekunden Verzögerung",
+      "hover_preview_off": "Deaktiviert"
     },
     "days": {
       "monday": "Montag",

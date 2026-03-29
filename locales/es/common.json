@@ -1981,7 +1981,14 @@
       "enable_tasks": "Activar tareas",
       "enable_tasks_desc": "Mostrar una vista de tareas en el calendario para gestionar tareas pendientes",
       "show_tasks_on_calendar": "Mostrar tareas en el calendario",
-      "show_tasks_on_calendar_desc": "Mostrar etiquetas de tareas en las vistas diarias y semanales del calendario"
+      "show_tasks_on_calendar_desc": "Mostrar etiquetas de tareas en las vistas diarias y semanales del calendario",
+      "hover_preview": "Vista previa al pasar el ratón",
+      "hover_preview_desc": "Mostrar un popover de detalles al pasar el ratón sobre eventos del calendario",
+      "hover_preview_instant": "Instantáneo",
+      "hover_preview_delay_500ms": "Retraso de 0,5 segundos",
+      "hover_preview_delay_1s": "Retraso de 1 segundo",
+      "hover_preview_delay_2s": "Retraso de 2 segundos",
+      "hover_preview_off": "Desactivado"
     },
     "days": {
       "monday": "Lunes",
