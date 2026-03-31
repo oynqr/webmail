@@ -400,8 +400,8 @@ export default function FilesPage() {
                 <div className="flex items-center justify-center h-full">
                   <div className="max-w-lg text-center space-y-3 px-4">
                     <AlertTriangle className="w-10 h-10 text-yellow-500 mx-auto" />
-                    <p className="text-sm font-medium">Files feature is disabled by your administrator</p>
-                    <p className="text-xs text-muted-foreground">Large file uploads via WebDAV can cause Stalwart/RocksDB instability, including out-of-memory crashes and unrecoverable disk usage. Deleted files may not be immediately purged from blob storage. This feature is not recommended for production environments.</p>
+                    <p className="text-sm font-medium">{t("disabled_title")}</p>
+                    <p className="text-xs text-muted-foreground">{t("disabled_description")}</p>
                   </div>
                 </div>
               ) : supportsFiles === false ? (
@@ -409,6 +409,11 @@ export default function FilesPage() {
                   <p className="text-sm text-muted-foreground">{t("not_available")}</p>
                 </div>
               ) : (
+                <div className="flex flex-col flex-1 min-h-0">
+                  <div className="mx-4 mt-3 mb-1 flex items-start gap-2 rounded-md border border-yellow-500/30 bg-yellow-500/10 px-3 py-2">
+                    <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-yellow-700 dark:text-yellow-400">{t("stability_warning")}</p>
+                  </div>
                 <FileBrowser
                   currentPath={currentPath}
                   resources={resources}
@@ -453,6 +458,7 @@ export default function FilesPage() {
                   onToggleDetails={handleToggleDetails}
                   detailResource={detailResource}
                 />
+                </div>
               )}
             </div>
           </div>

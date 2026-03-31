@@ -2322,7 +2322,10 @@
     "settings_folder_layout": "Folder Navigation",
     "settings_folder_layout_desc": "Choose how folders are displayed: inline with files or in a sidebar tree",
     "settings_folder_layout_inline": "Inline",
-    "settings_folder_layout_sidebar": "Sidebar"
+    "settings_folder_layout_sidebar": "Sidebar",
+    "disabled_title": "Files feature is disabled by your administrator",
+    "disabled_description": "Large file uploads via WebDAV can cause Stalwart/RocksDB instability, including out-of-memory crashes and unrecoverable disk usage. Deleted files may not be immediately purged from blob storage. This feature is not recommended for production environments.",
+    "stability_warning": "Large file uploads can cause server instability. Deleted files may not be immediately purged from storage. Use with caution."
   },
   "smime": {
     "your_certificates": "Your Certificates",
