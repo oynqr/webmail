@@ -18,6 +18,7 @@
       "cors_blocked": "O servidor está acessível mas está bloqueando requisições de origem cruzada. Verifique as configurações de CORS do seu servidor JMAP e permita este domínio.",
       "server_error": "O servidor está temporariamente indisponível. Tente novamente mais tarde.",
       "generic": "Ocorreu um erro. Por favor, tente novamente.",
+      "totp_required": "É necessário um código de autenticação de dois fatores. Insira seu código abaixo.",
       "totp_invalid": "Código de autenticação inválido. Verifique seu aplicativo de autenticação.",
       "oauth_discovery_failed": "SSO está ativado mas o provedor de identidade não pôde ser contactado. Verifique sua configuração OAuth."
     },
@@ -1163,6 +1164,23 @@
         "label": "Modo de Depuração",
         "description": "Habilitar registro detalhado para solução de problemas"
       },
+      "debug_categories": {
+        "description": "Selecione quais categorias registrar. Desative as categorias de que você não precisa para reduzir o ruído no console.",
+        "jmap": "Cliente JMAP",
+        "jmap_description": "Operações de caixa de correio, busca de e-mails e solicitações do protocolo JMAP",
+        "calendar": "Calendário",
+        "calendar_description": "Eventos do calendário, importações e mensagens de agendamento",
+        "tasks": "Tarefas",
+        "tasks_description": "Criação, busca e atualização de tarefas do calendário",
+        "auth": "Autenticação",
+        "auth_description": "Login, TOTP, troca de tokens e gerenciamento de sessão",
+        "filters": "Filtros",
+        "filters_description": "Regras de filtro Sieve e scripts de férias",
+        "email": "Visualização de email",
+        "email_description": "Renderização de emails, processamento TNEF e marcação como lido",
+        "push": "Notificações push",
+        "push_description": "Configuração e entrega de notificações push"
+      },
       "settings_sync": {
         "label": "Sincronização de configurações",
         "description": "Sincronize suas configurações entre navegadores e dispositivos"
@@ -2108,6 +2126,12 @@
       "interval_1440": "Diariamente",
       "subscribe": "Assinar",
       "subscribing": "Assinando...",
+      "save": "Salvar alterações",
+      "saving": "Salvando...",
+      "edit": "Editar",
+      "edit_title": "Editar assinatura",
+      "updated": "\"{name}\" atualizada",
+      "update_error": "Falha ao atualizar assinatura",
       "invalid_url": "Por favor, insira uma URL válida",
       "success": "Assinado \"{name}\"",
       "error": "Falha ao adicionar assinatura",
@@ -2315,7 +2339,10 @@
     "settings_folder_layout": "Folder Navigation",
     "settings_folder_layout_desc": "Choose how folders are displayed: inline with files or in a sidebar tree",
     "settings_folder_layout_inline": "Inline",
-    "settings_folder_layout_sidebar": "Sidebar"
+    "settings_folder_layout_sidebar": "Sidebar",
+    "disabled_title": "O recurso de arquivos foi desativado pelo seu administrador",
+    "disabled_description": "Uploads de arquivos grandes via WebDAV podem causar instabilidade no Stalwart/RocksDB, incluindo falhas de memória e uso irrecuperável de disco. Arquivos excluídos podem não ser removidos imediatamente do armazenamento. Este recurso não é recomendado para ambientes de produção.",
+    "stability_warning": "Uploads de arquivos grandes podem causar instabilidade no servidor. Arquivos excluídos podem não ser removidos imediatamente do armazenamento. Use com cautela."
   },
   "smime": {
     "your_certificates": "Seus certificados",
@@ -2384,6 +2411,7 @@
     "status_signed_valid": "Assinatura verificada",
     "status_signed_invalid": "A verificação da assinatura falhou",
     "status_signed_expired_cert": "Assinada com um certificado expirado",
+    "status_signed_self_signed": "Assinatura válida, mas o certificado é autoassinado (não confiável)",
     "status_signed_mismatch": "A assinatura é válida, mas o signatário não corresponde ao remetente",
     "status_unsupported": "Formato S/MIME não suportado",
     "auto_import_signer_certs": "Importar automaticamente certificados de signatários",

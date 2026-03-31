@@ -55,7 +55,13 @@ export function SmimeStatusBanner({ status, onUnlockKey, className }: SmimeStatu
   // Signature status
   if (status.isSigned) {
     if (status.signatureValid === true) {
-      if (status.signerEmailMatch === false) {
+      if (status.selfSigned) {
+        items.push({
+          icon: <AlertTriangle className="w-4 h-4" />,
+          text: t('status_signed_self_signed'),
+          variant: 'warning',
+        });
+      } else if (status.signerEmailMatch === false) {
         items.push({
           icon: <AlertTriangle className="w-4 h-4" />,
           text: t('status_signed_mismatch'),

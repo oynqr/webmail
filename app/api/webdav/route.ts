@@ -4,6 +4,32 @@ import { getStalwartCredentials } from '@/lib/stalwart/credentials';
 
 const ALLOWED_METHODS = new Set(['PROPFIND', 'MKCOL', 'GET', 'PUT', 'DELETE', 'MOVE', 'COPY']);
 
+function normalizeDavRelativePath(rawPath: string): string {
+  const sanitized = rawPath.replace(/\\/g, '/').split(/[?#]/, 1)[0] ?? '';
+  const segments = sanitized.split('/').filter(Boolean);
+
+  return segments.map((segment) => {
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(segment);
+    } catch {
+      throw new Error('Invalid WebDAV path encoding');
+    }
+
+    if (decoded === '.' || decoded === '..' || decoded.includes('/') || decoded.includes('\\') || decoded.includes('\0')) {
+      throw new Error('Invalid WebDAV path segment');
+    }
+
+    return encodeURIComponent(decoded);
+  }).join('/');
+}
+
+function buildDavTargetUrl(baseUrl: string, username: string, rawPath: string): string {
+  const rootUrl = new URL(`${baseUrl.replace(/\/$/, '')}/dav/file/${encodeURIComponent(username)}/`);
+  const relativePath = normalizeDavRelativePath(rawPath);
+  return relativePath ? new URL(relativePath, rootUrl).toString() : rootUrl.toString();
+}
+
 /**
  * POST /api/webdav
  * Proxies WebDAV requests to the Stalwart server.
@@ -29,11 +55,8 @@ export async function POST(request: NextRequest) {
     }
 
     const davPath = request.headers.get('X-WebDAV-Path') || '/';
-    const cleanPath = davPath.replace(/^\/+/, '');
     const baseUrl = creds.apiUrl.replace(/\/$/, '');
-    const targetUrl = cleanPath
-      ? `${baseUrl}/dav/file/${encodeURIComponent(creds.username)}/${cleanPath}`
-      : `${baseUrl}/dav/file/${encodeURIComponent(creds.username)}/`;
+    const targetUrl = buildDavTargetUrl(baseUrl, creds.username, davPath);
 
     // Build headers for the upstream request
     const upstreamHeaders: Record<string, string> = {
@@ -50,10 +73,7 @@ export async function POST(request: NextRequest) {
     // For MOVE/COPY, construct the full Destination URL from the relative path
     const destination = request.headers.get('X-WebDAV-Destination');
     if (destination) {
-      const cleanDest = destination.replace(/^\/+/, '');
-      upstreamHeaders['Destination'] = cleanDest
-        ? `${baseUrl}/dav/file/${encodeURIComponent(creds.username)}/${cleanDest}`
-        : `${baseUrl}/dav/file/${encodeURIComponent(creds.username)}/`;
+      upstreamHeaders['Destination'] = buildDavTargetUrl(baseUrl, creds.username, destination);
     }
 
     const overwrite = request.headers.get('Overwrite');
@@ -104,6 +124,10 @@ export async function POST(request: NextRequest) {
       status: response.status,
     });
   } catch (error) {
+    if (error instanceof Error && error.message.startsWith('Invalid WebDAV path')) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
     logger.error('WebDAV proxy error', { error: error instanceof Error ? error.message : 'Unknown' });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

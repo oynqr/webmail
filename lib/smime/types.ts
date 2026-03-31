@@ -55,6 +55,8 @@ export interface SmimeStatus {
   signatureError?: string;
   signerCert?: SmimePublicCert;
   signerEmailMatch?: boolean;
+  /** True when the signer certificate is self-signed (not chained to a trusted CA). */
+  selfSigned?: boolean;
   decryptionSuccess?: boolean;
   decryptionError?: string;
   unsupportedReason?: string;

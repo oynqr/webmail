@@ -17,6 +17,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { usePolicyStore } from "@/stores/policy-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useAccountStore } from "@/stores/account-store";
+import { getActiveAccountSlotHeaders } from "@/lib/auth/active-account-slot";
 import { getInitials } from "@/lib/account-utils";
 import { cn, formatFileSize } from "@/lib/utils";
 import { PluginSlot } from "@/components/plugins/plugin-slot";
@@ -169,6 +170,7 @@ export function NavigationRail({
   const sidebarApps = useSettingsStore((s) => s.sidebarApps);
   const showRailAccountList = useSettingsStore((s) => s.showRailAccountList);
   const sidebarAppsEnabled = usePolicyStore((s) => s.isFeatureEnabled('sidebarAppsEnabled'));
+  const filesEnabled = usePolicyStore((s) => s.isFeatureEnabled('filesEnabled'));
   const visibleSidebarApps = sidebarAppsEnabled ? sidebarApps : [];
   const inboxUnread = mailboxes.find(m => m.role === "inbox")?.unreadEmails || 0;
   const [isStalwartAdmin, setIsStalwartAdmin] = useState(false);
@@ -218,13 +220,8 @@ export function NavigationRail({
 
   useEffect(() => {
     let cancelled = false;
-    const { client } = useAuthStore.getState();
-    if (!client) return;
-    const headers: Record<string, string> = {
-      'Authorization': client.getAuthHeader(),
-      'X-JMAP-Server-URL': client.getServerUrl(),
-      'X-JMAP-Username': client.getUsername(),
-    };
+    const headers = getActiveAccountSlotHeaders();
+    if (!headers['X-JMAP-Cookie-Slot']) return;
     fetch('/api/admin/stalwart-check', { headers })
       .then(res => res.json())
       .then(data => {
@@ -246,7 +243,7 @@ export function NavigationRail({
     { id: "mail", icon: Mail, labelKey: "mail", href: "/", badge: inboxUnread },
     { id: "calendar", icon: Calendar, labelKey: "calendar", href: "/calendar", hidden: !supportsCalendar },
     { id: "contacts", icon: BookUser, labelKey: "contacts", href: "/contacts" },
-    { id: "files", icon: HardDrive, labelKey: "files", href: "/files", hidden: supportsWebDAV === false },
+    { id: "files", icon: HardDrive, labelKey: "files", href: "/files", hidden: supportsWebDAV === false || !filesEnabled },
   ];
 
   const isSettingsActive = !activeAppId && pathname.startsWith("/settings");

@@ -332,6 +332,17 @@ export function EmailComposer({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
+  // Auto-focus the To field when composing a new email or forwarding
+  useEffect(() => {
+    if (mode === 'forward' || mode === 'compose') {
+      // Small delay to ensure the input is rendered
+      const timer = setTimeout(() => {
+        toInputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [mode]);
+
   const [autocompleteResults, setAutocompleteResults] = useState<Array<{ name: string; email: string }>>([]);
   const [activeAutoField, setActiveAutoField] = useState<'to' | 'cc' | 'bcc' | null>(null);
   const [autoSelectedIndex, setAutoSelectedIndex] = useState(-1);
@@ -339,9 +350,25 @@ export function EmailComposer({
   const toInputRef = useRef<HTMLInputElement>(null);
   const ccInputRef = useRef<HTMLInputElement>(null);
   const bccInputRef = useRef<HTMLInputElement>(null);
+  const subjectInputRef = useRef<HTMLInputElement>(null);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
   const toDropdownRef = useRef<HTMLDivElement>(null);
   const ccDropdownRef = useRef<HTMLDivElement>(null);
   const bccDropdownRef = useRef<HTMLDivElement>(null);
+
+  const focusSubject = useCallback(() => {
+    subjectInputRef.current?.focus();
+  }, []);
+
+  const focusBody = useCallback(() => {
+    if (plainTextMode) {
+      bodyRef.current?.focus();
+    } else {
+      const proseMirror = editorContainerRef.current?.querySelector('.ProseMirror') as HTMLElement | null;
+      proseMirror?.focus();
+    }
+  }, [plainTextMode]);
 
   const handleAutocomplete = useCallback((value: string, field: 'to' | 'cc' | 'bcc') => {
     if (autocompleteTimeoutRef.current) {
@@ -1071,6 +1098,7 @@ export function EmailComposer({
               onInsertAutocomplete={insertAutocomplete}
               validationError={validationErrors.to}
               validationMessage={t('validation.recipient_required')}
+              onTab={focusSubject}
             />
             <div className="flex gap-0.5 shrink-0">
               <Button
@@ -1140,12 +1168,19 @@ export function EmailComposer({
           <div className="flex items-center gap-2 px-4 py-2.5">
             <span className="text-sm text-muted-foreground w-12 md:w-16 shrink-0">{t('subject_label')}</span>
             <Input
+              ref={subjectInputRef}
               type="text"
               placeholder={t('subject_placeholder')}
               value={subject}
               onChange={(e) => {
                 setSubject(e.target.value);
                 if (validationErrors.subject) setValidationErrors(prev => ({ ...prev, subject: false }));
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Tab' && !e.shiftKey) {
+                  e.preventDefault();
+                  focusBody();
+                }
               }}
               className={cn(
                 "flex-1 border-0 focus-visible:ring-0 h-8 px-0 text-sm",
@@ -1159,6 +1194,7 @@ export function EmailComposer({
         {/* Body */}
         {plainTextMode ? (
           <textarea
+            ref={bodyRef}
             value={body}
             onChange={(e) => {
               setBody(e.target.value);
@@ -1173,16 +1209,18 @@ export function EmailComposer({
             aria-invalid={validationErrors.body || undefined}
           />
         ) : (
-          <RichTextEditor
-            content={body}
-            onChange={(html) => {
-              setBody(html);
-              if (validationErrors.body) setValidationErrors(prev => ({ ...prev, body: false }));
-            }}
-            onImageUpload={handleImageUpload}
-            placeholder={t('body_placeholder')}
-            hasError={validationErrors.body}
-          />
+          <div ref={editorContainerRef}>
+            <RichTextEditor
+              content={body}
+              onChange={(html) => {
+                setBody(html);
+                if (validationErrors.body) setValidationErrors(prev => ({ ...prev, body: false }));
+              }}
+              onImageUpload={handleImageUpload}
+              placeholder={t('body_placeholder')}
+              hasError={validationErrors.body}
+            />
+          </div>
         )}
 
         {plainTextMode ? (
@@ -1514,6 +1552,7 @@ function RecipientChipInput({
   onInsertAutocomplete,
   validationError,
   validationMessage,
+  onTab,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -1530,6 +1569,7 @@ function RecipientChipInput({
   onInsertAutocomplete: (email: string, field: 'to' | 'cc' | 'bcc') => void;
   validationError?: boolean;
   validationMessage?: string;
+  onTab?: () => void;
 }) {
   const allParts = value.split(',').map(s => s.trim()).filter(Boolean);
   const hasTrailingComma = value.trimEnd().endsWith(',');
@@ -1563,7 +1603,18 @@ function RecipientChipInput({
     if ((e.key === ' ' || e.key === 'Enter' || e.key === 'Tab') && inputText.trim()) {
       if (e.key !== 'Tab') e.preventDefault();
       commitCurrentInput();
-      setTimeout(() => inputRef.current?.focus(), 0);
+      if (e.key === 'Tab' && onTab) {
+        e.preventDefault();
+        setTimeout(() => onTab(), 0);
+      } else {
+        setTimeout(() => inputRef.current?.focus(), 0);
+      }
+      return;
+    }
+
+    if (e.key === 'Tab' && !e.shiftKey && onTab) {
+      e.preventDefault();
+      onTab();
       return;
     }
 

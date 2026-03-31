@@ -18,6 +18,7 @@
       "cors_blocked": "サーバーには到達できますが、クロスオリジンリクエストがブロックされています。JMAPサーバーのCORS設定を確認し、このドメインを許可してください。",
       "server_error": "サーバーが一時的に利用できません。後でもう一度お試しください。",
       "generic": "エラーが発生しました。もう一度お試しください。",
+      "totp_required": "二要素認証コードが必要です。以下にコードを入力してください。",
       "totp_invalid": "認証コードが無効です。認証アプリを確認してください。",
       "oauth_discovery_failed": "SSOは有効ですが、IDプロバイダーに接続できません。OAuth設定を確認してください。"
     },
@@ -1163,6 +1164,23 @@
         "label": "デバッグモード",
         "description": "トラブルシューティング用の詳細ログを有効化"
       },
+      "debug_categories": {
+        "description": "記録するカテゴリを選択してください。不要なカテゴリを無効にすると、コンソールのノイズを減らせます。",
+        "jmap": "JMAPクライアント",
+        "jmap_description": "メールボックス操作、メール取得、JMAPプロトコル要求",
+        "calendar": "カレンダー",
+        "calendar_description": "カレンダーイベント、インポート、スケジュールメッセージ",
+        "tasks": "タスク",
+        "tasks_description": "カレンダータスクの作成、取得、更新",
+        "auth": "認証",
+        "auth_description": "ログイン、TOTP、トークン交換、セッション管理",
+        "filters": "フィルター",
+        "filters_description": "Sieveフィルタールールと休暇スクリプト",
+        "email": "メール表示",
+        "email_description": "メールのレンダリング、TNEF処理、既読化",
+        "push": "プッシュ通知",
+        "push_description": "プッシュ通知の設定と配信"
+      },
       "settings_sync": {
         "label": "設定の同期",
         "description": "ブラウザーやデバイス間で設定を同期します"
@@ -2108,6 +2126,12 @@
       "interval_1440": "毎日",
       "subscribe": "購読する",
       "subscribing": "購読中...",
+      "save": "変更を保存",
+      "saving": "保存中...",
+      "edit": "編集",
+      "edit_title": "購読を編集",
+      "updated": "\"{name}\" を更新しました",
+      "update_error": "購読を更新できませんでした",
       "invalid_url": "有効なURLを入力してください",
       "success": "\"{name}\"を購読しました",
       "error": "購読の追加に失敗しました",
@@ -2315,7 +2339,10 @@
     "settings_folder_layout": "Folder Navigation",
     "settings_folder_layout_desc": "Choose how folders are displayed: inline with files or in a sidebar tree",
     "settings_folder_layout_inline": "Inline",
-    "settings_folder_layout_sidebar": "Sidebar"
+    "settings_folder_layout_sidebar": "Sidebar",
+    "disabled_title": "ファイル機能は管理者によって無効にされています",
+    "disabled_description": "WebDAV経由の大容量ファイルアップロードは、メモリ不足クラッシュや回復不能なディスク使用量など、Stalwart/RocksDBの不安定性を引き起こす可能性があります。削除されたファイルはストレージからすぐに削除されない場合があります。この機能は本番環境では推奨されません。",
+    "stability_warning": "大容量ファイルのアップロードはサーバーの不安定性を引き起こす可能性があります。削除されたファイルはストレージからすぐに削除されない場合があります。注意して使用してください。"
   },
   "smime": {
     "your_certificates": "あなたの証明書",
@@ -2384,6 +2411,7 @@
     "status_signed_valid": "署名を確認しました",
     "status_signed_invalid": "署名の検証に失敗しました",
     "status_signed_expired_cert": "期限切れの証明書で署名されています",
+    "status_signed_self_signed": "署名は有効ですが、証明書は自己署名です（信頼されていません）",
     "status_signed_mismatch": "署名は有効ですが、署名者が送信者と一致しません",
     "status_unsupported": "未対応の S/MIME 形式です",
     "auto_import_signer_certs": "署名者証明書を自動インポート",

@@ -18,6 +18,7 @@
       "cors_blocked": "Le serveur est joignable mais bloque les requêtes cross-origin. Vérifiez la configuration CORS de votre serveur JMAP et autorisez ce domaine.",
       "server_error": "Le serveur est temporairement indisponible. Veuillez réessayer plus tard.",
       "generic": "Une erreur s'est produite. Veuillez réessayer.",
+      "totp_required": "Un code d'authentification à deux facteurs est requis. Veuillez saisir votre code ci-dessous.",
       "totp_invalid": "Code d'authentification invalide. Vérifiez votre application d'authentification.",
       "oauth_discovery_failed": "Le SSO est activé mais le fournisseur d'identité est injoignable. Vérifiez votre configuration OAuth."
     },
@@ -1163,6 +1164,23 @@
         "label": "Mode débogage",
         "description": "Activer la journalisation détaillée pour le dépannage"
       },
+      "debug_categories": {
+        "description": "Sélectionnez les catégories à journaliser. Désactivez celles dont vous n'avez pas besoin pour réduire le bruit dans la console.",
+        "jmap": "Client JMAP",
+        "jmap_description": "Opérations de boîte aux lettres, récupération des e-mails et requêtes du protocole JMAP",
+        "calendar": "Calendrier",
+        "calendar_description": "Événements du calendrier, importations et messages de planification",
+        "tasks": "Tâches",
+        "tasks_description": "Création, récupération et mise à jour des tâches du calendrier",
+        "auth": "Authentification",
+        "auth_description": "Connexion, TOTP, échange de jetons et gestion de session",
+        "filters": "Filtres",
+        "filters_description": "Règles de filtre Sieve et scripts d'absence",
+        "email": "Affichage des e-mails",
+        "email_description": "Rendu des e-mails, traitement TNEF et marquage comme lu",
+        "push": "Notifications push",
+        "push_description": "Configuration et distribution des notifications push"
+      },
       "settings_sync": {
         "label": "Synchronisation des paramètres",
         "description": "Synchronisez vos paramètres entre navigateurs et appareils"
@@ -2108,6 +2126,12 @@
       "interval_1440": "Tous les jours",
       "subscribe": "S'abonner",
       "subscribing": "Abonnement en cours...",
+      "save": "Enregistrer les modifications",
+      "saving": "Enregistrement...",
+      "edit": "Modifier",
+      "edit_title": "Modifier l'abonnement",
+      "updated": "\"{name}\" mis à jour",
+      "update_error": "Échec de la mise à jour de l'abonnement",
       "invalid_url": "Veuillez entrer une URL valide",
       "success": "Abonné à \"{name}\"",
       "error": "Impossible d'ajouter l'abonnement",
@@ -2315,7 +2339,10 @@
     "settings_folder_layout": "Folder Navigation",
     "settings_folder_layout_desc": "Choose how folders are displayed: inline with files or in a sidebar tree",
     "settings_folder_layout_inline": "Inline",
-    "settings_folder_layout_sidebar": "Sidebar"
+    "settings_folder_layout_sidebar": "Sidebar",
+    "disabled_title": "La fonctionnalité Fichiers a été désactivée par votre administrateur",
+    "disabled_description": "Les téléchargements de fichiers volumineux via WebDAV peuvent provoquer une instabilité de Stalwart/RocksDB, y compris des crashs de mémoire et une utilisation irrécupérable du disque. Les fichiers supprimés peuvent ne pas être immédiatement purgés du stockage. Cette fonctionnalité n'est pas recommandée pour les environnements de production.",
+    "stability_warning": "Les téléchargements de fichiers volumineux peuvent provoquer une instabilité du serveur. Les fichiers supprimés peuvent ne pas être immédiatement purgés du stockage. À utiliser avec prudence."
   },
   "smime": {
     "your_certificates": "Vos certificats",
@@ -2384,6 +2411,7 @@
     "status_signed_valid": "Signature vérifiée",
     "status_signed_invalid": "Échec de la vérification de la signature",
     "status_signed_expired_cert": "Signé avec un certificat expiré",
+    "status_signed_self_signed": "Signature valide, mais le certificat est auto-signé (non fiable)",
     "status_signed_mismatch": "La signature est valide, mais le signataire ne correspond pas à l'expéditeur",
     "status_unsupported": "Format S/MIME non pris en charge",
     "auto_import_signer_certs": "Importer automatiquement les certificats des signataires",

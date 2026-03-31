@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.4.11 (2026-03-31)
+
+### Features
+
+- **Logging**: Add logging categories for better log management
+
+### Fixes
+
+- **Security**: Harden security with CSP enforcement, SSRF redirect validation, reenabled S/MIME chain verify, IP spoofing prevention, and PDF iframe sandbox
+- **Security**: Harden proxy authentication and SSRF defenses
+- **Security**: Block plugins with dangerous JS patterns and enforce strict session secret length validation
+- **S/MIME**: Add self-signed certificate detection and update status messages for S/MIME signatures
+- **Email**: Auto-focus input fields in email composer for improved user experience (#126)
+- **Mailbox**: Prevent orphaning of nested mailboxes by restricting deduplication to root-level folders
+- **JMAP**: Strip server-immutable fields from updates before sending to JMAP (#128)
+- **Files**: Update file feature disabled messages and add stability warnings
+- **i18n**: Add missing translation keys to all non-English locales
+
 ## 1.4.10 (2026-03-31)
 
 ### Features

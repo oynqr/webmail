@@ -1,9 +1,39 @@
+import { lookup } from 'node:dns/promises';
+import { BlockList, isIP } from 'node:net';
 import { NextRequest, NextResponse } from 'next/server';
 
 const MAX_RESPONSE_SIZE = 10 * 1024 * 1024; // 10MB
 const FETCH_TIMEOUT_MS = 15000;
 
-function isValidExternalUrl(urlString: string): boolean {
+const blockedAddressRanges = new BlockList();
+blockedAddressRanges.addAddress('0.0.0.0');
+blockedAddressRanges.addAddress('127.0.0.1');
+blockedAddressRanges.addSubnet('10.0.0.0', 8);
+blockedAddressRanges.addSubnet('172.16.0.0', 12);
+blockedAddressRanges.addSubnet('192.168.0.0', 16);
+blockedAddressRanges.addSubnet('169.254.0.0', 16);
+blockedAddressRanges.addAddress('::', 'ipv6');
+blockedAddressRanges.addAddress('::1', 'ipv6');
+blockedAddressRanges.addSubnet('fc00::', 7, 'ipv6');
+blockedAddressRanges.addSubnet('fe80::', 10, 'ipv6');
+
+function normalizeHostname(hostname: string): string {
+  return hostname.replace(/^\[(.*)\]$/, '$1').toLowerCase();
+}
+
+function isBlockedIpAddress(hostname: string): boolean {
+  const normalized = normalizeHostname(hostname);
+  const family = isIP(normalized);
+  if (family === 4) {
+    return blockedAddressRanges.check(normalized, 'ipv4');
+  }
+  if (family === 6) {
+    return blockedAddressRanges.check(normalized, 'ipv6');
+  }
+  return false;
+}
+
+async function isValidExternalUrl(urlString: string): Promise<boolean> {
   let url: URL;
   try {
     url = new URL(urlString);
@@ -15,21 +45,16 @@ function isValidExternalUrl(urlString: string): boolean {
     return false;
   }
 
-  const hostname = url.hostname.toLowerCase();
+  const hostname = normalizeHostname(url.hostname);
 
   // Block private/internal hostnames
   if (
     hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname === '::1' ||
-    hostname === '0.0.0.0' ||
+    hostname.endsWith('.localhost') ||
     hostname.endsWith('.local') ||
     hostname.endsWith('.internal') ||
     hostname.endsWith('.arpa') ||
-    hostname.startsWith('10.') ||
-    hostname.startsWith('192.168.') ||
-    hostname.startsWith('169.254.') ||
-    /^172\.(1[6-9]|2\d|3[01])\./.test(hostname)
+    hostname.endsWith('.localdomain')
   ) {
     return false;
   }
@@ -39,7 +64,24 @@ function isValidExternalUrl(urlString: string): boolean {
     return false;
   }
 
-  return true;
+  if (isBlockedIpAddress(hostname)) {
+    return false;
+  }
+
+  if (isIP(hostname)) {
+    return true;
+  }
+
+  try {
+    const records = await lookup(hostname, { all: true, verbatim: true });
+    if (records.length === 0) {
+      return false;
+    }
+    return records.every((record) => !isBlockedIpAddress(record.address));
+  } catch {
+    return false;
+  }
+
 }
 
 export async function POST(request: NextRequest) {
@@ -56,7 +98,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'URL is required' }, { status: 400 });
   }
 
-  if (!isValidExternalUrl(url)) {
+  if (!(await isValidExternalUrl(url))) {
     return NextResponse.json({ error: 'Invalid or disallowed URL' }, { status: 400 });
   }
 
@@ -64,20 +106,43 @@ export async function POST(request: NextRequest) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        'Accept': 'text/calendar, application/ics, text/plain, */*',
-        'User-Agent': 'JMAP-Webmail/1.0 Calendar-Fetcher',
-      },
-      redirect: 'follow',
-    });
+    const MAX_REDIRECTS = 5;
+    let currentUrl = url;
+    let response: Response | undefined;
+
+    for (let i = 0; i <= MAX_REDIRECTS; i++) {
+      if (!(await isValidExternalUrl(currentUrl))) {
+        clearTimeout(timeout);
+        return NextResponse.json({ error: 'Redirect to disallowed URL' }, { status: 400 });
+      }
+
+      response = await fetch(currentUrl, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'text/calendar, application/ics, text/plain, */*',
+          'User-Agent': 'JMAP-Webmail/1.0 Calendar-Fetcher',
+        },
+        redirect: 'manual',
+      });
+
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get('location');
+        if (!location) {
+          clearTimeout(timeout);
+          return NextResponse.json({ error: 'Redirect without Location header' }, { status: 502 });
+        }
+        // Resolve relative redirects
+        currentUrl = new URL(location, currentUrl).toString();
+        continue;
+      }
+      break;
+    }
 
     clearTimeout(timeout);
 
-    if (!response.ok) {
+    if (!response || !response.ok) {
       return NextResponse.json(
-        { error: `Remote server returned ${response.status}` },
+        { error: `Remote server returned ${response?.status ?? 'unknown'}` },
         { status: 502 }
       );
     }

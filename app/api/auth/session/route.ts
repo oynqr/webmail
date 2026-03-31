@@ -4,6 +4,11 @@ import { logger } from '@/lib/logger';
 import { encryptSession, decryptSession } from '@/lib/auth/crypto';
 import { SESSION_COOKIE_MAX_AGE, sessionCookieName } from '@/lib/auth/session-cookie';
 import { getCookieOptions } from '@/lib/oauth/cookie-config';
+import { JmapAuthVerificationError, verifyJmapAuth } from '@/lib/auth/verify-jmap-auth';
+import {
+  clearStalwartAuthContextInStore,
+  setStalwartAuthContextInStore,
+} from '@/lib/stalwart/auth-context';
 
 const COOKIE_OPTIONS = {
   ...getCookieOptions(),
@@ -31,12 +36,23 @@ export async function POST(request: NextRequest) {
 
     const slot = typeof bodySlot === 'number' && bodySlot >= 0 && bodySlot <= 4 ? bodySlot : getSlot(request);
     const cookieName = sessionCookieName(slot);
-    const token = encryptSession(serverUrl, username, password);
+    const authHeader = `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`;
+    const normalizedServerUrl = await verifyJmapAuth(serverUrl, authHeader);
+    const token = encryptSession(normalizedServerUrl, username, password);
     const cookieStore = await cookies();
     cookieStore.set(cookieName, token, COOKIE_OPTIONS);
+    setStalwartAuthContextInStore(cookieStore, slot, {
+      serverUrl: normalizedServerUrl,
+      username,
+      authHeader,
+    });
 
     return NextResponse.json({ ok: true });
   } catch (error) {
+    if (error instanceof JmapAuthVerificationError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+
     logger.error('Session store error', { error: error instanceof Error ? error.message : 'Unknown error' });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
@@ -56,8 +72,15 @@ export async function GET(request: NextRequest) {
     const credentials = decryptSession(token);
     if (!credentials) {
       cookieStore.delete(cookieName);
+      clearStalwartAuthContextInStore(cookieStore, slot);
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
     }
+
+    setStalwartAuthContextInStore(cookieStore, slot, {
+      serverUrl: credentials.serverUrl,
+      username: credentials.username,
+      authHeader: `Basic ${Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')}`,
+    });
 
     // Only return non-sensitive fields. Use PUT to retrieve full credentials.
     const { serverUrl, username } = credentials;
@@ -73,13 +96,17 @@ export async function GET(request: NextRequest) {
 
 /**
  * PUT — retrieve full credentials (including password) for session restoration.
- * Protected by Sec-Fetch-Site to ensure only same-origin browser requests succeed.
+ * Protected by multiple Sec-Fetch-* headers to ensure only same-origin
+ * browser fetch() requests succeed. Non-browser clients cannot forge these.
  */
 export async function PUT(request: NextRequest) {
   try {
-    // Block non-browser and cross-origin requests
+    // Require all Sec-Fetch-* headers to match a same-origin fetch() call.
+    // Browsers set these automatically and they cannot be overridden by JS.
     const secFetchSite = request.headers.get('sec-fetch-site');
-    if (secFetchSite !== 'same-origin') {
+    const secFetchMode = request.headers.get('sec-fetch-mode');
+    const secFetchDest = request.headers.get('sec-fetch-dest');
+    if (secFetchSite !== 'same-origin' || secFetchMode !== 'cors' || secFetchDest !== 'empty') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -95,8 +122,15 @@ export async function PUT(request: NextRequest) {
     const credentials = decryptSession(token);
     if (!credentials) {
       cookieStore.delete(cookieName);
+      clearStalwartAuthContextInStore(cookieStore, slot);
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
     }
+
+    setStalwartAuthContextInStore(cookieStore, slot, {
+      serverUrl: credentials.serverUrl,
+      username: credentials.username,
+      authHeader: `Basic ${Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')}`,
+    });
 
     return NextResponse.json(credentials, {
       headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
@@ -116,10 +150,12 @@ export async function DELETE(request: NextRequest) {
       // Delete all session cookies (slots 0-4)
       for (let i = 0; i <= 4; i++) {
         cookieStore.delete(sessionCookieName(i));
+        clearStalwartAuthContextInStore(cookieStore, i);
       }
     } else {
       const slot = getSlot(request);
       cookieStore.delete(sessionCookieName(slot));
+      clearStalwartAuthContextInStore(cookieStore, slot);
     }
 
     return NextResponse.json({ ok: true });

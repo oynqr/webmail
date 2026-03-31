@@ -18,6 +18,7 @@
       "cors_blocked": "De server is bereikbaar maar blokkeert cross-origin verzoeken. Controleer de CORS-instellingen van uw JMAP-server en sta dit domein toe.",
       "server_error": "De server is tijdelijk niet beschikbaar. Probeer het later opnieuw.",
       "generic": "Er is een fout opgetreden. Probeer het opnieuw.",
+      "totp_required": "Een tweefactorauthenticatiecode is vereist. Voer uw code hieronder in.",
       "totp_invalid": "Ongeldige authenticatiecode. Controleer uw authenticator-app.",
       "oauth_discovery_failed": "SSO is ingeschakeld maar de identiteitsprovider is niet bereikbaar. Controleer uw OAuth-configuratie."
     },
@@ -1163,6 +1164,23 @@
         "label": "Debugmodus",
         "description": "Schakel gedetailleerde logging in voor probleemoplossing"
       },
+      "debug_categories": {
+        "description": "Selecteer welke categorieën moeten worden gelogd. Schakel categorieën die u niet nodig hebt uit om ruis in de console te verminderen.",
+        "jmap": "JMAP-client",
+        "jmap_description": "Mailboxbewerkingen, e-mail ophalen en JMAP-protocolverzoeken",
+        "calendar": "Agenda",
+        "calendar_description": "Agenda-afspraken, importen en planningsberichten",
+        "tasks": "Taken",
+        "tasks_description": "Aanmaken, ophalen en bijwerken van agendataken",
+        "auth": "Authenticatie",
+        "auth_description": "Inloggen, TOTP, tokenuitwisseling en sessiebeheer",
+        "filters": "Filters",
+        "filters_description": "Sieve-filterregels en vakantiescripts",
+        "email": "E-mailweergave",
+        "email_description": "E-mailrendering, TNEF-verwerking en markeren als gelezen",
+        "push": "Pushmeldingen",
+        "push_description": "Instellen en afleveren van pushmeldingen"
+      },
       "settings_sync": {
         "label": "Instellingen synchroniseren",
         "description": "Synchroniseer uw instellingen tussen browsers en apparaten"
@@ -2108,6 +2126,12 @@
       "interval_1440": "Elke dag",
       "subscribe": "Abonneren",
       "subscribing": "Bezig met abonneren...",
+      "save": "Wijzigingen opslaan",
+      "saving": "Opslaan...",
+      "edit": "Bewerken",
+      "edit_title": "Abonnement bewerken",
+      "updated": "\"{name}\" bijgewerkt",
+      "update_error": "Abonnement kon niet worden bijgewerkt",
       "invalid_url": "Voer een geldige URL in",
       "success": "Geabonneerd op \"{name}\"",
       "error": "Kan abonnement niet toevoegen",
@@ -2315,7 +2339,10 @@
     "settings_folder_layout": "Folder Navigation",
     "settings_folder_layout_desc": "Choose how folders are displayed: inline with files or in a sidebar tree",
     "settings_folder_layout_inline": "Inline",
-    "settings_folder_layout_sidebar": "Sidebar"
+    "settings_folder_layout_sidebar": "Sidebar",
+    "disabled_title": "De bestandsfunctie is uitgeschakeld door uw beheerder",
+    "disabled_description": "Grote bestandsuploads via WebDAV kunnen Stalwart/RocksDB-instabiliteit veroorzaken, waaronder geheugenfouten en onherstelbaar schijfgebruik. Verwijderde bestanden worden mogelijk niet onmiddellijk uit de opslag verwijderd. Deze functie wordt niet aanbevolen voor productieomgevingen.",
+    "stability_warning": "Grote bestandsuploads kunnen serverinstabiliteit veroorzaken. Verwijderde bestanden worden mogelijk niet onmiddellijk uit de opslag verwijderd. Gebruik met voorzichtigheid."
   },
   "smime": {
     "your_certificates": "Uw certificaten",
@@ -2384,6 +2411,7 @@
     "status_signed_valid": "Handtekening geverifieerd",
     "status_signed_invalid": "Verificatie van de handtekening is mislukt",
     "status_signed_expired_cert": "Ondertekend met een verlopen certificaat",
+    "status_signed_self_signed": "Handtekening geldig, maar het certificaat is zelfondertekend (niet vertrouwd)",
     "status_signed_mismatch": "Handtekening is geldig, maar de ondertekenaar komt niet overeen met de afzender",
     "status_unsupported": "Niet-ondersteund S/MIME-formaat",
     "auto_import_signer_certs": "Ondertekenaarcertificaten automatisch importeren",

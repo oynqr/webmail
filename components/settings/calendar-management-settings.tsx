@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useCalendarStore } from '@/stores/calendar-store';
 import { useAuthStore } from '@/stores/auth-store';
+import { getActiveAccountSlotHeaders } from '@/lib/auth/active-account-slot';
 import { toast } from '@/stores/toast-store';
 import { SettingsSection } from './settings-section';
 import { Plus, Pencil, Trash2, Calendar as CalendarIcon, Copy, Link, Upload, Globe, RefreshCw, Eraser } from 'lucide-react';
@@ -203,7 +204,10 @@ export function CalendarManagementSettings() {
 
     fetch('/api/caldav/discover', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...getActiveAccountSlotHeaders(),
+      },
       body: JSON.stringify({
         accounts: Array.from(accounts.entries()).map(([key, candidates]) => ({ key, candidates })),
       }),

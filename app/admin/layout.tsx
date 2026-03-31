@@ -24,6 +24,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useConfig } from '@/hooks/use-config';
 import { useThemeStore } from '@/stores/theme-store';
+import { getActiveAccountSlotHeaders } from '@/lib/auth/active-account-slot';
 
 import { useAuthStore } from '@/stores/auth-store';
 
@@ -78,13 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [pathname]);
 
   function getJmapHeaders(): Record<string, string> {
-    const client = useAuthStore.getState().client;
-    if (!client) return {};
-    return {
-      'Authorization': client.getAuthHeader(),
-      'X-JMAP-Server-URL': client.getServerUrl(),
-      'X-JMAP-Username': client.getUsername(),
-    };
+    return getActiveAccountSlotHeaders();
   }
 
   async function checkAuth() {

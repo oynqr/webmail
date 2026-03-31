@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 import { encryptSession } from '@/lib/auth/crypto';
-import { SESSION_COOKIE, SESSION_COOKIE_MAX_AGE } from '@/lib/auth/session-cookie';
+import { SESSION_COOKIE_MAX_AGE, sessionCookieName } from '@/lib/auth/session-cookie';
 import { getStalwartCredentials } from '@/lib/stalwart/credentials';
+import { setStalwartAuthContextInStore } from '@/lib/stalwart/auth-context';
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -69,10 +70,19 @@ export async function POST(request: NextRequest) {
     }
 
     // If session cookie exists, update it with the new password
+    const cookieStore = await cookies();
+
     if (creds.hasSessionCookie) {
       const newToken = encryptSession(creds.serverUrl, creds.username, newPassword);
-      const cookieStore = await cookies();
-      cookieStore.set(SESSION_COOKIE, newToken, COOKIE_OPTIONS);
+      cookieStore.set(sessionCookieName(creds.slot), newToken, COOKIE_OPTIONS);
+    }
+
+    if (creds.authHeader.startsWith('Basic ')) {
+      setStalwartAuthContextInStore(cookieStore, creds.slot, {
+        serverUrl: creds.serverUrl,
+        username: creds.username,
+        authHeader: `Basic ${Buffer.from(`${creds.username}:${newPassword}`).toString('base64')}`,
+      });
     }
 
     return NextResponse.json({ ok: true });

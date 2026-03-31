@@ -263,48 +263,37 @@ describe('mailbox deep nesting (depth 4+)', () => {
   });
 });
 
-describe('mailbox deduplication side effects on nesting', () => {
-  it('should not remove an intermediate parent whose name matches a role mailbox', () => {
-    // Scenario: A non-role folder named "Sent" is an intermediate parent.
-    // The deduplication logic might remove it because it matches the role "sent" mailbox name.
+describe('GitHub #118: duplicate subfolder names cause depth-4 orphaning', () => {
+  it('should keep nested folders when a subfolder has the same name as a role mailbox', () => {
+    // Reporter's exact scenario: two subfolders with the same name.
+    // The dedup uses substring matching and removes non-role folders whose name
+    // matches a role folder — even if they're deep in the tree with children.
     const mailboxes = [
       makeMailbox({ id: 'inbox', name: 'Inbox', role: 'inbox' }),
       makeMailbox({ id: 'sent-role', name: 'Sent', role: 'sent' }),
-      // A user-created folder also named "Sent" that's a child of Inbox
+      // User-created subfolder also named "Sent" nested under Inbox
       makeMailbox({ id: 'sent-custom', name: 'Sent', parentId: 'inbox' }),
-      // Child of the custom "Sent" folder
+      // Child of the custom "Sent" folder — becomes orphaned if parent is deduped
       makeMailbox({ id: 'sent-child', name: 'Archive', parentId: 'sent-custom' }),
     ];
 
     const tree = buildMailboxTree(mailboxes);
     const flat = flattenMailboxTree(tree);
+    const rootIds = tree.map(n => n.id);
 
-    // The custom "Sent" (sent-custom) might be filtered by deduplication.
-    // If it IS removed, then "sent-child" loses its parent and becomes root — BAD.
+    // sent-custom MUST be kept because it has children — removing it orphans sent-child
+    const sentCustom = flat.find(n => n.id === 'sent-custom');
+    expect(sentCustom).toBeDefined();
+    expect(sentCustom!.depth).toBe(1); // nested under Inbox
+
     const sentChild = flat.find(n => n.id === 'sent-child');
     expect(sentChild).toBeDefined();
-
-    // Check if sent-child is orphaned at root (the bug)
-    const rootIds = tree.map(n => n.id);
-    const isOrphaned = rootIds.includes('sent-child');
-
-    if (isOrphaned) {
-      // This demonstrates the deduplication bug: removing an intermediate parent
-      // causes its children to become orphaned at root level
-      console.warn(
-        'BUG DETECTED: Deduplication removed intermediate parent "sent-custom", ' +
-        'orphaning "sent-child" to root level.'
-      );
-    }
-
-    // Document the current behavior (this test is diagnostic)
-    // Ideally: sent-child should be nested under sent-custom at depth 2
-    // If dedup removes sent-custom: sent-child ends up at root with depth 0
-    expect(sentChild!.depth).toBeGreaterThanOrEqual(0);
+    expect(sentChild!.depth).toBe(2); // nested under sent-custom
+    expect(rootIds).not.toContain('sent-child'); // must NOT be orphaned at root
   });
 
-  it('should not remove a parent folder whose name is a substring of a role name', () => {
-    // Folder named "Draft" (substring of "Drafts" role) used as intermediate parent
+  it('should keep nested folders when name is substring of a role name', () => {
+    // "Draft" is a substring of "Drafts" — dedup removes it, orphaning children
     const mailboxes = [
       makeMailbox({ id: 'inbox', name: 'Inbox', role: 'inbox' }),
       makeMailbox({ id: 'drafts-role', name: 'Drafts', role: 'drafts' }),
@@ -318,16 +307,66 @@ describe('mailbox deduplication side effects on nesting', () => {
 
     const draftChild = flat.find(n => n.id === 'draft-child');
     expect(draftChild).toBeDefined();
+    expect(draftChild!.depth).toBe(2);
+    expect(rootIds).not.toContain('draft-child');
+  });
 
-    const isOrphaned = rootIds.includes('draft-child');
-    if (isOrphaned) {
-      console.warn(
-        'BUG DETECTED: Deduplication removed "draft-folder" (substring match with "Drafts"), ' +
-        'orphaning "draft-child" to root level.'
-      );
-    }
+  it('should handle the exact reported structure with duplicate names at different depths', () => {
+    // Stalwart allows creating subfolders with the same name at different levels.
+    // If any of those names match a role mailbox name, dedup could remove them.
+    const mailboxes = [
+      makeMailbox({ id: 'inbox', name: 'Inbox', role: 'inbox' }),
+      makeMailbox({ id: 'trash-role', name: 'Trash', role: 'trash' }),
+      makeMailbox({ id: 'privat', name: 'PRIVAT', parentId: 'inbox' }),
+      makeMailbox({ id: 'bookings', name: 'BOOKINGS', parentId: 'privat' }),
+      // User created a subfolder named "Trash" under BOOKINGS (e.g. for old bookings)
+      makeMailbox({ id: 'trash-custom', name: 'Trash', parentId: 'bookings' }),
+      // Depth 4: child of the custom Trash folder
+      makeMailbox({ id: 'restaurant', name: 'RESTAURANT', parentId: 'trash-custom' }),
+    ];
 
-    expect(draftChild!.depth).toBeGreaterThanOrEqual(0);
+    const tree = buildMailboxTree(mailboxes);
+    const flat = flattenMailboxTree(tree);
+    const rootIds = tree.map(n => n.id);
+
+    // RESTAURANT must be at depth 4, not orphaned at root
+    const restaurant = flat.find(n => n.id === 'restaurant');
+    expect(restaurant).toBeDefined();
+    expect(restaurant!.depth).toBe(4);
+    expect(rootIds).not.toContain('restaurant');
+
+    // Custom "Trash" must be kept as it has children
+    const trashCustom = flat.find(n => n.id === 'trash-custom');
+    expect(trashCustom).toBeDefined();
+    expect(trashCustom!.depth).toBe(3);
+  });
+
+  it('should only dedup root-level non-role mailboxes that duplicate role mailboxes', () => {
+    // Dedup should only remove mailboxes that are BOTH:
+    // 1. At root level (no parentId) — same structural position as role mailbox
+    // 2. Name-matching a role mailbox
+    // Nested mailboxes with matching names should always be kept.
+    const mailboxes = [
+      makeMailbox({ id: 'inbox', name: 'Inbox', role: 'inbox' }),
+      makeMailbox({ id: 'sent-role', name: 'Sent', role: 'sent' }),
+      makeMailbox({ id: 'sent-dup', name: 'Sent Mail' }), // root-level duplicate — OK to remove
+      makeMailbox({ id: 'proj', name: 'Projects', parentId: 'inbox' }),
+      makeMailbox({ id: 'sent-nested', name: 'Sent', parentId: 'proj' }), // nested — must keep
+      makeMailbox({ id: 'report', name: 'Report', parentId: 'sent-nested' }),
+    ];
+
+    const tree = buildMailboxTree(mailboxes);
+    const flat = flattenMailboxTree(tree);
+
+    // "Sent Mail" at root (no parentId) can be deduped — that's fine
+    // But "Sent" nested under Projects must be kept
+    const sentNested = flat.find(n => n.id === 'sent-nested');
+    expect(sentNested).toBeDefined();
+    expect(sentNested!.depth).toBe(2);
+
+    const report = flat.find(n => n.id === 'report');
+    expect(report).toBeDefined();
+    expect(report!.depth).toBe(3);
   });
 });
 

@@ -18,6 +18,7 @@
       "cors_blocked": "Il server è raggiungibile ma sta bloccando le richieste cross-origin. Controlla le impostazioni CORS del tuo server JMAP e consenti questo dominio.",
       "server_error": "Il server non è temporaneamente disponibile. Riprova più tardi.",
       "generic": "Si è verificato un errore. Riprova.",
+      "totp_required": "È richiesto un codice di autenticazione a due fattori. Inserisci il codice qui sotto.",
       "totp_invalid": "Codice di autenticazione non valido. Controlla la tua app di autenticazione.",
       "oauth_discovery_failed": "SSO è abilitato ma il provider di identità non è raggiungibile. Controlla la configurazione OAuth."
     },
@@ -1163,6 +1164,23 @@
         "label": "Modalità debug",
         "description": "Abilita registrazione dettagliata per la risoluzione dei problemi"
       },
+      "debug_categories": {
+        "description": "Seleziona quali categorie registrare. Disattiva quelle che non ti servono per ridurre il rumore nella console.",
+        "jmap": "Client JMAP",
+        "jmap_description": "Operazioni sulle caselle di posta, recupero email e richieste del protocollo JMAP",
+        "calendar": "Calendario",
+        "calendar_description": "Eventi del calendario, importazioni e messaggi di pianificazione",
+        "tasks": "Attività",
+        "tasks_description": "Creazione, recupero e aggiornamento delle attività del calendario",
+        "auth": "Autenticazione",
+        "auth_description": "Accesso, TOTP, scambio di token e gestione della sessione",
+        "filters": "Filtri",
+        "filters_description": "Regole di filtro Sieve e script di risposta automatica",
+        "email": "Visualizzazione email",
+        "email_description": "Rendering delle email, elaborazione TNEF e segna come letto",
+        "push": "Notifiche push",
+        "push_description": "Configurazione e recapito delle notifiche push"
+      },
       "settings_sync": {
         "label": "Sincronizzazione impostazioni",
         "description": "Sincronizza le impostazioni tra browser e dispositivi"
@@ -2108,6 +2126,12 @@
       "interval_1440": "Ogni giorno",
       "subscribe": "Abbonati",
       "subscribing": "Abbonamento in corso...",
+      "save": "Salva modifiche",
+      "saving": "Salvataggio...",
+      "edit": "Modifica",
+      "edit_title": "Modifica abbonamento",
+      "updated": "\"{name}\" aggiornato",
+      "update_error": "Impossibile aggiornare l'abbonamento",
       "invalid_url": "Inserisci un URL valido",
       "success": "Abbonato a \"{name}\"",
       "error": "Impossibile aggiungere l'abbonamento",
@@ -2315,7 +2339,10 @@
     "settings_folder_layout": "Folder Navigation",
     "settings_folder_layout_desc": "Choose how folders are displayed: inline with files or in a sidebar tree",
     "settings_folder_layout_inline": "Inline",
-    "settings_folder_layout_sidebar": "Sidebar"
+    "settings_folder_layout_sidebar": "Sidebar",
+    "disabled_title": "La funzionalità File è stata disabilitata dal tuo amministratore",
+    "disabled_description": "I caricamenti di file di grandi dimensioni tramite WebDAV possono causare instabilità di Stalwart/RocksDB, inclusi crash di memoria e utilizzo irrecuperabile del disco. I file eliminati potrebbero non essere immediatamente rimossi dallo storage. Questa funzionalità non è consigliata per ambienti di produzione.",
+    "stability_warning": "I caricamenti di file di grandi dimensioni possono causare instabilità del server. I file eliminati potrebbero non essere immediatamente rimossi dallo storage. Usare con cautela."
   },
   "smime": {
     "your_certificates": "I tuoi certificati",
@@ -2384,6 +2411,7 @@
     "status_signed_valid": "Firma verificata",
     "status_signed_invalid": "Verifica della firma non riuscita",
     "status_signed_expired_cert": "Firmato con un certificato scaduto",
+    "status_signed_self_signed": "Firma valida, ma il certificato è autofirmato (non attendibile)",
     "status_signed_mismatch": "La firma è valida, ma il firmatario non corrisponde al mittente",
     "status_unsupported": "Formato S/MIME non supportato",
     "auto_import_signer_certs": "Importa automaticamente i certificati dei firmatari",

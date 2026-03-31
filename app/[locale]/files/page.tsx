@@ -17,15 +17,18 @@ import { SidebarAppsModal } from "@/components/layout/sidebar-apps-modal";
 import { InlineAppView } from "@/components/layout/inline-app-view";
 import { useSidebarApps } from "@/hooks/use-sidebar-apps";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { usePolicyStore } from "@/stores/policy-store";
 import { FileBrowser } from "@/components/files/file-browser";
 import { ImagePreviewModal } from "@/components/files/image-preview-modal";
 import { FilePreviewModal } from "@/components/files/file-preview-modal";
 import { loadFilesSettings } from "@/components/files/files-settings-dialog";
 import type { FolderLayout } from "@/components/files/files-settings-dialog";
+import { AlertTriangle } from "lucide-react";
 
 export default function FilesPage() {
   const router = useRouter();
   const t = useTranslations("files");
+  const filesEnabled = usePolicyStore((s) => s.isFeatureEnabled('filesEnabled'));
   const { isAuthenticated, logout, checkAuth, isLoading: authLoading, client } = useAuthStore();
   const { showAppsModal, inlineApp, loadedApps, handleManageApps, handleInlineApp, closeInlineApp, closeAppsModal } = useSidebarApps();
   const [initialCheckDone, setInitialCheckDone] = useState(() => useAuthStore.getState().isAuthenticated && !!useAuthStore.getState().client);
@@ -393,11 +396,24 @@ export default function FilesPage() {
             )}
 
             <div className="flex-1 min-h-0">
-              {supportsFiles === false ? (
+              {!filesEnabled ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="max-w-lg text-center space-y-3 px-4">
+                    <AlertTriangle className="w-10 h-10 text-yellow-500 mx-auto" />
+                    <p className="text-sm font-medium">{t("disabled_title")}</p>
+                    <p className="text-xs text-muted-foreground">{t("disabled_description")}</p>
+                  </div>
+                </div>
+              ) : supportsFiles === false ? (
                 <div className="flex items-center justify-center h-full">
                   <p className="text-sm text-muted-foreground">{t("not_available")}</p>
                 </div>
               ) : (
+                <div className="flex flex-col flex-1 min-h-0">
+                  <div className="mx-4 mt-3 mb-1 flex items-start gap-2 rounded-md border border-yellow-500/30 bg-yellow-500/10 px-3 py-2">
+                    <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-yellow-700 dark:text-yellow-400">{t("stability_warning")}</p>
+                  </div>
                 <FileBrowser
                   currentPath={currentPath}
                   resources={resources}
@@ -442,6 +458,7 @@ export default function FilesPage() {
                   onToggleDetails={handleToggleDetails}
                   detailResource={detailResource}
                 />
+                </div>
               )}
             </div>
           </div>

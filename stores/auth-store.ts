@@ -87,6 +87,27 @@ function getClientRateLimitState(client: IJMAPClient | null): Pick<AuthState, 'i
   };
 }
 
+async function syncStalwartAuthContext(
+  serverUrl: string,
+  username: string,
+  authHeader: string,
+  slot: number,
+): Promise<void> {
+  try {
+    const response = await fetch('/api/auth/stalwart-context', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ serverUrl, username, authHeader, slot }),
+    });
+
+    if (!response.ok) {
+      debug.warn('auth', `Failed to sync Stalwart auth context: ${response.status}`);
+    }
+  } catch (error) {
+    debug.warn('auth', 'Failed to sync Stalwart auth context:', error);
+  }
+}
+
 function bindClientStatusHandlers(
   client: IJMAPClient,
   set: (state: Partial<AuthState>) => void,
@@ -393,13 +414,13 @@ export const useAuthStore = create<AuthState>()(
                 oauthAccessToken = access_token;
                 oauthExpiresIn = expires_in;
                 upgradedToOAuth = true;
-                debug.log('TOTP login upgraded to token-based auth (has_refresh_token=' + has_refresh_token + ')');
+                debug.log('auth', 'TOTP login upgraded to token-based auth (has_refresh_token=' + has_refresh_token + ')');
               } else {
                 const errorBody = await tokenRes.json().catch(() => ({ error: 'unknown' }));
-                debug.warn('TOTP token exchange failed:', tokenRes.status, errorBody);
+                debug.warn('auth', 'TOTP token exchange failed:', tokenRes.status, errorBody);
               }
             } catch (err) {
-              debug.warn('TOTP token exchange error:', err);
+              debug.warn('auth', 'TOTP token exchange error:', err);
             }
 
             // If token exchange failed, enable TOTP re-auth prompt so the
@@ -407,7 +428,7 @@ export const useAuthStore = create<AuthState>()(
             if (!upgradedToOAuth) {
               const { useTotpReauthStore } = await import('@/stores/totp-reauth-store');
               client.enableTotpReauth(password, () => useTotpReauthStore.getState().requestTotp());
-              debug.log('TOTP re-auth enabled — user will be prompted for fresh codes on session expiry');
+              debug.log('auth', 'TOTP re-auth enabled — user will be prompted for fresh codes on session expiry');
             }
           }
 
@@ -460,6 +481,8 @@ export const useAuthStore = create<AuthState>()(
               debug.error('Failed to store session:', err);
             }
           }
+
+          await syncStalwartAuthContext(serverUrl, username, client.getAuthHeader(), cookieSlot);
 
           set({
             isAuthenticated: true,
@@ -636,6 +659,8 @@ export const useAuthStore = create<AuthState>()(
           });
           accountStore.setActiveAccount(accountId);
 
+          await syncStalwartAuthContext(serverUrl, username, client.getAuthHeader(), slot);
+
           set({
             isAuthenticated: true,
             isLoading: false,
@@ -754,6 +779,9 @@ export const useAuthStore = create<AuthState>()(
           });
           accountStore.setActiveAccount(accountId);
 
+          const cookieSlot = accountStore.getAccountById(accountId)?.cookieSlot ?? 0;
+          await syncStalwartAuthContext(ssoServerUrl, username, client.getAuthHeader(), cookieSlot);
+
           set({
             isAuthenticated: true,
             isLoading: false,
@@ -824,6 +852,15 @@ export const useAuthStore = create<AuthState>()(
             const { access_token, expires_in } = await res.json();
 
             get().client?.updateAccessToken(access_token);
+
+            if (account) {
+              await syncStalwartAuthContext(
+                account.serverUrl,
+                account.username,
+                `Bearer ${access_token}`,
+                slot,
+              );
+            }
 
             set({
               accessToken: access_token,
@@ -1012,6 +1049,12 @@ export const useAuthStore = create<AuthState>()(
                 await targetClient.connect();
                 clients.set(accountId, targetClient);
                 scheduleRefresh(expires_in, get().refreshAccessToken, accountId);
+                await syncStalwartAuthContext(
+                  targetAccount.serverUrl,
+                  targetAccount.username,
+                  targetClient.getAuthHeader(),
+                  targetAccount.cookieSlot,
+                );
               }
             } else if (targetAccount.authMode === 'basic' && targetAccount.rememberMe) {
               const res = await fetch(`/api/auth/session?slot=${targetAccount.cookieSlot}`, { method: 'PUT' });
@@ -1021,6 +1064,7 @@ export const useAuthStore = create<AuthState>()(
                 bindClientStatusHandlers(targetClient, set, get, accountId);
                 await targetClient.connect();
                 clients.set(accountId, targetClient);
+                await syncStalwartAuthContext(serverUrl, username, targetClient.getAuthHeader(), targetAccount.cookieSlot);
               }
             }
           } catch (err) {
@@ -1174,6 +1218,7 @@ export const useAuthStore = create<AuthState>()(
                   await client.connect();
                   clients.set(account.id, client);
                   scheduleRefresh(expires_in, get().refreshAccessToken, account.id);
+                  await syncStalwartAuthContext(account.serverUrl, account.username, client.getAuthHeader(), account.cookieSlot);
                   accountStore.updateAccount(account.id, { isConnected: true, hasError: false });
                 } else {
                   throw new Error(`Token refresh failed: ${res.status}`);
@@ -1186,6 +1231,7 @@ export const useAuthStore = create<AuthState>()(
                   bindClientStatusHandlers(client, set, get, account.id);
                   await client.connect();
                   clients.set(account.id, client);
+                  await syncStalwartAuthContext(serverUrl, username, client.getAuthHeader(), account.cookieSlot);
                   accountStore.updateAccount(account.id, { isConnected: true, hasError: false });
                 } else {
                   throw new Error(`Session cookie missing: ${res.status}`);
@@ -1400,6 +1446,9 @@ export const useAuthStore = create<AuthState>()(
                   isDefault: accountStore.accounts.length === 0,
                 });
                 accountStore.setActiveAccount(accountId);
+
+                const cookieSlot = accountStore.getAccountById(accountId)?.cookieSlot ?? 0;
+                await syncStalwartAuthContext(serverUrl, username, client.getAuthHeader(), cookieSlot);
 
                 const { identities, primaryIdentity } = loadIdentities(await client.getIdentities(), username);
                 initializeFeatureStores(client);

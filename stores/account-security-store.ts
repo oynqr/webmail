@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { debug } from '@/lib/debug';
-import { useAuthStore } from './auth-store';
+import { getActiveAccountSlotHeaders } from '@/lib/auth/active-account-slot';
 
 interface AccountSecurityState {
   // Detection
@@ -44,13 +44,7 @@ interface AccountSecurityState {
 }
 
 function getApiHeaders(): Record<string, string> {
-  const { client } = useAuthStore.getState();
-  if (!client) return {};
-  return {
-    'Authorization': client.getAuthHeader(),
-    'X-JMAP-Server-URL': client.getServerUrl(),
-    'X-JMAP-Username': client.getUsername(),
-  };
+  return getActiveAccountSlotHeaders();
 }
 
 export const useAccountSecurityStore = create<AccountSecurityState>()((set, get) => ({

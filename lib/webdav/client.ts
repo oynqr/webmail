@@ -3,6 +3,8 @@
  * The server-side proxy handles auth and forwards requests to Stalwart's /dav/file/ endpoint.
  */
 
+import { getActiveAccountSlotHeaders } from '@/lib/auth/active-account-slot';
+
 export interface WebDAVResource {
   href: string;
   name: string;
@@ -26,6 +28,7 @@ export class WebDAVClient {
     const headers: Record<string, string> = {
       'X-WebDAV-Method': method,
       'X-WebDAV-Path': path,
+      ...getActiveAccountSlotHeaders(),
       ...options?.headers,
     };
 
@@ -118,6 +121,10 @@ export class WebDAVClient {
         xhr.open('POST', this.proxyUrl);
         xhr.setRequestHeader('X-WebDAV-Method', 'PUT');
         xhr.setRequestHeader('X-WebDAV-Path', path);
+        const slotHeaders = getActiveAccountSlotHeaders();
+        if (slotHeaders['X-JMAP-Cookie-Slot']) {
+          xhr.setRequestHeader('X-JMAP-Cookie-Slot', slotHeaders['X-JMAP-Cookie-Slot']);
+        }
         xhr.setRequestHeader('Content-Type',
           contentType || (file instanceof File ? file.type : 'application/octet-stream'));
 
