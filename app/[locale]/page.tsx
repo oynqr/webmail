@@ -1653,7 +1653,7 @@ export default function Home() {
                     onReplyAll={handleReplyAll}
                     onForward={handleForward}
                     onDelete={handleDelete}
-                    onArchive={handleArchive}
+                    onArchive={() => handleArchive()}
                     onToggleStar={handleToggleStar}
                     onSetColorTag={handleSetColorTag}
                     onMarkAsSpam={handleMarkAsSpam}
