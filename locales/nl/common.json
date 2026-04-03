@@ -1873,6 +1873,7 @@
     "back_to_email": "Terug naar e-mail",
     "back_to_month": "Terug naar maand",
     "my_calendars": "Mijn agenda's",
+    "birthday_calendar": "Verjaardagen",
     "mini_calendar_change": "Klik om van maand te wisselen",
     "views": {
       "month": "Maand",
@@ -2010,7 +2011,9 @@
       "hover_preview_delay_500ms": "0,5 seconde vertraging",
       "hover_preview_delay_1s": "1 seconde vertraging",
       "hover_preview_delay_2s": "2 seconden vertraging",
-      "hover_preview_off": "Uitgeschakeld"
+      "hover_preview_off": "Uitgeschakeld",
+      "show_birthday_calendar": "Verjaardagskalender",
+      "show_birthday_calendar_desc": "Toon een virtuele kalender met verjaardagen van je contacten"
     },
     "days": {
       "monday": "Maandag",

@@ -1873,6 +1873,7 @@
     "back_to_email": "Zurück zu E-Mails",
     "back_to_month": "Zurück zur Monatsansicht",
     "my_calendars": "Meine Kalender",
+    "birthday_calendar": "Geburtstage",
     "mini_calendar_change": "Klicken, um den Monat zu wechseln",
     "views": {
       "month": "Monat",
@@ -2010,7 +2011,9 @@
       "hover_preview_delay_500ms": "0,5 Sekunden Verzögerung",
       "hover_preview_delay_1s": "1 Sekunde Verzögerung",
       "hover_preview_delay_2s": "2 Sekunden Verzögerung",
-      "hover_preview_off": "Deaktiviert"
+      "hover_preview_off": "Deaktiviert",
+      "show_birthday_calendar": "Geburtstags-Kalender",
+      "show_birthday_calendar_desc": "Zeigt einen virtuellen Kalender mit Geburtstagen aus deinen Kontakten"
     },
     "days": {
       "monday": "Montag",

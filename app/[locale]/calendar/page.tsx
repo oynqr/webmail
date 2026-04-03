@@ -41,9 +41,11 @@ import { ResizeHandle } from "@/components/layout/resize-handle";
 import { sanitizeOutgoingCalendarEventData } from "@/lib/calendar-event-normalization";
 import { getEventStartDate } from "@/lib/calendar-utils";
 import { useTaskStore } from "@/stores/task-store";
+import { useContactStore } from "@/stores/contact-store";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent, CalendarParticipant } from "@/lib/jmap/types";
 import { getUserParticipantId } from "@/lib/calendar-participants";
+import { generateBirthdayEvents, createBirthdayCalendar, BIRTHDAY_CALENDAR_ID } from "@/lib/birthday-calendar";
 import { debug } from "@/lib/debug";
 
 type PendingScopeAction =
@@ -69,10 +71,11 @@ export default function CalendarPage() {
     setSelectedDate, setViewMode, toggleCalendarVisibility, updateCalendar,
     refreshAllSubscriptions, icalSubscriptions,
   } = useCalendarStore();
-  const { firstDayOfWeek, timeFormat, showWeekNumbers, enableCalendarTasks, showTasksOnCalendar, calendarHoverPreview } = useSettingsStore();
+  const { firstDayOfWeek, timeFormat, showWeekNumbers, enableCalendarTasks, showTasksOnCalendar, calendarHoverPreview, showBirthdayCalendar, birthdayCalendarColor, updateSetting } = useSettingsStore();
   const taskStore = useTaskStore();
   const fetchTasksFn = useTaskStore(state => state.fetchTasks);
   const { identities } = useIdentityStore();
+  const contacts = useContactStore((s) => s.contacts);
   const normalizedViewMode = isCalendarViewMode(viewMode) ? viewMode : "month";
 
   const currentUserEmails = useMemo(() =>
@@ -147,6 +150,13 @@ export default function CalendarPage() {
     const interval = setInterval(() => refreshAllSubscriptions(client), 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [client, refreshAllSubscriptions]);
+
+  // Auto-add birthday calendar to selected IDs when enabled
+  useEffect(() => {
+    if (showBirthdayCalendar && !selectedCalendarIds.includes(BIRTHDAY_CALENDAR_ID)) {
+      toggleCalendarVisibility(BIRTHDAY_CALENDAR_ID);
+    }
+  }, [showBirthdayCalendar]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const dateRange = useMemo(() => {
     const d = selectedDate;
@@ -743,14 +753,31 @@ export default function CalendarPage() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [navigatePrev, navigateNext, goToToday, setViewMode, openCreateModal, showEventModal, detailEvent, enableCalendarTasks]);
 
-  const visibleEvents = useMemo(() =>
-    events.filter((e) => {
+  const birthdayEvents = useMemo(() => {
+    if (!showBirthdayCalendar || !dateRange) return [];
+    return generateBirthdayEvents(contacts, dateRange.start, dateRange.end);
+  }, [showBirthdayCalendar, contacts, dateRange]);
+
+  const birthdayCalendarName = (() => {
+    try { return t('birthday_calendar'); } catch { return 'Birthdays'; }
+  })();
+
+  const allCalendars = useMemo(() => {
+    if (!showBirthdayCalendar) return calendars;
+    return [...calendars, createBirthdayCalendar(birthdayCalendarName, birthdayCalendarColor)];
+  }, [calendars, showBirthdayCalendar, birthdayCalendarName, birthdayCalendarColor]);
+
+  const visibleEvents = useMemo(() => {
+    const filtered = events.filter((e) => {
       if (!e.start || !e.calendarIds) return false;
       const calIds = Object.keys(e.calendarIds);
       return calIds.some((id) => selectedCalendarIds.includes(id));
-    }),
-    [events, selectedCalendarIds]
-  );
+    });
+    if (showBirthdayCalendar && selectedCalendarIds.includes(BIRTHDAY_CALENDAR_ID)) {
+      return [...filtered, ...birthdayEvents];
+    }
+    return filtered;
+  }, [events, selectedCalendarIds, showBirthdayCalendar, birthdayEvents]);
 
   useEffect(() => {
     const hiddenEvents = events.filter((event) => {
@@ -799,7 +826,7 @@ export default function CalendarPage() {
             <CalendarMonthView
               selectedDate={selectedDate}
               events={visibleEvents}
-              calendars={calendars}
+              calendars={allCalendars}
               onSelectDate={handleSelectDate}
               onSelectEvent={handleSelectEvent}
               onHoverEvent={handleHoverEvent}
@@ -815,7 +842,7 @@ export default function CalendarPage() {
             <CalendarWeekView
               selectedDate={selectedDate}
               events={visibleEvents}
-              calendars={calendars}
+              calendars={allCalendars}
               onSelectDate={handleSelectDate}
               onSelectEvent={handleSelectEvent}
               onHoverEvent={handleHoverEvent}
@@ -834,7 +861,7 @@ export default function CalendarPage() {
             <CalendarDayView
               selectedDate={selectedDate}
               events={visibleEvents}
-              calendars={calendars}
+              calendars={allCalendars}
               onSelectEvent={handleSelectEvent}
               onHoverEvent={handleHoverEvent}
               onHoverLeave={handleHoverLeave}
@@ -851,7 +878,7 @@ export default function CalendarPage() {
             <CalendarAgendaView
               selectedDate={selectedDate}
               events={visibleEvents}
-              calendars={calendars}
+              calendars={allCalendars}
               onSelectEvent={handleSelectEvent}
               onHoverEvent={handleHoverEvent}
               onHoverLeave={handleHoverLeave}
@@ -942,10 +969,14 @@ export default function CalendarPage() {
               showWeekNumbers={showWeekNumbers}
             />
             <CalendarSidebarPanel
-              calendars={calendars}
+              calendars={allCalendars}
               selectedCalendarIds={selectedCalendarIds}
               onToggleVisibility={toggleCalendarVisibility}
               onColorChange={client ? (calendarId, color) => {
+                if (calendarId === BIRTHDAY_CALENDAR_ID) {
+                  updateSetting('birthdayCalendarColor', color);
+                  return;
+                }
                 updateCalendar(client, calendarId, { color });
               } : undefined}
               onSubscribe={() => setShowSubscriptionModal(true)}

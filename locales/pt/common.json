@@ -1873,6 +1873,7 @@
     "back_to_email": "Voltar ao e-mail",
     "back_to_month": "Voltar ao mês",
     "my_calendars": "Meus calendários",
+    "birthday_calendar": "Aniversários",
     "mini_calendar_change": "Clique para mudar o mês",
     "views": {
       "month": "Mês",
@@ -2010,7 +2011,9 @@
       "hover_preview_delay_500ms": "Atraso de 0,5 segundos",
       "hover_preview_delay_1s": "Atraso de 1 segundo",
       "hover_preview_delay_2s": "Atraso de 2 segundos",
-      "hover_preview_off": "Desativado"
+      "hover_preview_off": "Desativado",
+      "show_birthday_calendar": "Calendário de aniversários",
+      "show_birthday_calendar_desc": "Mostrar um calendário virtual com os aniversários dos seus contactos"
     },
     "days": {
       "monday": "Segunda-feira",

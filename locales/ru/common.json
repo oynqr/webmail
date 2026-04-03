@@ -1873,6 +1873,7 @@
     "back_to_email": "Вернуться к почте",
     "back_to_month": "Вернуться к месяцу",
     "my_calendars": "Календари",
+    "birthday_calendar": "Дни рождения",
     "mini_calendar_change": "Нажмите для смены месяца",
     "views": {
       "month": "Месяц",
@@ -2010,7 +2011,9 @@
       "hover_preview_delay_500ms": "Задержка 0,5 секунды",
       "hover_preview_delay_1s": "Задержка 1 секунда",
       "hover_preview_delay_2s": "Задержка 2 секунды",
-      "hover_preview_off": "Отключено"
+      "hover_preview_off": "Отключено",
+      "show_birthday_calendar": "Календарь дней рождения",
+      "show_birthday_calendar_desc": "Показать виртуальный календарь с днями рождения из ваших контактов"
     },
     "days": {
       "monday": "Понедельник",

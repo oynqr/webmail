@@ -19,6 +19,7 @@ export function CalendarSettings() {
     showWeekNumbers,
     enableCalendarTasks,
     showTasksOnCalendar,
+    showBirthdayCalendar,
     calendarHoverPreview,
     updateSetting,
   } = useSettingsStore();
@@ -95,6 +96,16 @@ export function CalendarSettings() {
             { value: 'delay-2s', label: t('hover_preview_delay_2s') },
             { value: 'off', label: t('hover_preview_off') },
           ]}
+        />
+      </SettingItem>
+
+      <SettingItem
+        label={t('show_birthday_calendar')}
+        description={t('show_birthday_calendar_desc')}
+      >
+        <ToggleSwitch
+          checked={showBirthdayCalendar}
+          onChange={(checked) => updateSetting('showBirthdayCalendar', checked)}
         />
       </SettingItem>
 

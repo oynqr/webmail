@@ -153,6 +153,10 @@ interface SettingsState {
   enableCalendarTasks: boolean;
   showTasksOnCalendar: boolean;
 
+  // Contact Birthday Calendar
+  showBirthdayCalendar: boolean;
+  birthdayCalendarColor: string;
+
   // Email Notifications
   emailNotificationsEnabled: boolean;
   emailNotificationSound: boolean;
@@ -278,6 +282,10 @@ const DEFAULT_SETTINGS = {
   enableCalendarTasks: false,
   showTasksOnCalendar: true,
 
+  // Contact Birthday Calendar
+  showBirthdayCalendar: false,
+  birthdayCalendarColor: '#eab308',
+
   // Email Notifications
   emailNotificationsEnabled: true,
   emailNotificationSound: true,
@@ -392,6 +400,8 @@ export const useSettingsStore = create<SettingsState>()(
           calendarInvitationParsingEnabled: state.calendarInvitationParsingEnabled,
           enableCalendarTasks: state.enableCalendarTasks,
           showTasksOnCalendar: state.showTasksOnCalendar,
+          showBirthdayCalendar: state.showBirthdayCalendar,
+          birthdayCalendarColor: state.birthdayCalendarColor,
           expandedFilterView: state.expandedFilterView,
           showTimeInMonthView: state.showTimeInMonthView,
           showWeekNumbers: state.showWeekNumbers,

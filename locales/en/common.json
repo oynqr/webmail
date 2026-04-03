@@ -1876,6 +1876,7 @@
     "back_to_email": "Back to email",
     "back_to_month": "Back to month",
     "my_calendars": "Calendars",
+    "birthday_calendar": "Birthdays",
     "mini_calendar_change": "Click to change month",
     "views": {
       "month": "Month",
@@ -2013,7 +2014,9 @@
       "hover_preview_delay_500ms": "0.5-second delay",
       "hover_preview_delay_1s": "1-second delay",
       "hover_preview_delay_2s": "2-second delay",
-      "hover_preview_off": "Disabled"
+      "hover_preview_off": "Disabled",
+      "show_birthday_calendar": "Contact birthday calendar",
+      "show_birthday_calendar_desc": "Show a virtual calendar with birthdays from your contacts"
     },
     "days": {
       "monday": "Monday",

@@ -2,13 +2,14 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Globe, ListTodo, Pencil, RefreshCw, Share2, Trash2 } from "lucide-react";
+import { Globe, ListTodo, Pencil, RefreshCw, Share2, Trash2, Cake } from "lucide-react";
 import { cn, formatDateTime } from "@/lib/utils";
 import type { Calendar } from "@/lib/jmap/types";
 import { CalendarColorPicker } from "@/components/settings/calendar-management-settings";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useTaskStore } from "@/stores/task-store";
+import { BIRTHDAY_CALENDAR_ID } from "@/lib/birthday-calendar";
 import { toast } from "@/stores/toast-store";
 import type { IJMAPClient } from '@/lib/jmap/client-interface';
 
@@ -163,6 +164,9 @@ export function CalendarSidebarPanel({
                 <RefreshCw className="w-3 h-3 text-muted-foreground flex-shrink-0 animate-spin" />
               )}
             </>
+          )}
+          {cal.id === BIRTHDAY_CALENDAR_ID && (
+            <Cake className="w-3 h-3 text-muted-foreground flex-shrink-0" />
           )}
         </button>
 

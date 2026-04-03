@@ -1873,6 +1873,7 @@
     "back_to_email": "Retour aux e-mails",
     "back_to_month": "Retour au mois",
     "my_calendars": "Mes calendriers",
+    "birthday_calendar": "Anniversaires",
     "mini_calendar_change": "Cliquer pour changer de mois",
     "views": {
       "month": "Mois",
@@ -2010,7 +2011,9 @@
       "hover_preview_delay_500ms": "Délai de 0,5 seconde",
       "hover_preview_delay_1s": "Délai de 1 seconde",
       "hover_preview_delay_2s": "Délai de 2 secondes",
-      "hover_preview_off": "Désactivé"
+      "hover_preview_off": "Désactivé",
+      "show_birthday_calendar": "Calendrier des anniversaires",
+      "show_birthday_calendar_desc": "Afficher un calendrier virtuel avec les anniversaires de vos contacts"
     },
     "days": {
       "monday": "Lundi",

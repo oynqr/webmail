@@ -1873,6 +1873,7 @@
     "back_to_email": "メールに戻る",
     "back_to_month": "月表示に戻る",
     "my_calendars": "マイカレンダー",
+    "birthday_calendar": "誕生日",
     "mini_calendar_change": "クリックで月を変更",
     "views": {
       "month": "月",
@@ -2010,7 +2011,9 @@
       "hover_preview_delay_500ms": "0.5秒遅延",
       "hover_preview_delay_1s": "1秒遅延",
       "hover_preview_delay_2s": "2秒遅延",
-      "hover_preview_off": "無効"
+      "hover_preview_off": "無効",
+      "show_birthday_calendar": "誕生日カレンダー",
+      "show_birthday_calendar_desc": "連絡先の誕生日を表示する仮想カレンダーを表示します"
     },
     "days": {
       "monday": "月曜日",
