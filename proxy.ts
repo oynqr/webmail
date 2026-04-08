@@ -20,7 +20,7 @@ export function proxy(request: NextRequest) {
     `default-src 'self'`,
     `script-src ${scriptSrc}`,
     `style-src 'self' 'unsafe-inline'`,
-    `img-src 'self' data: https:`,
+    `img-src 'self' data: blob: https:`,
     `font-src 'self'`,
     `connect-src ${connectSrc}`,
     `frame-src 'none'`,
