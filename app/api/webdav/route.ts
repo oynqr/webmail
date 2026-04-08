@@ -79,10 +79,14 @@ export async function POST(request: NextRequest) {
     const overwrite = request.headers.get('Overwrite');
     if (overwrite) upstreamHeaders['Overwrite'] = overwrite;
 
-    // Forward request body for methods that need it
-    let body: ArrayBuffer | null = null;
-    if (method === 'PROPFIND' || method === 'PUT') {
+    // Forward request body for methods that need it.
+    // PUT streams directly to upstream to avoid buffering large uploads in memory.
+    // PROPFIND bodies are small XML and are read fully.
+    let body: ArrayBuffer | ReadableStream<Uint8Array> | null = null;
+    if (method === 'PROPFIND') {
       body = await request.arrayBuffer();
+    } else if (method === 'PUT') {
+      body = request.body;
     }
 
     const response = await fetch(targetUrl, {
@@ -90,7 +94,9 @@ export async function POST(request: NextRequest) {
       headers: upstreamHeaders,
       body,
       redirect: 'follow',
-    });
+      // `duplex: 'half'` is required by undici when sending a streaming request body.
+      ...(method === 'PUT' ? { duplex: 'half' } : {}),
+    } as RequestInit & { duplex?: 'half' });
 
     // For file downloads (GET), stream the response back
     if (method === 'GET') {
