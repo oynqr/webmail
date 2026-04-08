@@ -234,7 +234,17 @@ export const useFileStore = create<FileState>((set, get) => ({
         if (a.isDirectory !== b.isDirectory) return a.isDirectory ? -1 : 1;
         return a.name.localeCompare(b.name);
       });
-      set({ resources, isLoading: false });
+
+      // Prune recent files whose backing node no longer exists on the server
+      const { recentFiles } = get();
+      const existingIds = new Set(allNodes.map(n => n.id));
+      const prunedRecent = recentFiles.filter(r => existingIds.has(r.id));
+      if (prunedRecent.length !== recentFiles.length) {
+        try { localStorage.setItem('files-recent-files', JSON.stringify(prunedRecent)); } catch { /* ignore */ }
+        set({ resources, recentFiles: prunedRecent, isLoading: false });
+      } else {
+        set({ resources, isLoading: false });
+      }
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to list directory',
