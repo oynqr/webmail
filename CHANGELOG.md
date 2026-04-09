@@ -1,5 +1,51 @@
 # Changelog
 
+## 1.4.12 (2026-04-09)
+
+### Features
+
+- **PWA**: Add PWA support with service worker and install prompt
+- **Calendar**: Add birthday calendar feature with settings and localization
+- **Calendar**: Clamp February 29 birthdays in non-leap years
+- **Identity**: Add automatic identity synchronization (#167)
+- **Plugins**: Disable plugins by default and require admin approval
+- **Plugins**: Replace auth header exposure with a secure HTTP proxy API for plugins
+- **Auth**: Add configurable OAuth scopes and cookie security via environment variables
+- **Email**: Sync mail view to browser history for back/forward navigation
+- **Contacts**: Add ability to rename address books (#152)
+- **UI**: Add version badge in settings
+- **i18n**: Add Latvian (lv) locale support
+- **i18n**: Add Polish language support
+- **i18n**: Add Korean language support
+- **i18n**: Add Simplified Chinese (zh_CN) locale support
+
+### Fixes
+
+- **Email**: Show recipient instead of sender in Sent and Drafts folder lists
+- **Email**: Embed dropped images as data URLs and prevent duplicate attachments (#163)
+- **Email**: Fix logic for marking email as read in EmailViewer
+- **Email**: Fix archive action passing MouseEvent as argument
+- **Mailbox**: Preserve search filters on push-triggered mailbox refresh (#164)
+- **Mailbox**: Align shared account folders with primary folders (#151)
+- **Mailbox**: Fetch mailboxes on mount in FolderSettings when store is empty
+- **Mailbox**: Improve mailbox deletion error handling
+- **Calendar**: Improve calendar event retrieval by batching requests to avoid server limits (#141)
+- **Calendar**: Compute per-occurrence UTC start/end in recurrence expansion (#116)
+- **Calendar**: Guard against undefined trigger in calendar event alert popover (#143)
+- **Files**: Stream WebDAV PUT uploads to avoid buffering in memory (#162)
+- **Files**: Prune recent files against server nodes on refresh (#146)
+- **Files**: Fix file deletion logic to update recent files and handle errors (#146)
+- **Files**: Extend file drop zone to fill remaining viewport height
+- **Files**: Fallback to application/octet-stream for long MIME types
+- **Security**: Replace unguarded crypto.randomUUID() with safe generateUUID() utility
+- **Security**: Validate plugin HTTP post URL against origin with regression tests
+- **Security**: Allow blob images in CSP for inline drag-and-drop (#163)
+- **Auth**: Resolve settings sync identity mismatch for OAuth/SSO sessions (#127)
+- **Contacts**: Fix address book ID namespacing for shared contacts in create and update operations (#133)
+- **UI**: Fix focused mode expanding beyond screen bounds (#156)
+- **API**: Handle 403 on principal fetch without console error
+- **API**: Enhance error handling in Stalwart API responses
+
 ## 1.4.11 (2026-03-31)
 
 ### Features
