@@ -47,6 +47,7 @@ interface AuthState {
   checkAuth: () => Promise<void>;
   clearError: () => void;
   syncIdentities: () => void;
+  refreshIdentities: () => Promise<void>;
   getClientForAccount: (accountId: string) => JMAPClient | undefined;
 }
 
@@ -1511,6 +1512,18 @@ export const useAuthStore = create<AuthState>()(
         const identities = identityState.identities;
         const primaryIdentity = identities[0] ?? null;
         set({ identities, primaryIdentity });
+      },
+
+      refreshIdentities: async () => {
+        const { client, username } = get();
+        if (!client || !username) return;
+        try {
+          const rawIdentities = await client.getIdentities();
+          const { identities, primaryIdentity } = loadIdentities(rawIdentities, username);
+          set({ identities, primaryIdentity });
+        } catch {
+          // Silently fail — background sync should not surface errors to the user
+        }
       },
 
       getClientForAccount: (accountId: string) => {

@@ -14,6 +14,10 @@ function useSyncIdentities() {
   const syncIdentities = useAuthStore((state) => state.syncIdentities);
   return syncIdentities;
 }
+
+function useRefreshIdentities() {
+  return useAuthStore((state) => state.refreshIdentities);
+}
 import type { Identity, EmailAddress } from '@/lib/jmap/types';
 import { toast } from '@/stores/toast-store';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
@@ -48,6 +52,15 @@ export function IdentityManagerModal({ isOpen, onClose }: IdentityManagerModalPr
   const _preferredPrimaryId = useIdentityStore((state) => state.preferredPrimaryId);
   const setPreferredPrimary = useIdentityStore((state) => state.setPreferredPrimary);
   const syncIdentities = useSyncIdentities();
+
+  const refreshIdentitiesFromServer = useRefreshIdentities();
+
+  // Refresh identities from server whenever the modal is opened
+  useEffect(() => {
+    if (isOpen) {
+      refreshIdentitiesFromServer();
+    }
+  }, [isOpen, refreshIdentitiesFromServer]);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
