@@ -494,7 +494,13 @@
     "smime_unlock_title": "Unlock S/MIME Key",
     "smime_unlock_message": "Enter the passphrase to unlock your S/MIME signing key.",
     "smime_unlock_button": "Unlock",
-    "smime_passphrase_placeholder": "Passphrase"
+    "smime_passphrase_placeholder": "Passphrase",
+    "forgot_attachment": {
+      "title": "Did you forget an attachment?",
+      "message": "Your message mentions \"{keyword}\" but no file is attached. Send anyway?",
+      "send_anyway": "Send anyway",
+      "back": "Back to editing"
+    }
   },
   "confirm_dialog": {
     "confirm": "Confirm",
@@ -914,6 +920,15 @@
         "button": "Set as Default",
         "success": "Browser prompted to set as default",
         "error": "Your browser does not support this feature"
+      },
+      "attachment_reminder": {
+        "label": "Attachment Reminder",
+        "description": "Warn before sending when your message mentions attachments but none are attached",
+        "keywords_label": "Trigger keywords",
+        "keywords_description": "Words or phrases that trigger the reminder when found in your message",
+        "add_placeholder": "Add keyword...",
+        "add": "Add",
+        "remove": "Remove"
       }
     },
     "composer": {

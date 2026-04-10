@@ -103,6 +103,8 @@ export function EmailComposer({
   const timeFormat = useSettingsStore((state) => state.timeFormat);
   const plainTextMode = useSettingsStore((state) => state.plainTextMode);
   const autoSelectReplyIdentity = useSettingsStore((state) => state.autoSelectReplyIdentity);
+  const attachmentReminderEnabled = useSettingsStore((state) => state.attachmentReminderEnabled);
+  const attachmentReminderKeywords = useSettingsStore((state) => state.attachmentReminderKeywords);
 
   // Initialize with reply/forward data if provided
   const getInitialTo = () => {
@@ -212,6 +214,8 @@ export function EmailComposer({
   const [smimePassphrasePrompt, setSmimePassphrasePrompt] = useState<{ keyId: string; resolve: (passphrase: string) => void; reject: () => void } | null>(null);
   const [smimePassphraseInput, setSmimePassphraseInput] = useState('');
   const [smimePassphraseError, setSmimePassphraseError] = useState('');
+  const [showAttachmentWarning, setShowAttachmentWarning] = useState(false);
+  const [attachmentWarningKeyword, setAttachmentWarningKeyword] = useState('');
 
   const saveTemplateModalRef = useFocusTrap({
     isActive: showSaveAsTemplate,
@@ -222,6 +226,12 @@ export function EmailComposer({
   const closeDialogRef = useFocusTrap({
     isActive: showCloseDialog,
     onEscape: () => setShowCloseDialog(false),
+    restoreFocus: true,
+  });
+
+  const attachmentWarningRef = useFocusTrap({
+    isActive: showAttachmentWarning,
+    onEscape: () => setShowAttachmentWarning(false),
     restoreFocus: true,
   });
 
@@ -723,7 +733,7 @@ export function EmailComposer({
     return undefined;
   };
 
-  const handleSend = async () => {
+  const handleSend = async (skipAttachmentCheck = false) => {
     const ccAddresses = cc.split(",").map(e => e.trim()).filter(Boolean);
     const bccAddresses = bcc.split(",").map(e => e.trim()).filter(Boolean);
 
@@ -740,6 +750,21 @@ export function EmailComposer({
         toInputRef.current?.focus();
       }
       return;
+    }
+
+    // Attachment reminder check
+    if (!skipAttachmentCheck && attachmentReminderEnabled) {
+      const hasAttachments = attachments.some(att => att.blobId && !att.uploading && !att.error);
+      if (!hasAttachments) {
+        const bodyText = htmlToPlainText(body);
+        const searchText = `${subject} ${bodyText}`.toLowerCase();
+        const matched = attachmentReminderKeywords.find(kw => searchText.includes(kw.toLowerCase()));
+        if (matched) {
+          setAttachmentWarningKeyword(matched);
+          setShowAttachmentWarning(true);
+          return;
+        }
+      }
     }
 
     let finalDraftId = draftId;
@@ -1002,7 +1027,7 @@ export function EmailComposer({
         </div>
         {/* Mobile: send button in header */}
         <Button
-          onClick={handleSend}
+          onClick={() => handleSend()}
           disabled={!canSend}
           title={getSendTooltip()}
           size="sm"
@@ -1367,7 +1392,7 @@ export function EmailComposer({
               {t('discard')}
             </button>
             <Button
-              onClick={handleSend}
+              onClick={() => handleSend()}
               disabled={!canSend}
               title={getSendTooltip()}
               className="hidden md:inline-flex"
@@ -1461,6 +1486,36 @@ export function EmailComposer({
                 onClick={() => smimePassphrasePrompt.resolve(smimePassphraseInput)}
               >
                 {t('smime_unlock_button')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAttachmentWarning && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center z-[60] p-4 animate-in fade-in duration-150"
+          onClick={() => setShowAttachmentWarning(false)}
+        >
+          <div
+            ref={attachmentWarningRef}
+            role="alertdialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+            className="bg-background border border-border rounded-lg shadow-xl w-full max-w-md animate-in zoom-in-95 duration-200"
+          >
+            <div className="p-6">
+              <h2 className="text-lg font-semibold text-foreground">{t('forgot_attachment.title')}</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {t('forgot_attachment.message', { keyword: attachmentWarningKeyword })}
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-3 px-6 pb-6">
+              <Button variant="outline" onClick={() => setShowAttachmentWarning(false)}>
+                {t('forgot_attachment.back')}
+              </Button>
+              <Button onClick={() => { setShowAttachmentWarning(false); handleSend(true); }}>
+                {t('forgot_attachment.send_anyway')}
               </Button>
             </div>
           </div>

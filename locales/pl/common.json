@@ -494,7 +494,13 @@
     "smime_unlock_title": "Odblokuj klucz S/MIME",
     "smime_unlock_message": "Wprowadź hasło, aby odblokować klucz podpisywania S/MIME.",
     "smime_unlock_button": "Odblokuj",
-    "smime_passphrase_placeholder": "Hasło"
+    "smime_passphrase_placeholder": "Hasło",
+    "forgot_attachment": {
+      "title": "Did you forget an attachment?",
+      "message": "Your message mentions \"{keyword}\" but no file is attached. Send anyway?",
+      "send_anyway": "Send anyway",
+      "back": "Back to editing"
+    }
   },
   "confirm_dialog": {
     "confirm": "Potwierdź",
@@ -916,6 +922,15 @@
         "button": "Ustaw jako domyślny",
         "success": "Przeglądarka poprosiła o ustawienie jako domyślnego",
         "error": "Twoja przeglądarka nie obsługuje tej funkcji"
+      },
+      "attachment_reminder": {
+        "label": "Attachment Reminder",
+        "description": "Warn before sending when your message mentions attachments but none are attached",
+        "keywords_label": "Trigger keywords",
+        "keywords_description": "Words or phrases that trigger the reminder when found in your message",
+        "add_placeholder": "Add keyword...",
+        "add": "Add",
+        "remove": "Remove"
       }
     },
     "composer": {

@@ -494,7 +494,13 @@
     "close_draft_message": "Vous avez des modifications non enregistrées. Voulez-vous enregistrer comme brouillon ou supprimer ?",
     "save_draft": "Enregistrer le brouillon",
     "drop_files": "Déposez les fichiers à joindre",
-    "show_less": "Afficher moins"
+    "show_less": "Afficher moins",
+    "forgot_attachment": {
+      "title": "Did you forget an attachment?",
+      "message": "Your message mentions \"{keyword}\" but no file is attached. Send anyway?",
+      "send_anyway": "Send anyway",
+      "back": "Back to editing"
+    }
   },
   "confirm_dialog": {
     "confirm": "Confirmer",
@@ -914,6 +920,15 @@
         "button": "Définir par défaut",
         "success": "Le navigateur a été invité à définir par défaut",
         "error": "Votre navigateur ne prend pas en charge cette fonctionnalité"
+      },
+      "attachment_reminder": {
+        "label": "Attachment Reminder",
+        "description": "Warn before sending when your message mentions attachments but none are attached",
+        "keywords_label": "Trigger keywords",
+        "keywords_description": "Words or phrases that trigger the reminder when found in your message",
+        "add_placeholder": "Add keyword...",
+        "add": "Add",
+        "remove": "Remove"
       }
     },
     "composer": {

@@ -493,7 +493,13 @@
     "smime_unlock_title": "Atbloķēt S/MIME atslēgu",
     "smime_unlock_message": "Ievadiet paroli, lai atbloķētu savu S/MIME parakstīšanas atslēgu.",
     "smime_unlock_button": "Atbloķēt",
-    "smime_passphrase_placeholder": "Parole"
+    "smime_passphrase_placeholder": "Parole",
+    "forgot_attachment": {
+      "title": "Did you forget an attachment?",
+      "message": "Your message mentions \"{keyword}\" but no file is attached. Send anyway?",
+      "send_anyway": "Send anyway",
+      "back": "Back to editing"
+    }
   },
   "confirm_dialog": {
     "confirm": "Apstiprināt",
@@ -913,6 +919,15 @@
         "button": "Iestatīt kā noklusējumu",
         "success": "Pārlūkam nosūtīts pieprasījums iestatīt kā noklusējumu",
         "error": "Jūsu pārlūks neatbalsta šo funkciju"
+      },
+      "attachment_reminder": {
+        "label": "Attachment Reminder",
+        "description": "Warn before sending when your message mentions attachments but none are attached",
+        "keywords_label": "Trigger keywords",
+        "keywords_description": "Words or phrases that trigger the reminder when found in your message",
+        "add_placeholder": "Add keyword...",
+        "add": "Add",
+        "remove": "Remove"
       }
     },
     "composer": {

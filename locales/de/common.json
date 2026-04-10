@@ -494,7 +494,13 @@
     "close_draft_message": "Sie haben ungespeicherte Änderungen. Möchten Sie diese als Entwurf speichern oder verwerfen?",
     "save_draft": "Entwurf speichern",
     "drop_files": "Dateien zum Anhängen ablegen",
-    "show_less": "Weniger anzeigen"
+    "show_less": "Weniger anzeigen",
+    "forgot_attachment": {
+      "title": "Haben Sie den Anhang vergessen?",
+      "message": "Ihre Nachricht enthält \"{keyword}\", aber es ist keine Datei angehängt. Trotzdem senden?",
+      "send_anyway": "Trotzdem senden",
+      "back": "Zurück zur Bearbeitung"
+    }
   },
   "confirm_dialog": {
     "confirm": "Bestätigen",
@@ -914,6 +920,15 @@
         "button": "Als Standard festlegen",
         "success": "Browser wurde aufgefordert, als Standard festzulegen",
         "error": "Ihr Browser unterstützt diese Funktion nicht"
+      },
+      "attachment_reminder": {
+        "label": "Erinnerung an Anhang",
+        "description": "Warnung anzeigen, wenn die Nachricht Anhänge erwähnt, aber keine angehängt sind",
+        "keywords_label": "Schlüsselwörter",
+        "keywords_description": "Wörter oder Phrasen, die die Erinnerung auslösen",
+        "add_placeholder": "Schlüsselwort hinzufügen...",
+        "add": "Hinzufügen",
+        "remove": "Entfernen"
       }
     },
     "composer": {

@@ -185,6 +185,10 @@ interface SettingsState {
   // Keywords (labels/tags)
   emailKeywords: KeywordDefinition[];
 
+  // Attachment Reminder
+  attachmentReminderEnabled: boolean;
+  attachmentReminderKeywords: string[];
+
   // Sidebar Apps
   sidebarApps: SidebarApp[];
   keepAppsLoaded: boolean;
@@ -314,6 +318,37 @@ const DEFAULT_SETTINGS = {
   // Keywords
   emailKeywords: DEFAULT_KEYWORDS,
 
+  // Attachment Reminder
+  attachmentReminderEnabled: true,
+  attachmentReminderKeywords: [
+    // English
+    'attached', 'attachment', 'attachments', 'see attached', 'find attached', 'please find attached',
+    // German
+    'angehängt', 'anhang', 'anbei', 'im anhang',
+    // French
+    'ci-joint', 'pièce jointe',
+    // Spanish
+    'adjunto', 'adjunta', 'en adjunto',
+    // Italian
+    'allegato', 'in allegato',
+    // Dutch
+    'bijgevoegd', 'bijlage',
+    // Portuguese
+    'em anexo', 'anexo',
+    // Polish
+    'w załączniku',
+    // Russian
+    'во вложении',
+    // Japanese
+    '添付',
+    // Chinese
+    '附件',
+    // Korean
+    '첨부',
+    // Latvian
+    'pielikumā',
+  ] as string[],
+
   // Sidebar Apps
   sidebarApps: [] as SidebarApp[],
   keepAppsLoaded: false,
@@ -412,6 +447,8 @@ export const useSettingsStore = create<SettingsState>()(
           senderFavicons: state.senderFavicons,
           folderIcons: state.folderIcons,
           emailKeywords: state.emailKeywords,
+          attachmentReminderEnabled: state.attachmentReminderEnabled,
+          attachmentReminderKeywords: state.attachmentReminderKeywords,
           sidebarApps: state.sidebarApps,
           keepAppsLoaded: state.keepAppsLoaded,
           debugMode: state.debugMode,

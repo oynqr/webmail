@@ -494,7 +494,13 @@
     "smime_unlock_title": "S/MIME 키 잠금 해제",
     "smime_unlock_message": "S/MIME 서명 키의 잠금을 해제하려면 비밀번호를 입력해 주세요.",
     "smime_unlock_button": "잠금 해제",
-    "smime_passphrase_placeholder": "비밀번호"
+    "smime_passphrase_placeholder": "비밀번호",
+    "forgot_attachment": {
+      "title": "Did you forget an attachment?",
+      "message": "Your message mentions \"{keyword}\" but no file is attached. Send anyway?",
+      "send_anyway": "Send anyway",
+      "back": "Back to editing"
+    }
   },
   "confirm_dialog": {
     "confirm": "확인",
@@ -914,6 +920,15 @@
         "button": "기본값으로 설정",
         "success": "브라우저에서 기본 설정 팝업이 뜰 거예요",
         "error": "이 브라우저에서는 이 기능을 지원하지 않아요"
+      },
+      "attachment_reminder": {
+        "label": "Attachment Reminder",
+        "description": "Warn before sending when your message mentions attachments but none are attached",
+        "keywords_label": "Trigger keywords",
+        "keywords_description": "Words or phrases that trigger the reminder when found in your message",
+        "add_placeholder": "Add keyword...",
+        "add": "Add",
+        "remove": "Remove"
       }
     },
     "composer": {

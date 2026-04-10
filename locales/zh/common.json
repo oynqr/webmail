@@ -494,7 +494,13 @@
     "smime_unlock_title": "解锁 S/MIME 密钥",
     "smime_unlock_message": "输入密码以解锁您的 S/MIME 签名密钥。",
     "smime_unlock_button": "解锁",
-    "smime_passphrase_placeholder": "输入密码"
+    "smime_passphrase_placeholder": "输入密码",
+    "forgot_attachment": {
+      "title": "Did you forget an attachment?",
+      "message": "Your message mentions \"{keyword}\" but no file is attached. Send anyway?",
+      "send_anyway": "Send anyway",
+      "back": "Back to editing"
+    }
   },
   "confirm_dialog": {
     "confirm": "确认",
@@ -914,6 +920,15 @@
         "button": "设为默认",
         "success": "浏览器已提示设置为默认",
         "error": "您的浏览器不支持此功能"
+      },
+      "attachment_reminder": {
+        "label": "Attachment Reminder",
+        "description": "Warn before sending when your message mentions attachments but none are attached",
+        "keywords_label": "Trigger keywords",
+        "keywords_description": "Words or phrases that trigger the reminder when found in your message",
+        "add_placeholder": "Add keyword...",
+        "add": "Add",
+        "remove": "Remove"
       }
     },
     "composer": {

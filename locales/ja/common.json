@@ -494,7 +494,13 @@
     "close_draft_message": "未保存の変更があります。下書きとして保存しますか、それとも破棄しますか？",
     "save_draft": "下書きを保存",
     "drop_files": "ファイルをドロップして添付",
-    "show_less": "折りたたむ"
+    "show_less": "折りたたむ",
+    "forgot_attachment": {
+      "title": "Did you forget an attachment?",
+      "message": "Your message mentions \"{keyword}\" but no file is attached. Send anyway?",
+      "send_anyway": "Send anyway",
+      "back": "Back to editing"
+    }
   },
   "confirm_dialog": {
     "confirm": "確認",
@@ -914,6 +920,15 @@
         "button": "既定に設定",
         "success": "ブラウザに既定として設定するよう要求しました",
         "error": "お使いのブラウザはこの機能をサポートしていません"
+      },
+      "attachment_reminder": {
+        "label": "Attachment Reminder",
+        "description": "Warn before sending when your message mentions attachments but none are attached",
+        "keywords_label": "Trigger keywords",
+        "keywords_description": "Words or phrases that trigger the reminder when found in your message",
+        "add_placeholder": "Add keyword...",
+        "add": "Add",
+        "remove": "Remove"
       }
     },
     "composer": {

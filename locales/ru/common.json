@@ -494,7 +494,13 @@
     "smime_unlock_title": "Разблокировать ключ S/MIME",
     "smime_unlock_message": "Введите парольную фразу для разблокировки вашего ключа подписи S/MIME.",
     "smime_unlock_button": "Разблокировать",
-    "smime_passphrase_placeholder": "Парольная фраза"
+    "smime_passphrase_placeholder": "Парольная фраза",
+    "forgot_attachment": {
+      "title": "Did you forget an attachment?",
+      "message": "Your message mentions \"{keyword}\" but no file is attached. Send anyway?",
+      "send_anyway": "Send anyway",
+      "back": "Back to editing"
+    }
   },
   "confirm_dialog": {
     "confirm": "Подтвердить",
@@ -914,6 +920,15 @@
         "button": "Установить по умолчанию",
         "success": "Браузер запрошен для установки по умолчанию",
         "error": "Ваш браузер не поддерживает эту функцию"
+      },
+      "attachment_reminder": {
+        "label": "Attachment Reminder",
+        "description": "Warn before sending when your message mentions attachments but none are attached",
+        "keywords_label": "Trigger keywords",
+        "keywords_description": "Words or phrases that trigger the reminder when found in your message",
+        "add_placeholder": "Add keyword...",
+        "add": "Add",
+        "remove": "Remove"
       }
     },
     "composer": {

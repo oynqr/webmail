@@ -494,7 +494,13 @@
     "close_draft_message": "Você tem alterações não salvas. Deseja salvar como rascunho ou descartar?",
     "save_draft": "Salvar rascunho",
     "drop_files": "Solte arquivos para anexar",
-    "show_less": "Mostrar menos"
+    "show_less": "Mostrar menos",
+    "forgot_attachment": {
+      "title": "Did you forget an attachment?",
+      "message": "Your message mentions \"{keyword}\" but no file is attached. Send anyway?",
+      "send_anyway": "Send anyway",
+      "back": "Back to editing"
+    }
   },
   "confirm_dialog": {
     "confirm": "Confirmar",
@@ -914,6 +920,15 @@
         "button": "Definir como padrão",
         "success": "O navegador solicitou definir como padrão",
         "error": "Seu navegador não suporta esta funcionalidade"
+      },
+      "attachment_reminder": {
+        "label": "Attachment Reminder",
+        "description": "Warn before sending when your message mentions attachments but none are attached",
+        "keywords_label": "Trigger keywords",
+        "keywords_description": "Words or phrases that trigger the reminder when found in your message",
+        "add_placeholder": "Add keyword...",
+        "add": "Add",
+        "remove": "Remove"
       }
     },
     "composer": {
