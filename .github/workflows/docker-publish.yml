@@ -22,7 +22,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
+  IMAGE_NAME: ghcr.io/${{ github.repository }}-${{ github.ref_name }}
 
 jobs:
   build:
@@ -115,8 +115,8 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value={{branch}}
-            type=sha,prefix={{branch}}-
+            type=raw,value=latest
+            type=sha
 
       - name: Create manifest list and push
         working-directory: /tmp/digests
