@@ -10,6 +10,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useThemeStore } from "@/stores/theme-store";
 import { useShallow } from "zustand/react/shallow";
 import { useConfig } from "@/hooks/use-config";
+import { getPathPrefix } from "@/lib/browser-navigation";
 import { cn } from "@/lib/utils";
 import { AlertCircle, Loader2, X, Info, Eye, EyeOff, LogIn, Sun, Moon, Monitor, Check, Shield, Play, Copy } from "lucide-react";
 import { discoverOAuth, type OAuthMetadata } from "@/lib/oauth/discovery";
@@ -231,7 +232,8 @@ export default function LoginPage() {
   const startServerSideSso = useCallback(async () => {
     setOauthLoading(true);
     try {
-      const redirectUri = `${window.location.origin}/${params.locale}/auth/callback`;
+      const prefix = getPathPrefix(params.locale as string);
+      const redirectUri = `${window.location.origin}${prefix}/${params.locale}/auth/callback`;
       const res = await fetch('/api/auth/sso/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
