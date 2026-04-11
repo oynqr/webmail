@@ -399,6 +399,13 @@ export const sidebarAppHooks = {
   onSidebarAppChange: new HookBus(),
 };
 
+// §7.21 Avatar Hooks
+// Transform hook: handlers receive (currentUrl: string | null, context: { email: string; name?: string })
+// and return a URL string to use as the avatar, or undefined/null to pass through to the next handler.
+export const avatarHooks = {
+  onAvatarResolve: new HookBus(),
+};
+
 // ─── Aggregate: remove all handlers for a plugin across all buses ───
 
 const allHookGroups = [
@@ -407,6 +414,7 @@ const allHookGroups = [
   taskHooks, templateHooks, smimeHooks, vacationHooks,
   uiHooks, themeHooks, toastHooks, dragDropHooks,
   keyboardHooks, appLifecycleHooks, accountSecurityHooks, sidebarAppHooks,
+  avatarHooks,
 ];
 
 export function removeAllPluginHooks(pluginId: string): void {

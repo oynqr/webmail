@@ -22,7 +22,7 @@ import {
   taskHooks, templateHooks, smimeHooks, vacationHooks,
   uiHooks, themeHooks, toastHooks, dragDropHooks,
   keyboardHooks, appLifecycleHooks, accountSecurityHooks,
-  sidebarAppHooks,
+  sidebarAppHooks, avatarHooks,
 } from './plugin-hooks';
 import { toast as appToast } from '@/stores/toast-store';
 import { useAuthStore } from '@/stores/auth-store';
@@ -314,6 +314,8 @@ export interface PluginHooksAPI {
   onSidebarAppOpen: (handler: (...args: unknown[]) => unknown) => Disposable;
   onSidebarAppClose: (handler: (...args: unknown[]) => unknown) => Disposable;
   onSidebarAppChange: (handler: (...args: unknown[]) => unknown) => Disposable;
+  // Avatar
+  onAvatarResolve: (handler: (...args: unknown[]) => unknown) => Disposable;
 }
 
 // --- Permission mapping for hooks ----------------------------
@@ -417,6 +419,8 @@ const HOOK_PERMISSIONS: Record<string, Permission> = {
   // Sidebar Apps
   onSidebarAppOpen: 'ui:observe', onSidebarAppClose: 'ui:observe',
   onSidebarAppChange: 'ui:observe',
+  // Avatar
+  onAvatarResolve: 'email:read',
 };
 
 // Map hook names â†’ actual HookBus instances
@@ -463,6 +467,8 @@ const HOOK_BUSES: Record<string, { register: (pluginId: string, handler: (...arg
   ...Object.fromEntries(Object.entries(accountSecurityHooks)),
   // Sidebar Apps
   ...Object.fromEntries(Object.entries(sidebarAppHooks)),
+  // Avatar
+  ...Object.fromEntries(Object.entries(avatarHooks)),
 };
 
 // --- Slot registration bridge --------------------------------

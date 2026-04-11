@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useContactStore, getContactPhotoUri } from "@/stores/contact-store";
 import { useConfig } from "@/hooks/use-config";
+import { avatarHooks } from "@/lib/plugin-hooks";
 
 const IS_DEV = process.env.NODE_ENV !== "production";
 
@@ -143,9 +144,25 @@ interface AvatarProps {
 
 export function Avatar({ name, email, contactPhotoUri, size = "md", className }: AvatarProps) {
   const [imgError, setImgError] = useState(false);
+  const [pluginAvatarUrl, setPluginAvatarUrl] = useState<string | null>(null);
+  const [pluginAvatarFailed, setPluginAvatarFailed] = useState(false);
   const senderFavicons = useSettingsStore((s) => s.senderFavicons);
   const contacts = useContactStore((s) => s.contacts);
   const { devMode } = useConfig();
+
+  // Ask plugins (e.g. Gravatar) to resolve an avatar URL for this email address.
+  // Runs whenever email or name changes; resets plugin avatar state on each change.
+  useEffect(() => {
+    setPluginAvatarUrl(null);
+    setPluginAvatarFailed(false);
+    if (!email || avatarHooks.onAvatarResolve.size === 0) return;
+    let cancelled = false;
+    avatarHooks.onAvatarResolve
+      .transform(null as string | null, { email, name })
+      .then((url) => { if (!cancelled) setPluginAvatarUrl(url); })
+      .catch(() => { if (!cancelled) setPluginAvatarFailed(true); });
+    return () => { cancelled = true; };
+  }, [email, name]);
 
   // Look up contact photo by email from the contact store
   const resolvedContactPhoto = useMemo(() => {
@@ -202,19 +219,25 @@ export function Avatar({ name, email, contactPhotoUri, size = "md", className }:
   const showFavicon =
     senderFavicons && faviconDomain && !PERSONAL_DOMAINS.has(faviconDomain) && !imgError && !domainFailed;
 
-  // Priority: contact photo > custom avatar > profile picture > company favicon > initials
+  // Priority: contact photo > plugin avatar (e.g. Gravatar) > custom avatar > profile picture > company favicon > initials
   const customAvatar = devMode && email ? CUSTOM_AVATARS[email.toLowerCase()] : null;
+  const pluginAvatar = pluginAvatarFailed ? null : pluginAvatarUrl;
   const imgSrc = !imgError && !domainFailed
-    ? resolvedContactPhoto || customAvatar || profilePic || (showFavicon ? `/api/favicon?domain=${encodeURIComponent(faviconDomain!)}` : null)
-    : (resolvedContactPhoto || customAvatar || profilePic || null);
+    ? resolvedContactPhoto || pluginAvatar || customAvatar || profilePic || (showFavicon ? `/api/favicon?domain=${encodeURIComponent(faviconDomain!)}` : null)
+    : (resolvedContactPhoto || pluginAvatar || customAvatar || profilePic || null);
 
   const handleImgError = useCallback(() => {
+    // If the plugin avatar just failed, mark it and fall through to the next source
+    if (pluginAvatar && imgSrc === pluginAvatar) {
+      setPluginAvatarFailed(true);
+      return;
+    }
     setImgError(true);
-    // If this was a favicon URL (not a contact photo, custom avatar or profile pic), remember the domain
-    if (faviconDomain && !resolvedContactPhoto && !customAvatar && !profilePic) {
+    // If this was a favicon URL (not a contact photo, plugin avatar, custom avatar or profile pic), remember the domain
+    if (faviconDomain && !resolvedContactPhoto && !pluginAvatar && !customAvatar && !profilePic) {
       failedFaviconDomains.add(faviconDomain);
     }
-  }, [faviconDomain, resolvedContactPhoto, customAvatar, profilePic]);
+  }, [imgSrc, pluginAvatar, faviconDomain, resolvedContactPhoto, customAvatar, profilePic]);
 
   return (
     <div
