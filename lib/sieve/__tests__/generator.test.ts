@@ -194,9 +194,9 @@ describe('generateScript', () => {
       expect(script).toContain('addflag "\\\\Flagged";');
     });
 
-    it('generates add_label as addflag $Label', () => {
+    it('generates add_label as addflag $label:Label', () => {
       const script = generateScript([makeRule({ actions: [{ type: 'add_label', value: 'Important' }] })]);
-      expect(script).toContain('addflag "$Important";');
+      expect(script).toContain('addflag "$label:Important";');
     });
 
     it('generates discard', () => {

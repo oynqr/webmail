@@ -51,9 +51,9 @@ export function EmailListItem({ email, selected, onClick, onContextMenu, onToggl
   const isFocusedMailLayout = mailLayout === 'focus';
   const inlinePreview = showPreview && email.preview ? ` ${email.preview}` : '';
 
-  // Resolve color tags using keyword definitions from settings
+  // Resolve color tags using keyword definitions from settings; unknown tags fall back to gray
   const colorTagIds = getEmailColorTags(email.keywords);
-  const keywordDefs = colorTagIds.map(id => emailKeywords.find(k => k.id === id)).filter(Boolean) as typeof emailKeywords;
+  const keywordDefs = colorTagIds.map(id => emailKeywords.find(k => k.id === id) ?? { id, label: id, color: 'gray' });
   // Use first tag for background coloring
   const keywordDef = keywordDefs[0] ?? null;
   const colorTag = keywordDef ? KEYWORD_PALETTE[keywordDef.color]?.bg ?? null : null;

@@ -17,6 +17,7 @@ import type {
 } from "@/lib/jmap/sieve-types";
 import type { Mailbox } from "@/lib/jmap/types";
 import { buildMailboxTree, flattenMailboxTree, type MailboxNode, generateUUID } from "@/lib/utils";
+import { useSettingsStore } from "@/stores/settings-store";
 
 interface FilterRuleModalProps {
   rule?: FilterRule;
@@ -58,6 +59,7 @@ export function FilterRuleModal({
 }: FilterRuleModalProps) {
   const t = useTranslations("settings.filters");
   const isEdit = !!rule;
+  const emailKeywords = useSettingsStore((state) => state.emailKeywords);
 
   const [name, setName] = useState(rule?.name || "");
   const [matchType, setMatchType] = useState<"all" | "any">(rule?.matchType || "all");
@@ -375,12 +377,17 @@ export function FilterRuleModal({
                   )}
 
                   {action.type === "add_label" && (
-                    <Input
+                    <select
                       value={action.value || ""}
                       onChange={(e) => updateAction(index, { value: e.target.value })}
-                      placeholder={t("label_placeholder")}
-                      className="flex-1 min-w-[140px]"
-                    />
+                      className={`${selectClass} flex-1 min-w-[140px]`}
+                      aria-label={t("label_placeholder")}
+                    >
+                      <option value="">{t("label_placeholder")}</option>
+                      {emailKeywords.map((kw) => (
+                        <option key={kw.id} value={kw.id}>{kw.label}</option>
+                      ))}
+                    </select>
                   )}
 
                   <button

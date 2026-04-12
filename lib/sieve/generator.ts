@@ -65,7 +65,7 @@ function generateActions(actions: FilterAction[]): string[] {
       case 'star':
         return 'addflag "\\\\Flagged";';
       case 'add_label':
-        return `addflag "$${escapeString(action.value || '')}";`;
+        return `addflag "$label:${escapeString(action.value || '')}";`;
       case 'discard':
         return 'discard;';
       case 'reject':

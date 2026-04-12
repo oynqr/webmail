@@ -3070,13 +3070,13 @@ export function EmailViewer({
               <>
                 <span className="flex items-center gap-0.5">
                   {currentColors.slice(0, 3).map((tagId) => {
-                    const kw = emailKeywords.find(k => k.id === tagId);
-                    return kw ? <span key={tagId} className={cn("w-3 h-3 rounded-full", KEYWORD_PALETTE[kw.color]?.dot)} /> : null;
+                    const kw = emailKeywords.find(k => k.id === tagId) ?? { id: tagId, label: tagId, color: 'gray' };
+                    return <span key={tagId} className={cn("w-3 h-3 rounded-full", KEYWORD_PALETTE[kw.color]?.dot || 'bg-gray-500')} />;
                   })}
                 </span>
                 {showToolbarLabels && currentColors.length === 1 && (
                   <span className="text-xs font-medium text-foreground">
-                    {emailKeywords.find(k => k.id === currentColors[0])?.label}
+                    {emailKeywords.find(k => k.id === currentColors[0])?.label ?? currentColors[0]}
                   </span>
                 )}
               </>
@@ -3674,11 +3674,11 @@ export function EmailViewer({
                 {currentColors.length > 0 && (
                   <span className="flex items-center gap-0.5">
                     {currentColors.map((tagId) => {
-                      const kw = emailKeywords.find(k => k.id === tagId);
-                      const dotClass = kw ? KEYWORD_PALETTE[kw.color]?.dot : null;
-                      return dotClass ? (
-                        <span key={tagId} className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", dotClass)} title={kw!.label} />
-                      ) : null;
+                      const kw = emailKeywords.find(k => k.id === tagId) ?? { id: tagId, label: tagId, color: 'gray' };
+                      const dotClass = KEYWORD_PALETTE[kw.color]?.dot || 'bg-gray-500';
+                      return (
+                        <span key={tagId} className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", dotClass)} title={kw.label} />
+                      );
                     })}
                   </span>
                 )}

@@ -67,9 +67,9 @@ const SingleEmailItem = React.forwardRef<HTMLDivElement, SingleEmailItemProps>(
     const isFocusedMailLayout = mailLayout === 'focus';
     const inlinePreview = showPreview && email.preview ? ` ${email.preview}` : '';
 
-    // Resolve color tags using keyword definitions
+    // Resolve color tags using keyword definitions; unknown tags fall back to gray
     const tagIds = getEmailColorTags(email.keywords);
-    const resolvedKeywordDefs = tagIds.map(id => emailKeywords.find(k => k.id === id)).filter(Boolean) as typeof emailKeywords;
+    const resolvedKeywordDefs = tagIds.map(id => emailKeywords.find(k => k.id === id) ?? { id, label: id, color: 'gray' });
     const resolvedKeywordDef = resolvedKeywordDefs[0] ?? null;
     const resolvedColorTag = (() => {
       if (colorTag) return colorTag;
@@ -375,7 +375,7 @@ export const ThreadListItem = React.forwardRef<HTMLDivElement, ThreadListItemPro
 
     const threadColor = getThreadColorTag(thread.emails);
     const emailKeywordDefs = useSettingsStore((state) => state.emailKeywords);
-    const keywordDef = threadColor ? emailKeywordDefs.find(k => k.id === threadColor) : null;
+    const keywordDef = threadColor ? (emailKeywordDefs.find(k => k.id === threadColor) ?? { id: threadColor, label: threadColor, color: 'gray' }) : null;
     const colorTag = keywordDef ? KEYWORD_PALETTE[keywordDef.color]?.bg ?? null : null;
 
     const isSelected = selectedEmailId === latestEmail.id ||
