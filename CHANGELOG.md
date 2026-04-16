@@ -1,5 +1,41 @@
 # Changelog
 
+## 1.4.14 (2026-04-16)
+
+Thank you for your donations:
+
+**One-time**
+- [@mkorthaus-private](https://github.com/mkorthaus-private)
+- [@boris22100](https://github.com/boris22100)
+
+**Monthly**
+- [@pr0ton11](https://github.com/pr0ton11)
+
+### Features
+
+- **Email**: Add unified mailbox across accounts and sidebar icons toggle
+- **Email**: Enhance email deletion and spam handling with improved parameterization
+- **Sieve**: Enhance external rule handling in parser and store (#201)
+- **Plugins**: Add i18n API, render hooks, and new intercept hooks to plugin system
+- **PWA**: Dynamic PWA manifest with configurable name, description, and icons
+- **PWA**: Show app name and logo in install prompt
+- **i18n**: Add Ukrainian language with flags and missing translation keys
+- **i18n**: Configurable locale prefix via `NEXT_PUBLIC_LOCALE_PREFIX`
+- **API**: Add `apiFetch` helper for mount-prefix-aware API calls
+
+### Fixes
+
+- **Calendar**: Send iMIP invitation emails when creating or updating calendar events (#192)
+- **Calendar**: RFC 5545/6047 compliance for outgoing iMIP calendar emails
+- **Calendar**: Add `calendarAddress` and `replyTo` to participants for Stalwart compatibility (#189, #192)
+- **Calendar**: Improve CalDAV task detection for external clients like Thunderbird (#84)
+- **Email**: Hide ICS attachments from attachment list when invitation banner is shown
+- **Email**: Send before storing in Sent via `onSuccessUpdateEmail` (#188)
+- **Email**: Standardize tag naming and fix unknown keyword display (#184, #185)
+- **i18n**: Skip intl middleware for paths already containing a locale prefix
+- **Docs**: Document PWA and branding env vars in `.env.example`
+- **Docs**: Use `company` consistently in `.env.example` branding comments
+
 ## 1.4.13 (2026-04-12)
 
 Thank you for your donations:
