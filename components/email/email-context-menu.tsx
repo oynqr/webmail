@@ -66,6 +66,7 @@ interface EmailContextMenuProps {
   // Batch actions
   onBatchMarkAsRead?: (read: boolean) => void;
   onBatchDelete?: () => void;
+  onBatchArchive?: () => void;
   onBatchMoveToMailbox?: (mailboxId: string) => void;
   onBatchMarkAsSpam?: () => void;
   onBatchUndoSpam?: () => void;
@@ -127,6 +128,7 @@ export function EmailContextMenu({
   onUndoSpam,
   onBatchMarkAsRead,
   onBatchDelete,
+  onBatchArchive,
   onBatchMoveToMailbox,
   onBatchMarkAsSpam,
   onBatchUndoSpam,
@@ -235,8 +237,10 @@ export function EmailContextMenu({
       <ContextMenuItem
         icon={Archive}
         label={t("archive")}
-        onClick={() => handleAction(onArchive!)}
-        disabled={!onArchive}
+        onClick={() =>
+          handleAction(showBatchActions ? onBatchArchive! : onArchive!)
+        }
+        disabled={showBatchActions ? !onBatchArchive : !onArchive}
       />
 
       {/* Delete */}

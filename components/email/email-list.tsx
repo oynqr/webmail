@@ -496,6 +496,14 @@ export function EmailList({
           onEditDraft={() => onEditDraft?.(contextMenu.data!)}
           onBatchMarkAsRead={(read) => client && batchMarkAsRead(client, read)}
           onBatchDelete={() => client && batchDelete(client)}
+          onBatchArchive={async () => {
+            if (!onArchive) return;
+            const selected = emails.filter((e) => selectedEmailIds.has(e.id));
+            for (const email of selected) {
+              await onArchive(email);
+            }
+            clearSelection();
+          }}
           onBatchMoveToMailbox={(mailboxId) => client && batchMoveToMailbox(client, mailboxId)}
           onBatchMarkAsSpam={async () => {
             if (client) {
