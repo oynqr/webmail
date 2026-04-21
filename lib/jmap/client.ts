@@ -1316,7 +1316,13 @@ export class JMAPClient implements IJMAPClient {
 
     const result = response.methodResponses?.[0]?.[1];
     if (result?.notCreated?.[createId]) {
-      throw new Error(`Failed to create mailbox: ${result.notCreated[createId].type || 'unknown error'}`);
+      const err = result.notCreated[createId];
+      const details = [err.type || 'unknown error'];
+      if (Array.isArray(err.properties) && err.properties.length > 0) {
+        details.push(`properties=[${err.properties.join(', ')}]`);
+      }
+      if (err.description) details.push(err.description);
+      throw new Error(`Failed to create mailbox: ${details.join(' — ')}`);
     }
 
     const created = result?.created?.[createId];
