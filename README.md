@@ -386,7 +386,6 @@ Enables the admin marketplace for browsing and installing plugins and themes.
 
 ```env
 STALWART_FEATURES=true               # Password change, sieve filters, etc.
-STALWART_API_URL=https://admin.example.com  # If reverse proxy doesn't forward /api/*
 
 LOG_FORMAT=text                      # "text" or "json"
 LOG_LEVEL=info                       # "error", "warn", "info", "debug"
