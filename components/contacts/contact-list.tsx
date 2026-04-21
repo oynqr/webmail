@@ -233,6 +233,30 @@ export function ContactList({
 
   const sortedIds = useMemo(() => sorted.map(c => c.id), [sorted]);
 
+  // Group sorted contacts by first letter of display name. Non-letter
+  // starters (digits, symbols, empty) collect under "#" which sorts last.
+  const groupedSections = useMemo(() => {
+    const collator = new Intl.Collator(locale, { sensitivity: "base" });
+    const groups = new Map<string, ContactCard[]>();
+    for (const contact of sorted) {
+      const name = getContactDisplayName(contact).trim();
+      const first = name.charAt(0);
+      const letter = first && first.toLocaleUpperCase(locale).match(/\p{L}/u)
+        ? first.toLocaleUpperCase(locale)
+        : "#";
+      const bucket = groups.get(letter);
+      if (bucket) bucket.push(contact);
+      else groups.set(letter, [contact]);
+    }
+    return Array.from(groups.entries())
+      .sort(([a], [b]) => {
+        if (a === "#") return 1;
+        if (b === "#") return -1;
+        return collator.compare(a, b);
+      })
+      .map(([letter, items]) => ({ letter, items }));
+  }, [sorted, locale]);
+
   const hasSelection = selectedContactIds.size > 0;
   const allSelected = sorted.length > 0 && sorted.every(c => selectedContactIds.has(c.id));
 
@@ -505,33 +529,40 @@ export function ContactList({
           </div>
         ) : (
           <div>
-            {sorted.map((contact) => (
-              <ContactListItem
-                key={contact.id}
-                contact={contact}
-                isSelected={contact.id === selectedContactId}
-                isChecked={selectedContactIds.has(contact.id)}
-                hasSelection={hasSelection}
-                density={density}
-                selectedContactIds={selectedContactIds}
-                onClick={(e) => {
-                  if (e.ctrlKey || e.metaKey) {
-                    e.preventDefault();
-                    onToggleSelection(contact.id);
-                  } else if (e.shiftKey) {
-                    e.preventDefault();
-                    onSelectRangeContacts(contact.id, sortedIds);
-                  } else {
-                    if (hasSelection) onClearSelection();
-                    onSelectContact(contact.id);
-                  }
-                }}
-                onCheckboxClick={(e) => {
-                  e.stopPropagation();
-                  onToggleSelection(contact.id);
-                }}
-                onContextMenu={(e, c) => openContextMenu(e, c)}
-              />
+            {groupedSections.map(({ letter, items }) => (
+              <section key={letter}>
+                <div className="sticky top-0 z-10 px-4 py-0.5 bg-background/90 backdrop-blur-sm text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wide">
+                  {letter}
+                </div>
+                {items.map((contact) => (
+                  <ContactListItem
+                    key={contact.id}
+                    contact={contact}
+                    isSelected={contact.id === selectedContactId}
+                    isChecked={selectedContactIds.has(contact.id)}
+                    hasSelection={hasSelection}
+                    density={density}
+                    selectedContactIds={selectedContactIds}
+                    onClick={(e) => {
+                      if (e.ctrlKey || e.metaKey) {
+                        e.preventDefault();
+                        onToggleSelection(contact.id);
+                      } else if (e.shiftKey) {
+                        e.preventDefault();
+                        onSelectRangeContacts(contact.id, sortedIds);
+                      } else {
+                        if (hasSelection) onClearSelection();
+                        onSelectContact(contact.id);
+                      }
+                    }}
+                    onCheckboxClick={(e) => {
+                      e.stopPropagation();
+                      onToggleSelection(contact.id);
+                    }}
+                    onContextMenu={(e, c) => openContextMenu(e, c)}
+                  />
+                ))}
+              </section>
             ))}
           </div>
         )}
