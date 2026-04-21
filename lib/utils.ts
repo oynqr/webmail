@@ -430,3 +430,22 @@ export function flattenMailboxTree(nodes: MailboxNode[]): MailboxNode[] {
   traverse(nodes);
   return result;
 }
+
+export function getMailboxPath(
+  mailbox: Pick<Mailbox, 'id' | 'name' | 'parentId'>,
+  allMailboxes: Array<Pick<Mailbox, 'id' | 'name' | 'parentId'>>,
+  separator = ' › ',
+): string {
+  const byId = new Map(allMailboxes.map(m => [m.id, m]));
+  const names: string[] = [mailbox.name];
+  const visited = new Set<string>([mailbox.id]);
+  let parentId = mailbox.parentId;
+  while (parentId && !visited.has(parentId)) {
+    visited.add(parentId);
+    const parent = byId.get(parentId);
+    if (!parent) break;
+    names.unshift(parent.name);
+    parentId = parent.parentId;
+  }
+  return names.join(separator);
+}
