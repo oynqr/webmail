@@ -30,7 +30,7 @@ interface UseMailboxDropReturn {
 export function useMailboxDrop({ mailbox, onDropComplete, onSuccess, onError }: UseMailboxDropOptions): UseMailboxDropReturn {
   const [isOver, setIsOver] = useState(false);
   const { client } = useAuthStore();
-  const { moveToMailbox, selectedEmailIds, clearSelection, fetchEmails, selectedMailbox } = useEmailStore();
+  const { moveEmailsToMailbox, selectedEmailIds, clearSelection, fetchEmails, selectedMailbox } = useEmailStore();
   const { isDragging, sourceMailboxId, draggedEmails, endDrag } = useDragDropContext();
 
   // Determine if this is a valid drop target
@@ -106,13 +106,8 @@ export function useMailboxDrop({ mailbox, onDropComplete, onSuccess, onError }: 
 
       const emailIds: string[] = JSON.parse(emailIdsJson);
 
-      // Get the destination mailbox ID (use originalId for shared folders)
-      const destinationId = mailbox.originalId || mailbox.id;
-
-      // Move emails one by one (store handles counter updates)
-      for (const emailId of emailIds) {
-        await moveToMailbox(client, emailId, destinationId);
-      }
+      // Move in a single bulk JMAP request (store handles counter updates).
+      await moveEmailsToMailbox(client, emailIds, mailbox.id);
 
       // Clear selection if any selected emails were moved
       if (emailIds.some(id => selectedEmailIds.has(id))) {
@@ -148,7 +143,7 @@ export function useMailboxDrop({ mailbox, onDropComplete, onSuccess, onError }: 
     } finally {
       endDrag();
     }
-  }, [client, mailbox, isValidTarget, moveToMailbox, selectedEmailIds, clearSelection, fetchEmails, selectedMailbox, endDrag, onDropComplete, onSuccess, onError]);
+  }, [client, mailbox, isValidTarget, moveEmailsToMailbox, selectedEmailIds, clearSelection, fetchEmails, selectedMailbox, endDrag, onDropComplete, onSuccess, onError]);
 
   const valid = isValidTarget();
 
