@@ -1107,7 +1107,22 @@
         "none": "未配置应用密码",
         "done": "完成",
         "expires_label": "过期时间（可选）",
-        "copy_now_warning": "立即复制此密码--它将不再显示。"
+        "copy_now_warning": "立即复制此密码--它将不再显示。",
+        "allowed_ips_label": "允许的 IP（可选）",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "用逗号或空格分隔。留空则允许任意 IP。"
+      },
+      "api_keys": {
+        "title": "API 密钥",
+        "description": "为直接与服务器通信的脚本和集成创建 API 密钥",
+        "name_label": "密钥名称",
+        "name_placeholder": "如：备份脚本、CI runner",
+        "copy_now_warning": "请立即复制此 API 密钥 - 它将不会再次显示。",
+        "added": "API 密钥已创建",
+        "removed": "API 密钥已删除",
+        "add_error": "创建 API 密钥失败",
+        "remove_error": "删除 API 密钥失败",
+        "none": "未配置 API 密钥"
       },
       "encryption": {
         "section_title": "静态加密",

@@ -1107,7 +1107,22 @@
         "none": "Geen app-wachtwoorden geconfigureerd",
         "done": "Klaar",
         "expires_label": "Verloopt (optioneel)",
-        "copy_now_warning": "Kopieer dit wachtwoord nu - het wordt niet opnieuw weergegeven."
+        "copy_now_warning": "Kopieer dit wachtwoord nu - het wordt niet opnieuw weergegeven.",
+        "allowed_ips_label": "Toegestane IP's (optioneel)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Gescheiden door komma of spatie. Laat leeg om elk IP toe te staan."
+      },
+      "api_keys": {
+        "title": "API-sleutels",
+        "description": "Maak API-sleutels voor scripts en integraties die rechtstreeks met de server praten",
+        "name_label": "Sleutelnaam",
+        "name_placeholder": "bijv. Back-upscript, CI-runner",
+        "copy_now_warning": "Kopieer deze API-sleutel nu - hij wordt niet opnieuw getoond.",
+        "added": "API-sleutel aangemaakt",
+        "removed": "API-sleutel verwijderd",
+        "add_error": "API-sleutel aanmaken mislukt",
+        "remove_error": "API-sleutel verwijderen mislukt",
+        "none": "Geen API-sleutels geconfigureerd"
       },
       "encryption": {
         "section_title": "Versleuteling in rust",

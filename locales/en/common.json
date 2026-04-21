@@ -1100,6 +1100,9 @@
         "name_label": "App Name",
         "name_placeholder": "e.g. Thunderbird, iPhone Mail",
         "expires_label": "Expires (optional)",
+        "allowed_ips_label": "Allowed IPs (optional)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Comma- or space-separated. Leave empty to allow any IP.",
         "password_label": "Password (leave empty to auto-generate)",
         "password_placeholder": "Auto-generated if empty",
         "copy_now_warning": "Copy this password now - it will not be shown again.",
@@ -1108,6 +1111,18 @@
         "add_error": "Failed to create app password",
         "remove_error": "Failed to remove app password",
         "none": "No app passwords configured"
+      },
+      "api_keys": {
+        "title": "API Keys",
+        "description": "Create API keys for scripts and integrations that talk to the server directly",
+        "name_label": "Key Name",
+        "name_placeholder": "e.g. Backup script, CI runner",
+        "copy_now_warning": "Copy this API key now - it will not be shown again.",
+        "added": "API key created",
+        "removed": "API key removed",
+        "add_error": "Failed to create API key",
+        "remove_error": "Failed to remove API key",
+        "none": "No API keys configured"
       },
       "encryption": {
         "section_title": "Encryption at Rest",

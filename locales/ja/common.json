@@ -1107,7 +1107,22 @@
         "none": "アプリパスワードは設定されていません",
         "done": "完了",
         "expires_label": "有効期限（任意）",
-        "copy_now_warning": "今すぐこのパスワードをコピーしてください - 再表示されません。"
+        "copy_now_warning": "今すぐこのパスワードをコピーしてください - 再表示されません。",
+        "allowed_ips_label": "許可するIP（任意）",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "カンマまたは空白で区切ります。空欄の場合、すべてのIPを許可します。"
+      },
+      "api_keys": {
+        "title": "APIキー",
+        "description": "サーバーと直接通信するスクリプトや連携用にAPIキーを作成します",
+        "name_label": "キー名",
+        "name_placeholder": "例: バックアップスクリプト、CIランナー",
+        "copy_now_warning": "このAPIキーを今すぐコピーしてください - 二度と表示されません。",
+        "added": "APIキーを作成しました",
+        "removed": "APIキーを削除しました",
+        "add_error": "APIキーの作成に失敗しました",
+        "remove_error": "APIキーの削除に失敗しました",
+        "none": "APIキーは設定されていません"
       },
       "encryption": {
         "section_title": "保存時の暗号化",

@@ -49,18 +49,21 @@ describe('account-security-store', () => {
       mockedJmap.mockResolvedValueOnce([
         ['x:AccountPassword/get', { list: [{ id: 'singleton', otpAuth: { otpUrl: 'otpauth://totp/x' } }] }, '0'],
         ['x:AppPassword/query', { ids: [] }, '1'],
+        ['x:ApiKey/query', { ids: [] }, '2'],
       ]);
 
       await useAccountSecurityStore.getState().fetchAuthInfo();
 
       expect(useAccountSecurityStore.getState().otpEnabled).toBe(true);
       expect(useAccountSecurityStore.getState().appPasswords).toEqual([]);
+      expect(useAccountSecurityStore.getState().apiKeys).toEqual([]);
     });
 
     it('reports TOTP disabled when otpAuth is empty', async () => {
       mockedJmap.mockResolvedValueOnce([
         ['x:AccountPassword/get', { list: [{ id: 'singleton', otpAuth: {} }] }, '0'],
         ['x:AppPassword/query', { ids: [] }, '1'],
+        ['x:ApiKey/query', { ids: [] }, '2'],
       ]);
 
       await useAccountSecurityStore.getState().fetchAuthInfo();
@@ -68,11 +71,12 @@ describe('account-security-store', () => {
       expect(useAccountSecurityStore.getState().otpEnabled).toBe(false);
     });
 
-    it('resolves app password rows via a follow-up Get when query returns ids', async () => {
+    it('resolves app password and api key rows via a single follow-up batch when queries return ids', async () => {
       mockedJmap
         .mockResolvedValueOnce([
           ['x:AccountPassword/get', { list: [{ otpAuth: {} }] }, '0'],
           ['x:AppPassword/query', { ids: ['p1'] }, '1'],
+          ['x:ApiKey/query', { ids: ['k1'] }, '2'],
         ])
         .mockResolvedValueOnce([
           ['x:AppPassword/get', {
@@ -83,7 +87,16 @@ describe('account-security-store', () => {
               expiresAt: null,
               allowedIps: { '10.0.0.1': true },
             }],
-          }, '0'],
+          }, 'app'],
+          ['x:ApiKey/get', {
+            list: [{
+              id: 'k1',
+              description: 'CI bot',
+              createdAt: '2026-02-01T00:00:00Z',
+              expiresAt: '2027-01-01T00:00:00Z',
+              allowedIps: {},
+            }],
+          }, 'key'],
         ]);
 
       await useAccountSecurityStore.getState().fetchAuthInfo();
@@ -95,6 +108,13 @@ describe('account-security-store', () => {
         createdAt: '2026-01-01T00:00:00Z',
         expiresAt: null,
         allowedIps: ['10.0.0.1'],
+      });
+      const k = useAccountSecurityStore.getState().apiKeys[0];
+      expect(k).toMatchObject({
+        id: 'k1',
+        description: 'CI bot',
+        expiresAt: '2027-01-01T00:00:00Z',
+        allowedIps: [],
       });
       expect(mockedJmap).toHaveBeenCalledTimes(2);
     });
@@ -257,15 +277,39 @@ describe('account-security-store', () => {
         .mockResolvedValueOnce([
           ['x:AccountPassword/get', { list: [{ otpAuth: {} }] }, '0'],
           ['x:AppPassword/query', { ids: [] }, '1'],
+          ['x:ApiKey/query', { ids: [] }, '2'],
         ]);
 
-      const result = await useAccountSecurityStore.getState().createAppPassword('CLI', '2026-12-01T00:00:00Z');
+      const result = await useAccountSecurityStore
+        .getState()
+        .createAppPassword({ description: 'CLI', expiresAt: '2026-12-01T00:00:00Z', allowedIps: ['10.0.0.1', '192.168.1.0/24'] });
 
       expect(result).toEqual({ id: 'p-new', secret: 'S3CR3T' });
 
       const createArgs = mockedJmap.mock.calls[0][0][0][1];
-      expect(createArgs.create.new).toEqual({ description: 'CLI', expiresAt: '2026-12-01T00:00:00Z' });
+      expect(createArgs.create.new).toEqual({
+        description: 'CLI',
+        expiresAt: '2026-12-01T00:00:00Z',
+        allowedIps: { '10.0.0.1': true, '192.168.1.0/24': true },
+      });
       expect(mockedJmap).toHaveBeenCalledTimes(2);
+    });
+
+    it('omits allowedIps when none provided', async () => {
+      mockedJmap
+        .mockResolvedValueOnce([
+          ['x:AppPassword/set', { created: { new: { id: 'p', secret: 's' } } }, '0'],
+        ])
+        .mockResolvedValueOnce([
+          ['x:AccountPassword/get', { list: [{ otpAuth: {} }] }, '0'],
+          ['x:AppPassword/query', { ids: [] }, '1'],
+          ['x:ApiKey/query', { ids: [] }, '2'],
+        ]);
+
+      await useAccountSecurityStore.getState().createAppPassword({ description: 'CLI' });
+
+      const createArgs = mockedJmap.mock.calls[0][0][0][1];
+      expect(createArgs.create.new).toEqual({ description: 'CLI' });
     });
 
     it('throws with server-provided description when notCreated is returned', async () => {
@@ -274,7 +318,7 @@ describe('account-security-store', () => {
       ]);
 
       await expect(
-        useAccountSecurityStore.getState().createAppPassword('x')
+        useAccountSecurityStore.getState().createAppPassword({ description: 'x' })
       ).rejects.toThrow('description too short');
     });
 
@@ -284,7 +328,7 @@ describe('account-security-store', () => {
       ]);
 
       await expect(
-        useAccountSecurityStore.getState().createAppPassword('x')
+        useAccountSecurityStore.getState().createAppPassword({ description: 'x' })
       ).rejects.toThrow(/did not return/i);
     });
   });
@@ -296,6 +340,7 @@ describe('account-security-store', () => {
         .mockResolvedValueOnce([
           ['x:AccountPassword/get', { list: [{ otpAuth: {} }] }, '0'],
           ['x:AppPassword/query', { ids: [] }, '1'],
+          ['x:ApiKey/query', { ids: [] }, '2'],
         ]);
 
       await useAccountSecurityStore.getState().removeAppPassword('p1');
@@ -306,12 +351,48 @@ describe('account-security-store', () => {
     });
   });
 
+  describe('createApiKey / removeApiKey', () => {
+    it('routes through x:ApiKey/set and refreshes auth info', async () => {
+      mockedJmap
+        .mockResolvedValueOnce([
+          ['x:ApiKey/set', { created: { new: { id: 'k1', secret: 'API_KEY' } } }, '0'],
+        ])
+        .mockResolvedValueOnce([
+          ['x:AccountPassword/get', { list: [{ otpAuth: {} }] }, '0'],
+          ['x:AppPassword/query', { ids: [] }, '1'],
+          ['x:ApiKey/query', { ids: [] }, '2'],
+        ]);
+
+      const result = await useAccountSecurityStore.getState().createApiKey({ description: 'bot', allowedIps: ['127.0.0.1'] });
+
+      expect(result).toEqual({ id: 'k1', secret: 'API_KEY' });
+      const createArgs = mockedJmap.mock.calls[0][0][0][1];
+      expect(createArgs.create.new).toEqual({ description: 'bot', allowedIps: { '127.0.0.1': true } });
+    });
+
+    it('removes via x:ApiKey/set destroy', async () => {
+      mockedJmap
+        .mockResolvedValueOnce([['x:ApiKey/set', { destroyed: ['k1'] }, '0']])
+        .mockResolvedValueOnce([
+          ['x:AccountPassword/get', { list: [{ otpAuth: {} }] }, '0'],
+          ['x:AppPassword/query', { ids: [] }, '1'],
+          ['x:ApiKey/query', { ids: [] }, '2'],
+        ]);
+
+      await useAccountSecurityStore.getState().removeApiKey('k1');
+
+      const args = mockedJmap.mock.calls[0][0][0][1];
+      expect(args).toEqual({ accountId: 'acc-primary', destroy: ['k1'] });
+    });
+  });
+
   describe('clearState', () => {
     it('resets all derived fields back to defaults', () => {
       useAccountSecurityStore.setState({
         isStalwart: true,
         otpEnabled: true,
         appPasswords: [{ id: 'p', description: 'd', createdAt: null, expiresAt: null, allowedIps: [] }],
+        apiKeys: [{ id: 'k', description: 'd', createdAt: null, expiresAt: null, allowedIps: [] }],
         encryptionType: 'Aes256',
         displayName: 'user',
         emails: ['a@b'],
@@ -326,6 +407,7 @@ describe('account-security-store', () => {
       expect(state.isStalwart).toBeNull();
       expect(state.otpEnabled).toBe(false);
       expect(state.appPasswords).toEqual([]);
+      expect(state.apiKeys).toEqual([]);
       expect(state.encryptionType).toBe('Disabled');
       expect(state.displayName).toBe('');
       expect(state.emails).toEqual([]);

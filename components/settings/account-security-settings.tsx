@@ -4,11 +4,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import QRCode from 'qrcode';
 import * as OTPAuth from 'otpauth';
-import { Shield, Key, Smartphone, Lock, Trash2, Plus, Eye, EyeOff, Copy, Check, Loader2, Monitor } from 'lucide-react';
+import { Shield, Key, Smartphone, Lock, Trash2, Plus, Eye, EyeOff, Copy, Check, Loader2, Monitor, Terminal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SettingsSection, SettingItem, ToggleSwitch } from './settings-section';
-import { useAccountSecurityStore, type AppPasswordInfo } from '@/stores/account-security-store';
+import { useAccountSecurityStore, type AppPasswordInfo, type ApiKeyInfo, type AppCredentialInput } from '@/stores/account-security-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { toast } from '@/stores/toast-store';
 import { cn } from '@/lib/utils';
@@ -345,24 +345,43 @@ function TotpSection() {
   );
 }
 
-function AppPasswordRow({ password, onRemove, isSaving }: { password: AppPasswordInfo; onRemove: (id: string) => void; isSaving: boolean }) {
+function parseIpList(raw: string): string[] {
+  return raw
+    .split(/[\s,]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function CredentialRow({ entry, onRemove, isSaving }: { entry: AppPasswordInfo | ApiKeyInfo; onRemove: (id: string) => void; isSaving: boolean }) {
   return (
-    <div className="flex items-center justify-between py-2 px-3 bg-muted/50 rounded-md">
-      <div className="flex flex-col">
-        <span className="text-sm text-foreground">{password.description || password.id}</span>
-        {password.createdAt && (
+    <div className="flex items-start justify-between py-2 px-3 bg-muted/50 rounded-md gap-2">
+      <div className="flex flex-col min-w-0 flex-1">
+        <span className="text-sm text-foreground truncate">{entry.description || entry.id}</span>
+        {entry.createdAt && (
           <span className="text-xs text-muted-foreground">
-            {new Date(password.createdAt).toLocaleDateString()}
-            {password.expiresAt ? ` · expires ${new Date(password.expiresAt).toLocaleDateString()}` : ''}
+            {new Date(entry.createdAt).toLocaleDateString()}
+            {entry.expiresAt ? ` · expires ${new Date(entry.expiresAt).toLocaleDateString()}` : ''}
           </span>
+        )}
+        {entry.allowedIps.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {entry.allowedIps.map((ip) => (
+              <span
+                key={ip}
+                className="text-[10px] font-mono bg-background border border-border rounded px-1.5 py-0.5 text-muted-foreground"
+              >
+                {ip}
+              </span>
+            ))}
+          </div>
         )}
       </div>
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => onRemove(password.id)}
+        onClick={() => onRemove(entry.id)}
         disabled={isSaving}
-        className="text-destructive hover:text-destructive"
+        className="text-destructive hover:text-destructive shrink-0"
       >
         <Trash2 className="w-3 h-3" />
       </Button>
@@ -370,12 +389,22 @@ function AppPasswordRow({ password, onRemove, isSaving }: { password: AppPasswor
   );
 }
 
-function AppPasswordsSection() {
+interface CredentialSectionProps {
+  icon: typeof Smartphone;
+  i18nNamespace: 'app_passwords' | 'api_keys';
+  entries: Array<AppPasswordInfo | ApiKeyInfo>;
+  onCreate: (input: AppCredentialInput) => Promise<{ id: string; secret: string }>;
+  onRemove: (id: string) => Promise<void>;
+}
+
+function CredentialSection({ icon: Icon, i18nNamespace, entries, onCreate, onRemove }: CredentialSectionProps) {
   const t = useTranslations('settings.security');
-  const { appPasswords, createAppPassword, removeAppPassword, isSaving, isLoadingAuth } = useAccountSecurityStore();
+  const tk = (key: string) => t(`${i18nNamespace}.${key}`);
+  const { isSaving, isLoadingAuth } = useAccountSecurityStore();
   const [showAdd, setShowAdd] = useState(false);
   const [newDescription, setNewDescription] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
+  const [allowedIpsRaw, setAllowedIpsRaw] = useState('');
   const [createdSecret, setCreatedSecret] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -384,26 +413,28 @@ function AppPasswordsSection() {
     if (!newDescription.trim()) return;
 
     try {
-      const result = await createAppPassword(
-        newDescription.trim(),
-        expiresAt ? new Date(expiresAt).toISOString() : null,
-      );
+      const result = await onCreate({
+        description: newDescription.trim(),
+        expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
+        allowedIps: parseIpList(allowedIpsRaw),
+      });
       setCreatedSecret(result.secret);
       setNewDescription('');
       setExpiresAt('');
+      setAllowedIpsRaw('');
       setShowAdd(false);
-      toast.success(t('app_passwords.added'));
+      toast.success(tk('added'));
     } catch (err) {
-      toast.error(t('app_passwords.add_error'), err instanceof Error ? err.message : undefined);
+      toast.error(tk('add_error'), err instanceof Error ? err.message : undefined);
     }
   };
 
   const handleRemove = async (id: string) => {
     try {
-      await removeAppPassword(id);
-      toast.success(t('app_passwords.removed'));
+      await onRemove(id);
+      toast.success(tk('removed'));
     } catch (err) {
-      toast.error(t('app_passwords.remove_error'), err instanceof Error ? err.message : undefined);
+      toast.error(tk('remove_error'), err instanceof Error ? err.message : undefined);
     }
   };
 
@@ -419,8 +450,8 @@ function AppPasswordsSection() {
     return (
       <div className="space-y-2">
         <div className="flex items-center gap-2 mb-2">
-          <Smartphone className="w-4 h-4 text-muted-foreground" />
-          <h4 className="text-sm font-medium text-foreground">{t('app_passwords.title')}</h4>
+          <Icon className="w-4 h-4 text-muted-foreground" />
+          <h4 className="text-sm font-medium text-foreground">{tk('title')}</h4>
         </div>
         <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
       </div>
@@ -431,21 +462,21 @@ function AppPasswordsSection() {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Smartphone className="w-4 h-4 text-muted-foreground" />
-          <h4 className="text-sm font-medium text-foreground">{t('app_passwords.title')}</h4>
+          <Icon className="w-4 h-4 text-muted-foreground" />
+          <h4 className="text-sm font-medium text-foreground">{tk('title')}</h4>
         </div>
         <Button variant="outline" size="sm" onClick={() => setShowAdd(!showAdd)}>
           <Plus className="w-3 h-3 mr-1" />
           {t('app_passwords.add')}
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">{t('app_passwords.description')}</p>
+      <p className="text-xs text-muted-foreground">{tk('description')}</p>
 
       {createdSecret && (
         <div className="p-3 bg-muted rounded-md space-y-2">
-          <p className="text-xs text-muted-foreground">{t('app_passwords.copy_now_warning')}</p>
+          <p className="text-xs text-muted-foreground">{tk('copy_now_warning')}</p>
           <div className="flex items-center gap-2">
-            <code className="text-xs bg-background px-2 py-1 rounded border border-border flex-1 font-mono">
+            <code className="text-xs bg-background px-2 py-1 rounded border border-border flex-1 font-mono break-all">
               {createdSecret}
             </code>
             <Button variant="outline" size="sm" onClick={handleCopySecret}>
@@ -461,17 +492,28 @@ function AppPasswordsSection() {
       {showAdd && (
         <form onSubmit={handleAdd} className="p-3 bg-muted rounded-md space-y-2">
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">{t('app_passwords.name_label')}</label>
+            <label className="text-xs text-muted-foreground mb-1 block">{tk('name_label')}</label>
             <Input
               value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}
-              placeholder={t('app_passwords.name_placeholder')}
+              placeholder={tk('name_placeholder')}
               required
             />
           </div>
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">{t('app_passwords.expires_label')}</label>
             <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">{t('app_passwords.allowed_ips_label')}</label>
+            <textarea
+              value={allowedIpsRaw}
+              onChange={(e) => setAllowedIpsRaw(e.target.value)}
+              placeholder={t('app_passwords.allowed_ips_placeholder')}
+              rows={2}
+              className="w-full text-xs font-mono px-3 py-2 rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">{t('app_passwords.allowed_ips_hint')}</p>
           </div>
           <div className="flex gap-2">
             <Button type="submit" size="sm" disabled={isSaving || !newDescription.trim()}>
@@ -485,16 +527,42 @@ function AppPasswordsSection() {
         </form>
       )}
 
-      {appPasswords.length > 0 ? (
+      {entries.length > 0 ? (
         <div className="space-y-1">
-          {appPasswords.map((p) => (
-            <AppPasswordRow key={p.id} password={p} onRemove={handleRemove} isSaving={isSaving} />
+          {entries.map((entry) => (
+            <CredentialRow key={entry.id} entry={entry} onRemove={handleRemove} isSaving={isSaving} />
           ))}
         </div>
       ) : (
-        <p className="text-xs text-muted-foreground italic">{t('app_passwords.none')}</p>
+        <p className="text-xs text-muted-foreground italic">{tk('none')}</p>
       )}
     </div>
+  );
+}
+
+function AppPasswordsSection() {
+  const { appPasswords, createAppPassword, removeAppPassword } = useAccountSecurityStore();
+  return (
+    <CredentialSection
+      icon={Smartphone}
+      i18nNamespace="app_passwords"
+      entries={appPasswords}
+      onCreate={createAppPassword}
+      onRemove={removeAppPassword}
+    />
+  );
+}
+
+function ApiKeysSection() {
+  const { apiKeys, createApiKey, removeApiKey } = useAccountSecurityStore();
+  return (
+    <CredentialSection
+      icon={Terminal}
+      i18nNamespace="api_keys"
+      entries={apiKeys}
+      onCreate={createApiKey}
+      onRemove={removeApiKey}
+    />
   );
 }
 
@@ -629,6 +697,9 @@ export function AccountSecuritySettings() {
         )}
 
         <AppPasswordsSection />
+
+        <div className="border-t border-border" />
+        <ApiKeysSection />
 
         {isOAuth && (
           <>

@@ -1107,7 +1107,22 @@
         "none": "Brak skonfigurowanych haseł aplikacji",
         "done": "Gotowe",
         "expires_label": "Wygasa (opcjonalnie)",
-        "copy_now_warning": "Skopiuj to hasło teraz - nie zostanie ponownie wyświetlone."
+        "copy_now_warning": "Skopiuj to hasło teraz - nie zostanie ponownie wyświetlone.",
+        "allowed_ips_label": "Dozwolone adresy IP (opcjonalnie)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Oddzielone przecinkiem lub spacją. Pozostaw puste, aby zezwolić na dowolny IP."
+      },
+      "api_keys": {
+        "title": "Klucze API",
+        "description": "Twórz klucze API dla skryptów i integracji komunikujących się bezpośrednio z serwerem",
+        "name_label": "Nazwa klucza",
+        "name_placeholder": "np. Skrypt kopii zapasowej, CI runner",
+        "copy_now_warning": "Skopiuj ten klucz API teraz - nie zostanie pokazany ponownie.",
+        "added": "Klucz API utworzony",
+        "removed": "Klucz API usunięty",
+        "add_error": "Nie udało się utworzyć klucza API",
+        "remove_error": "Nie udało się usunąć klucza API",
+        "none": "Brak skonfigurowanych kluczy API"
       },
       "encryption": {
         "section_title": "Szyfrowanie danych w spoczynku",

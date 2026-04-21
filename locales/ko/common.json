@@ -1107,7 +1107,22 @@
         "none": "설정된 앱 비밀번호가 없어요",
         "done": "완료",
         "expires_label": "만료 (선택 사항)",
-        "copy_now_warning": "지금 이 비밀번호를 복사하세요 - 다시 표시되지 않습니다."
+        "copy_now_warning": "지금 이 비밀번호를 복사하세요 - 다시 표시되지 않습니다.",
+        "allowed_ips_label": "허용된 IP(선택)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "쉼표 또는 공백으로 구분합니다. 비워두면 모든 IP가 허용됩니다."
+      },
+      "api_keys": {
+        "title": "API 키",
+        "description": "서버와 직접 통신하는 스크립트 및 통합용 API 키를 만듭니다",
+        "name_label": "키 이름",
+        "name_placeholder": "예: 백업 스크립트, CI 러너",
+        "copy_now_warning": "이 API 키를 지금 복사하세요 - 다시 표시되지 않습니다.",
+        "added": "API 키가 생성되었습니다",
+        "removed": "API 키가 삭제되었습니다",
+        "add_error": "API 키 생성에 실패했습니다",
+        "remove_error": "API 키 삭제에 실패했습니다",
+        "none": "구성된 API 키가 없습니다"
       },
       "encryption": {
         "section_title": "저장 데이터 암호화",

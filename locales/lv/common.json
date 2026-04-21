@@ -1107,7 +1107,22 @@
         "none": "Lietotņu paroles nav iestatītas",
         "done": "Gatavs",
         "expires_label": "Derīguma termiņš (pēc izvēles)",
-        "copy_now_warning": "Kopējiet šo paroli tagad - tā vairs netiks rādīta."
+        "copy_now_warning": "Kopējiet šo paroli tagad - tā vairs netiks rādīta.",
+        "allowed_ips_label": "Atļautās IP (neobligāti)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Atdalītas ar komatu vai atstarpi. Atstājiet tukšu, lai atļautu jebkuru IP."
+      },
+      "api_keys": {
+        "title": "API atslēgas",
+        "description": "Izveidojiet API atslēgas skriptiem un integrācijām, kas tieši sazinās ar serveri",
+        "name_label": "Atslēgas nosaukums",
+        "name_placeholder": "piem. Dublēšanas skripts, CI palaidējs",
+        "copy_now_warning": "Kopējiet šo API atslēgu tagad - tā vairs netiks parādīta.",
+        "added": "API atslēga izveidota",
+        "removed": "API atslēga noņemta",
+        "add_error": "Neizdevās izveidot API atslēgu",
+        "remove_error": "Neizdevās noņemt API atslēgu",
+        "none": "API atslēgas nav konfigurētas"
       },
       "encryption": {
         "section_title": "Krātuves šifrēšana",

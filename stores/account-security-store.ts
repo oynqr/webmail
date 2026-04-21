@@ -13,6 +13,20 @@ export interface AppPasswordInfo {
   allowedIps: string[];
 }
 
+export interface ApiKeyInfo {
+  id: string;
+  description: string;
+  createdAt: string | null;
+  expiresAt: string | null;
+  allowedIps: string[];
+}
+
+export interface AppCredentialInput {
+  description: string;
+  expiresAt?: string | null;
+  allowedIps?: string[];
+}
+
 interface AccountSecurityState {
   isStalwart: boolean | null;
   isProbing: boolean;
@@ -20,6 +34,7 @@ interface AccountSecurityState {
   // Auth info
   otpEnabled: boolean;
   appPasswords: AppPasswordInfo[];
+  apiKeys: ApiKeyInfo[];
   isLoadingAuth: boolean;
 
   // Encryption-at-rest
@@ -48,8 +63,11 @@ interface AccountSecurityState {
   enableTotp: (currentPassword: string, otpUrl: string, otpCode: string) => Promise<void>;
   disableTotp: (currentPassword: string) => Promise<void>;
 
-  createAppPassword: (description: string, expiresAt?: string | null) => Promise<{ id: string; secret: string }>;
+  createAppPassword: (input: AppCredentialInput) => Promise<{ id: string; secret: string }>;
   removeAppPassword: (id: string) => Promise<void>;
+
+  createApiKey: (input: AppCredentialInput) => Promise<{ id: string; secret: string }>;
+  removeApiKey: (id: string) => Promise<void>;
 
   clearState: () => void;
 }
@@ -60,7 +78,7 @@ function getPrimaryAccountId(): string {
   return client.getAccountId();
 }
 
-function appPasswordFromResult(raw: Record<string, unknown>): AppPasswordInfo {
+function credentialFromResult(raw: Record<string, unknown>): AppPasswordInfo {
   const allowedIps = raw.allowedIps && typeof raw.allowedIps === 'object'
     ? Object.keys(raw.allowedIps as Record<string, unknown>)
     : [];
@@ -71,6 +89,88 @@ function appPasswordFromResult(raw: Record<string, unknown>): AppPasswordInfo {
     expiresAt: typeof raw.expiresAt === 'string' ? raw.expiresAt : null,
     allowedIps,
   };
+}
+
+function ipsToMap(ips?: string[]): Record<string, true> | undefined {
+  if (!ips || ips.length === 0) return undefined;
+  return Object.fromEntries(ips.map((ip) => [ip, true]));
+}
+
+function buildCreateBody(input: AppCredentialInput): Record<string, unknown> {
+  const body: Record<string, unknown> = { description: input.description };
+  if (input.expiresAt) body.expiresAt = input.expiresAt;
+  const allowed = ipsToMap(input.allowedIps);
+  if (allowed) body.allowedIps = allowed;
+  return body;
+}
+
+type SetMethod = 'x:AppPassword/set' | 'x:ApiKey/set';
+
+type StoreGet = () => AccountSecurityState;
+type StoreSet = (partial: Partial<AccountSecurityState>) => void;
+
+async function createCredential(
+  get: StoreGet,
+  set: StoreSet,
+  method: SetMethod,
+  input: AppCredentialInput,
+  fallbackError: string,
+): Promise<{ id: string; secret: string }> {
+  set({ isSaving: true, error: null });
+  try {
+    const accountId = getPrimaryAccountId();
+    const tmpId = 'new';
+    const responses = await stalwartJmap([
+      [method, { accountId, create: { [tmpId]: buildCreateBody(input) } }, '0'],
+    ]);
+    const result = requireResult<{
+      created?: Record<string, { id: string; secret: string; createdAt?: string }>;
+      notCreated?: Record<string, { type: string; description?: string }>;
+    }>(responses, method);
+
+    const notCreated = result.notCreated?.[tmpId];
+    if (notCreated) {
+      throw new Error(notCreated.description || notCreated.type || fallbackError);
+    }
+    const created = result.created?.[tmpId];
+    if (!created?.id || !created.secret) {
+      throw new Error(`Server did not return created credential`);
+    }
+
+    await get().fetchAuthInfo();
+    set({ isSaving: false });
+    return { id: created.id, secret: created.secret };
+  } catch (error) {
+    set({
+      isSaving: false,
+      error: error instanceof Error ? error.message : fallbackError,
+    });
+    throw error;
+  }
+}
+
+async function removeCredential(
+  get: StoreGet,
+  set: StoreSet,
+  method: SetMethod,
+  id: string,
+  fallbackError: string,
+): Promise<void> {
+  set({ isSaving: true, error: null });
+  try {
+    const accountId = getPrimaryAccountId();
+    await stalwartJmap([
+      [method, { accountId, destroy: [id] }, '0'],
+    ]);
+    await get().fetchAuthInfo();
+    set({ isSaving: false });
+  } catch (error) {
+    set({
+      isSaving: false,
+      error: error instanceof Error ? error.message : fallbackError,
+    });
+    throw error;
+  }
 }
 
 function extractEncryptionType(raw: unknown): EncryptionType {
@@ -85,6 +185,7 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
   isProbing: false,
   otpEnabled: false,
   appPasswords: [],
+  apiKeys: [],
   isLoadingAuth: false,
   encryptionType: 'Disabled',
   isLoadingCrypto: false,
@@ -117,27 +218,42 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
       const responses = await stalwartJmap([
         ['x:AccountPassword/get', { accountId, ids: ['singleton'] }, '0'],
         ['x:AppPassword/query', { accountId }, '1'],
+        ['x:ApiKey/query', { accountId }, '2'],
       ]);
 
       const passwordResult = requireResult<{ list: Array<{ otpAuth?: { otpUrl?: string | null } }> }>(
         responses,
         'x:AccountPassword/get',
       );
-      const queryResult = requireResult<{ ids: string[] }>(responses, 'x:AppPassword/query');
+      const appPwQuery = requireResult<{ ids: string[] }>(responses, 'x:AppPassword/query');
+      const apiKeyQuery = requireResult<{ ids: string[] }>(responses, 'x:ApiKey/query');
 
       const otpAuth = passwordResult.list?.[0]?.otpAuth;
       const otpEnabled = !!(otpAuth && typeof otpAuth === 'object' && otpAuth.otpUrl);
 
-      let appPasswords: AppPasswordInfo[] = [];
-      if (queryResult.ids?.length) {
-        const getResponses = await stalwartJmap([
-          ['x:AppPassword/get', { accountId, ids: queryResult.ids }, '0'],
-        ]);
-        const getResult = requireResult<{ list: Array<Record<string, unknown>> }>(getResponses, 'x:AppPassword/get');
-        appPasswords = (getResult.list ?? []).map(appPasswordFromResult);
+      const followUps: [string, Record<string, unknown>, string][] = [];
+      if (appPwQuery.ids?.length) {
+        followUps.push(['x:AppPassword/get', { accountId, ids: appPwQuery.ids }, 'app']);
+      }
+      if (apiKeyQuery.ids?.length) {
+        followUps.push(['x:ApiKey/get', { accountId, ids: apiKeyQuery.ids }, 'key']);
       }
 
-      set({ otpEnabled, appPasswords, isLoadingAuth: false });
+      let appPasswords: AppPasswordInfo[] = [];
+      let apiKeys: ApiKeyInfo[] = [];
+      if (followUps.length) {
+        const followUpResponses = await stalwartJmap(followUps);
+        if (appPwQuery.ids?.length) {
+          const r = requireResult<{ list: Array<Record<string, unknown>> }>(followUpResponses, 'x:AppPassword/get');
+          appPasswords = (r.list ?? []).map(credentialFromResult);
+        }
+        if (apiKeyQuery.ids?.length) {
+          const r = requireResult<{ list: Array<Record<string, unknown>> }>(followUpResponses, 'x:ApiKey/get');
+          apiKeys = (r.list ?? []).map(credentialFromResult);
+        }
+      }
+
+      set({ otpEnabled, appPasswords, apiKeys, isLoadingAuth: false });
     } catch (error) {
       debug.error('Failed to fetch auth info:', error);
       set({
@@ -319,68 +435,20 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
     }
   },
 
-  createAppPassword: async (description, expiresAt) => {
-    set({ isSaving: true, error: null });
-    try {
-      const accountId = getPrimaryAccountId();
-      const tmpId = 'new';
-      const responses = await stalwartJmap([
-        [
-          'x:AppPassword/set',
-          {
-            accountId,
-            create: {
-              [tmpId]: {
-                description,
-                ...(expiresAt ? { expiresAt } : {}),
-              },
-            },
-          },
-          '0',
-        ],
-      ]);
-      const result = requireResult<{
-        created?: Record<string, { id: string; secret: string; createdAt?: string }>;
-        notCreated?: Record<string, { type: string; description?: string }>;
-      }>(responses, 'x:AppPassword/set');
-
-      const notCreated = result.notCreated?.[tmpId];
-      if (notCreated) {
-        throw new Error(notCreated.description || notCreated.type || 'Failed to create app password');
-      }
-      const created = result.created?.[tmpId];
-      if (!created?.id || !created.secret) {
-        throw new Error('Server did not return created app password');
-      }
-
-      await get().fetchAuthInfo();
-      set({ isSaving: false });
-      return { id: created.id, secret: created.secret };
-    } catch (error) {
-      set({
-        isSaving: false,
-        error: error instanceof Error ? error.message : 'Failed to create app password',
-      });
-      throw error;
-    }
+  createAppPassword: async (input) => {
+    return createCredential(get, set, 'x:AppPassword/set', input, 'Failed to create app password');
   },
 
   removeAppPassword: async (id) => {
-    set({ isSaving: true, error: null });
-    try {
-      const accountId = getPrimaryAccountId();
-      await stalwartJmap([
-        ['x:AppPassword/set', { accountId, destroy: [id] }, '0'],
-      ]);
-      await get().fetchAuthInfo();
-      set({ isSaving: false });
-    } catch (error) {
-      set({
-        isSaving: false,
-        error: error instanceof Error ? error.message : 'Failed to remove app password',
-      });
-      throw error;
-    }
+    return removeCredential(get, set, 'x:AppPassword/set', id, 'Failed to remove app password');
+  },
+
+  createApiKey: async (input) => {
+    return createCredential(get, set, 'x:ApiKey/set', input, 'Failed to create API key');
+  },
+
+  removeApiKey: async (id) => {
+    return removeCredential(get, set, 'x:ApiKey/set', id, 'Failed to remove API key');
   },
 
   clearState: () => set({
@@ -388,6 +456,7 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
     isProbing: false,
     otpEnabled: false,
     appPasswords: [],
+    apiKeys: [],
     isLoadingAuth: false,
     encryptionType: 'Disabled',
     isLoadingCrypto: false,

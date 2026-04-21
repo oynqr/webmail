@@ -1107,7 +1107,22 @@
         "none": "Aucun mot de passe d'application configuré",
         "done": "Terminé",
         "expires_label": "Expire (facultatif)",
-        "copy_now_warning": "Copiez ce mot de passe maintenant - il ne sera plus affiché."
+        "copy_now_warning": "Copiez ce mot de passe maintenant - il ne sera plus affiché.",
+        "allowed_ips_label": "IP autorisées (facultatif)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Séparées par virgule ou espace. Laisser vide pour autoriser toute IP."
+      },
+      "api_keys": {
+        "title": "Clés API",
+        "description": "Créez des clés API pour les scripts et intégrations qui communiquent directement avec le serveur",
+        "name_label": "Nom de la clé",
+        "name_placeholder": "ex. Script de sauvegarde, CI runner",
+        "copy_now_warning": "Copiez cette clé API maintenant - elle ne sera plus affichée.",
+        "added": "Clé API créée",
+        "removed": "Clé API supprimée",
+        "add_error": "Échec de la création de la clé API",
+        "remove_error": "Échec de la suppression de la clé API",
+        "none": "Aucune clé API configurée"
       },
       "encryption": {
         "section_title": "Chiffrement au repos",

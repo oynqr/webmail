@@ -1107,7 +1107,22 @@
         "none": "Keine App-Passwörter konfiguriert",
         "done": "Fertig",
         "expires_label": "Läuft ab (optional)",
-        "copy_now_warning": "Kopieren Sie dieses Passwort jetzt - es wird nicht erneut angezeigt."
+        "copy_now_warning": "Kopieren Sie dieses Passwort jetzt - es wird nicht erneut angezeigt.",
+        "allowed_ips_label": "Erlaubte IPs (optional)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Komma- oder leerzeichengetrennt. Leer lassen, um jede IP zuzulassen."
+      },
+      "api_keys": {
+        "title": "API-Schlüssel",
+        "description": "Erstellen Sie API-Schlüssel für Skripte und Integrationen, die direkt mit dem Server kommunizieren",
+        "name_label": "Schlüsselname",
+        "name_placeholder": "z.B. Backup-Skript, CI-Runner",
+        "copy_now_warning": "Kopieren Sie diesen API-Schlüssel jetzt - er wird nicht erneut angezeigt.",
+        "added": "API-Schlüssel erstellt",
+        "removed": "API-Schlüssel entfernt",
+        "add_error": "API-Schlüssel konnte nicht erstellt werden",
+        "remove_error": "API-Schlüssel konnte nicht entfernt werden",
+        "none": "Keine API-Schlüssel konfiguriert"
       },
       "encryption": {
         "section_title": "Verschlüsselung im Ruhezustand",

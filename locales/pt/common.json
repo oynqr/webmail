@@ -1107,7 +1107,22 @@
         "none": "Nenhuma senha de aplicativo configurada",
         "done": "Concluído",
         "expires_label": "Expira (opcional)",
-        "copy_now_warning": "Copie esta senha agora - ela não será exibida novamente."
+        "copy_now_warning": "Copie esta senha agora - ela não será exibida novamente.",
+        "allowed_ips_label": "IPs permitidos (opcional)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Separados por vírgula ou espaço. Deixe vazio para permitir qualquer IP."
+      },
+      "api_keys": {
+        "title": "Chaves de API",
+        "description": "Crie chaves de API para scripts e integrações que se comunicam diretamente com o servidor",
+        "name_label": "Nome da chave",
+        "name_placeholder": "ex. Script de backup, CI runner",
+        "copy_now_warning": "Copie esta chave de API agora - ela não será mostrada novamente.",
+        "added": "Chave de API criada",
+        "removed": "Chave de API removida",
+        "add_error": "Falha ao criar chave de API",
+        "remove_error": "Falha ao remover chave de API",
+        "none": "Nenhuma chave de API configurada"
       },
       "encryption": {
         "section_title": "Criptografia em repouso",

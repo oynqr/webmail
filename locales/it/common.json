@@ -1107,7 +1107,22 @@
         "none": "Nessuna password per le app configurata",
         "done": "Fatto",
         "expires_label": "Scadenza (facoltativa)",
-        "copy_now_warning": "Copia questa password ora - non verrà più mostrata."
+        "copy_now_warning": "Copia questa password ora - non verrà più mostrata.",
+        "allowed_ips_label": "IP consentiti (opzionale)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Separati da virgola o spazio. Lasciare vuoto per consentire qualsiasi IP."
+      },
+      "api_keys": {
+        "title": "Chiavi API",
+        "description": "Crea chiavi API per script e integrazioni che comunicano direttamente con il server",
+        "name_label": "Nome chiave",
+        "name_placeholder": "es. Script di backup, CI runner",
+        "copy_now_warning": "Copia subito questa chiave API - non verrà mostrata di nuovo.",
+        "added": "Chiave API creata",
+        "removed": "Chiave API rimossa",
+        "add_error": "Impossibile creare la chiave API",
+        "remove_error": "Impossibile rimuovere la chiave API",
+        "none": "Nessuna chiave API configurata"
       },
       "encryption": {
         "section_title": "Crittografia a riposo",

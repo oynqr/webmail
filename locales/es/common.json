@@ -1107,7 +1107,22 @@
         "none": "No hay contraseñas de aplicación configuradas",
         "done": "Hecho",
         "expires_label": "Caduca (opcional)",
-        "copy_now_warning": "Copia esta contraseña ahora - no se volverá a mostrar."
+        "copy_now_warning": "Copia esta contraseña ahora - no se volverá a mostrar.",
+        "allowed_ips_label": "IPs permitidas (opcional)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Separadas por coma o espacio. Dejar vacío para permitir cualquier IP."
+      },
+      "api_keys": {
+        "title": "Claves API",
+        "description": "Crea claves API para scripts e integraciones que se comunican directamente con el servidor",
+        "name_label": "Nombre de la clave",
+        "name_placeholder": "p. ej. Script de copia de seguridad, CI runner",
+        "copy_now_warning": "Copia esta clave API ahora - no se mostrará de nuevo.",
+        "added": "Clave API creada",
+        "removed": "Clave API eliminada",
+        "add_error": "No se pudo crear la clave API",
+        "remove_error": "No se pudo eliminar la clave API",
+        "none": "No hay claves API configuradas"
       },
       "encryption": {
         "section_title": "Cifrado en reposo",
