@@ -119,6 +119,7 @@ export function CalendarDayView({
       created: t("notifications.event_created"),
       error: t("notifications.event_error"),
     },
+    isMobile,
   });
 
   const formatHour = (h: number): string => {
@@ -246,9 +247,11 @@ export function CalendarDayView({
 
             {layouted.map(({ event: ev, column, totalColumns, startMinutes, endMinutes }) => {
               const durMin = Math.max(15, endMinutes - startMinutes);
-              const top = (startMinutes / 60) * HOUR_HEIGHT;
+              const baseTop = (startMinutes / 60) * HOUR_HEIGHT;
               const baseHeight = Math.max(24, (durMin / 60) * HOUR_HEIGHT);
-              const height = resizeVisual?.eventId === ev.id ? resizeVisual.heightPx : baseHeight;
+              const isResizing = resizeVisual?.eventId === ev.id;
+              const top = isResizing ? resizeVisual!.topPx : baseTop;
+              const height = isResizing ? resizeVisual!.heightPx : baseHeight;
               const calId = getPrimaryCalendarId(ev);
               const leftPct = (column / totalColumns) * 100;
               const widthPct = (1 / totalColumns) * 100;
@@ -272,9 +275,19 @@ export function CalendarDayView({
                   />
                   <div
                     data-resize-handle
+                    className="absolute top-0 left-1 right-1 h-3 cursor-n-resize z-20 flex items-start justify-center opacity-0 group-hover/event:opacity-100 transition-opacity"
+                    aria-label={t("events.resize")}
+                    onPointerDown={(e) => handleResizePointerDown(ev.id, "top", startMinutes, durMin, e)}
+                    onPointerMove={handleResizePointerMove}
+                    onPointerUp={handleResizePointerUp}
+                  >
+                    <div className="w-8 h-1 rounded-full bg-foreground/30 mt-0.5" />
+                  </div>
+                  <div
+                    data-resize-handle
                     className="absolute bottom-0 left-1 right-1 h-3 cursor-s-resize z-20 flex items-end justify-center opacity-0 group-hover/event:opacity-100 transition-opacity"
                     aria-label={t("events.resize")}
-                    onPointerDown={(e) => handleResizePointerDown(ev.id, durMin, e)}
+                    onPointerDown={(e) => handleResizePointerDown(ev.id, "bottom", startMinutes, durMin, e)}
                     onPointerMove={handleResizePointerMove}
                     onPointerUp={handleResizePointerUp}
                   >

@@ -60,10 +60,8 @@ describe('ContactDetail', () => {
   it('calls onDelete when delete button is clicked', () => {
     const onDelete = vi.fn();
     render(<ContactDetail contact={contact} onEdit={vi.fn()} onDelete={onDelete} />);
-    const deleteButton = screen.getAllByRole('button').find(
-      btn => btn.className.includes('text-red')
-    );
-    fireEvent.click(deleteButton!);
+    fireEvent.click(screen.getByLabelText('detail.more_actions'));
+    fireEvent.click(screen.getByRole('menuitem', { name: /context_menu\.delete/ }));
     expect(onDelete).toHaveBeenCalledOnce();
   });
 });

@@ -105,8 +105,15 @@ export default function FilesPage() {
 
   const detailResource = detailName ? resources.find(r => r.name === detailName) || null : null;
 
-  // Check auth on mount
+  // Check auth on mount – skip when already authenticated so that navigating
+  // between routes doesn't retrigger checkAuth's transient `{ client: null,
+  // isLoading: true }` reset, which was flashing the spinner on every nav.
   useEffect(() => {
+    const state = useAuthStore.getState();
+    if (state.isAuthenticated && state.client) {
+      setInitialCheckDone(true);
+      return;
+    }
     checkAuth().finally(() => {
       setInitialCheckDone(true);
     });

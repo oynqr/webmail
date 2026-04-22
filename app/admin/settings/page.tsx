@@ -122,7 +122,6 @@ export default function AdminSettingsPage() {
           </div>
         )}
         <ToggleSetting label="Stalwart Features" description="Enable Stalwart Mail Server-specific features" configKey="stalwartFeaturesEnabled" value={currentValue('stalwartFeaturesEnabled') as boolean} source={config.stalwartFeaturesEnabled?.source} onChange={handleChange} onRevert={handleRevert} />
-        <TextSetting label="Stalwart API URL" configKey="stalwartApiUrl" value={currentValue('stalwartApiUrl') as string} source={config.stalwartApiUrl?.source} onChange={handleChange} onRevert={handleRevert} placeholder="https://mail.example.com/api" />
         <ToggleSetting label="Demo Mode" description="Enable demo mode with sample data" configKey="demoMode" value={currentValue('demoMode') as boolean} source={config.demoMode?.source} onChange={handleChange} onRevert={handleRevert} />
       </SettingsSection>
 

@@ -2,11 +2,12 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { X, Plus, ChevronDown, ChevronRight, User, Building, MapPin, Globe, Cake, Heart, Tag, StickyNote, Mail, Phone, Calendar, UserCircle, Book } from "lucide-react";
+import { X, Plus, ChevronDown, ChevronRight, User, Building, MapPin, Globe, Cake, Heart, Tag, StickyNote, Mail, Phone, Calendar, UserCircle, Book, Camera, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import type { ContactCard, ContactOnlineService, ContactAnniversary, ContactPersonalInfo, AddressBook, AnniversaryDate, PartialDate, ContactAddress } from "@/lib/jmap/types";
+import type { ContactCard, ContactOnlineService, ContactAnniversary, ContactPersonalInfo, AddressBook, AnniversaryDate, PartialDate, ContactAddress, ContactMedia } from "@/lib/jmap/types";
 
 interface EmailEntry {
   address: string;
@@ -53,53 +54,71 @@ interface ContactFormProps {
   onCancel: () => void;
 }
 
-type FormCategory = "contact" | "work" | "location" | "personal" | "digital" | "calendar" | "notes";
-
-const formCategoryStyles: Record<FormCategory, string> = {
-  contact: "border-l-blue-400 dark:border-l-blue-500",
-  work: "border-l-amber-400 dark:border-l-amber-500",
-  location: "border-l-emerald-400 dark:border-l-emerald-500",
-  personal: "border-l-violet-400 dark:border-l-violet-500",
-  digital: "border-l-cyan-400 dark:border-l-cyan-500",
-  calendar: "border-l-rose-400 dark:border-l-rose-500",
-  notes: "border-l-stone-400 dark:border-l-stone-500",
-};
-
-function FormSection({ icon: Icon, title, children, collapsible, defaultOpen = false, category = "contact" }: {
+function FormSection({ icon: Icon, title, children, collapsible, defaultOpen = true }: {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   children: React.ReactNode;
   collapsible?: boolean;
   defaultOpen?: boolean;
-  category?: FormCategory;
 }) {
-  const [open, setOpen] = useState(defaultOpen || !collapsible);
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div className={cn("rounded-lg border border-border bg-card border-l-[3px] px-4 py-3", formCategoryStyles[category])}>
+    <section className="py-5">
       <button
         type="button"
         className={cn(
-          "flex items-center gap-2 w-full py-0.5 text-sm font-medium text-foreground transition-colors",
-          collapsible && "hover:text-muted-foreground cursor-pointer",
-          !collapsible && "cursor-default"
+          "flex items-center gap-2 w-full text-left",
+          collapsible ? "cursor-pointer" : "cursor-default"
         )}
         onClick={() => collapsible && setOpen(!open)}
         tabIndex={collapsible ? 0 : -1}
       >
         <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
-        <span className="flex-1 text-left">{title}</span>
+        <h3 className="flex-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</h3>
         {collapsible && (
           open ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
         )}
       </button>
-      {open && (
-        <div className="space-y-3 pt-3 pb-1">
+      {(open || !collapsible) && (
+        <div className="space-y-3 mt-3">
           {children}
         </div>
       )}
-    </div>
+    </section>
   );
+}
+
+const MAX_PHOTO_DIM = 512;
+const PHOTO_QUALITY = 0.85;
+
+async function processImageFile(file: File): Promise<{ uri: string; mediaType: string }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = Math.min(1, MAX_PHOTO_DIM / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * ratio));
+        const h = Math.max(1, Math.round(img.height * ratio));
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("canvas-unsupported"));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, w, h);
+        const uri = canvas.toDataURL("image/jpeg", PHOTO_QUALITY);
+        resolve({ uri, mediaType: "image/jpeg" });
+      };
+      img.onerror = () => reject(new Error("invalid-image"));
+      img.src = reader.result as string;
+    };
+    reader.onerror = () => reject(new Error("read-failed"));
+    reader.readAsDataURL(file);
+  });
 }
 
 function Select({ value, onChange, children, className }: {
@@ -313,9 +332,53 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
   }, [contact]);
   const [selectedBookId, setSelectedBookId] = useState(currentBookId);
 
+  const initialPhotoEntry = useMemo(() => {
+    if (!contact?.media) return null;
+    for (const [key, m] of Object.entries(contact.media)) {
+      if (m.kind === "photo" && m.uri) return { key, uri: m.uri, mediaType: m.mediaType };
+    }
+    return null;
+  }, [contact]);
+  const [photoUri, setPhotoUri] = useState<string | undefined>(initialPhotoEntry?.uri);
+  const [photoMediaType, setPhotoMediaType] = useState<string | undefined>(initialPhotoEntry?.mediaType);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [emailErrors, setEmailErrors] = useState<Record<number, string>>({});
+
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setPhotoError(t("photo_invalid"));
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setPhotoError(t("photo_too_large"));
+      return;
+    }
+    setPhotoError(null);
+    setPhotoUploading(true);
+    try {
+      const { uri, mediaType } = await processImageFile(file);
+      setPhotoUri(uri);
+      setPhotoMediaType(mediaType);
+    } catch {
+      setPhotoError(t("photo_invalid"));
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
+  const handlePhotoRemove = () => {
+    setPhotoUri(undefined);
+    setPhotoMediaType(undefined);
+    setPhotoError(null);
+  };
 
   const validateEmail = (address: string): boolean => {
     if (!address.trim()) return true;
@@ -427,6 +490,17 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
       });
     }
 
+    const mediaMap: Record<string, ContactMedia> = {};
+    if (contact?.media) {
+      for (const [key, m] of Object.entries(contact.media)) {
+        if (m.kind !== "photo") mediaMap[key] = m;
+      }
+    }
+    if (photoUri) {
+      const photoKey = initialPhotoEntry?.key || "photo";
+      mediaMap[photoKey] = { kind: "photo", uri: photoUri, mediaType: photoMediaType };
+    }
+
     const data: Partial<ContactCard> = {
       name: { components: nameComponents, isOrdered: true },
       nicknames: nickname.trim() ? { n0: { name: nickname.trim() } } : undefined,
@@ -453,6 +527,7 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
       calendarUri: calendarUri.trim() || undefined,
       schedulingUri: schedulingUri.trim() || undefined,
       freeBusyUri: freeBusyUri.trim() || undefined,
+      media: Object.keys(mediaMap).length > 0 ? mediaMap : undefined,
       ...(selectedBookId ? { addressBookIds: { [selectedBookId]: true } } : {}),
     };
 
@@ -466,6 +541,9 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
     }
   };
 
+  const previewName = [givenName, surname].filter(Boolean).join(" ").trim();
+  const previewEmail = emails.find(e => e.address.trim())?.address.trim() || "";
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full bg-background">
       <div className="flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0">
@@ -478,38 +556,82 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="px-6 py-4">
+        <div className="px-6 py-4 max-w-3xl">
           {error && (
             <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-3 py-2 rounded-lg border border-red-200 dark:border-red-900 mb-4">
               {error}
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-
-          {/* Address Book Selector */}
-          {addressBooks && addressBooks.length > 1 && (
-            <div className="md:col-span-2 xl:col-span-3">
-              <FormSection icon={Book} title={t("section_address_book") || "Directory"} category="contact">
-                <select
-                  value={selectedBookId}
-                  onChange={(e) => setSelectedBookId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+          <div className="flex items-center gap-4 pb-4">
+            <button
+              type="button"
+              onClick={() => photoInputRef.current?.click()}
+              disabled={photoUploading}
+              className="relative group rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60"
+              title={t("upload_photo")}
+              aria-label={t("upload_photo")}
+            >
+              <Avatar
+                name={previewName || undefined}
+                email={previewEmail || undefined}
+                contactPhotoUri={photoUri}
+                size="lg"
+                className="!w-20 !h-20 !text-xl"
+              />
+              <span
+                aria-hidden="true"
+                className="absolute inset-0 rounded-full bg-black/55 text-white flex flex-col items-center justify-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity"
+              >
+                <Camera className="w-5 h-5" />
+                <span className="text-[10px] font-medium leading-none">{t("change_photo")}</span>
+              </span>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoSelect}
+              />
+            </button>
+            <div className="flex flex-col gap-1 min-w-0 flex-1">
+              <p className="text-xs text-muted-foreground">{t("photo_hint")}</p>
+              {photoError && (
+                <p className="text-xs text-red-600 dark:text-red-400">{photoError}</p>
+              )}
+              {photoUri && (
+                <button
+                  type="button"
+                  onClick={handlePhotoRemove}
+                  className="inline-flex items-center gap-1 self-start text-xs text-muted-foreground hover:text-destructive transition-colors"
                 >
-                  <option value="">{t("select_address_book") || "Select a directory..."}</option>
-                  {addressBooks.map((book) => (
-                    <option key={book.id} value={book.id}>
-                      {book.accountName ? `${book.name} (${book.accountName})` : book.name}
-                    </option>
-                  ))}
-                </select>
-              </FormSection>
+                  <Trash2 className="w-3 h-3" />
+                  {t("remove_photo")}
+                </button>
+              )}
             </div>
+          </div>
+
+          <div className="divide-y divide-border/60">
+
+          {addressBooks && addressBooks.length > 1 && (
+            <FormSection icon={Book} title={t("section_address_book") || "Directory"}>
+              <select
+                value={selectedBookId}
+                onChange={(e) => setSelectedBookId(e.target.value)}
+                className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="">{t("select_address_book") || "Select a directory..."}</option>
+                {addressBooks.map((book) => (
+                  <option key={book.id} value={book.id}>
+                    {book.accountName ? `${book.name} (${book.accountName})` : book.name}
+                  </option>
+                ))}
+              </select>
+            </FormSection>
           )}
 
-          {/* Name & Identity - full width */}
-          <div className="md:col-span-2 xl:col-span-3">
-          <FormSection icon={User} title={t("section_identity")} category="contact">
+          <FormSection icon={User} title={t("section_identity")}>
             <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-2">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">{t("prefix")}</label>
@@ -543,10 +665,9 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
               </div>
             </div>
           </FormSection>
-          </div>
 
           {/* Email */}
-          <FormSection icon={Mail} title={t("email")} collapsible defaultOpen category="contact">
+          <FormSection icon={Mail} title={t("email")}>
             <div className="space-y-2">
               {emails.map((entry, i) => (
                 <div key={i}>
@@ -598,7 +719,7 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
           </FormSection>
 
           {/* Phone */}
-          <FormSection icon={Phone} title={t("phone")} collapsible defaultOpen category="contact">
+          <FormSection icon={Phone} title={t("phone")}>
             <div className="space-y-2">
               {phones.map((entry, i) => (
                 <div key={i} className="flex items-center gap-2">
@@ -656,7 +777,7 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
           </FormSection>
 
           {/* Work & Organization */}
-          <FormSection icon={Building} title={t("section_work")} collapsible defaultOpen category="work">
+          <FormSection icon={Building} title={t("section_work")} collapsible defaultOpen={!!(organization || department || jobTitle || role)}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">{t("organization")}</label>
@@ -677,9 +798,8 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
             </div>
           </FormSection>
 
-          {/* Addresses - full width */}
-          <div className="md:col-span-2 xl:col-span-3">
-          <FormSection icon={MapPin} title={t("addresses")} collapsible defaultOpen category="location">
+          {/* Addresses */}
+          <FormSection icon={MapPin} title={t("addresses")} collapsible defaultOpen={addresses.length > 0}>
             <div className="space-y-3">
               {addresses.map((addr, i) => (
                 <div key={i} className="rounded-md border border-border/60 bg-muted/20 p-3 space-y-2 relative">
@@ -711,10 +831,9 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
               </Button>
             </div>
           </FormSection>
-          </div>
 
           {/* Online Services */}
-          <FormSection icon={Globe} title={t("online_services")} collapsible defaultOpen category="digital">
+          <FormSection icon={Globe} title={t("online_services")} collapsible defaultOpen={onlineServices.length > 0}>
             <div className="space-y-2">
               {onlineServices.map((svc, i) => (
                 <div key={i} className="flex items-center gap-2">
@@ -743,7 +862,7 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
           </FormSection>
 
           {/* Anniversaries */}
-          <FormSection icon={Cake} title={t("anniversaries")} collapsible defaultOpen category="personal">
+          <FormSection icon={Cake} title={t("anniversaries")} collapsible defaultOpen={anniversaries.length > 0}>
             <div className="space-y-2">
               {anniversaries.map((ann, i) => (
                 <div key={i} className="flex items-center gap-2">
@@ -775,7 +894,7 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
           </FormSection>
 
           {/* Personal Info */}
-          <FormSection icon={Heart} title={t("personal_info")} collapsible defaultOpen category="personal">
+          <FormSection icon={Heart} title={t("personal_info")} collapsible defaultOpen={personalInfoEntries.length > 0}>
             <div className="space-y-2">
               {personalInfoEntries.map((pi, i) => (
                 <div key={i} className="flex items-center gap-2">
@@ -816,7 +935,7 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
           </FormSection>
 
           {/* Categories */}
-          <FormSection icon={Tag} title={t("categories")} collapsible defaultOpen category="digital">
+          <FormSection icon={Tag} title={t("categories")} collapsible defaultOpen={!!keywordsStr}>
             <CategoryComboBox
               keywordsStr={keywordsStr}
               onChange={setKeywordsStr}
@@ -828,7 +947,7 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
           </FormSection>
 
           {/* Gender */}
-          <FormSection icon={UserCircle} title={t("gender")} collapsible defaultOpen category="personal">
+          <FormSection icon={UserCircle} title={t("gender")} collapsible defaultOpen={!!(genderSex || genderIdentity)}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">{t("gender_sex")}</label>
@@ -849,7 +968,7 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
           </FormSection>
 
           {/* Calendar */}
-          <FormSection icon={Calendar} title={t("calendar")} collapsible defaultOpen category="calendar">
+          <FormSection icon={Calendar} title={t("calendar")} collapsible defaultOpen={!!(calendarUri || schedulingUri || freeBusyUri)}>
             <div className="space-y-3">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">{t("calendar_uri")}</label>
@@ -866,9 +985,8 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
             </div>
           </FormSection>
 
-          {/* Notes - full width */}
-          <div className="md:col-span-2 xl:col-span-3">
-          <FormSection icon={StickyNote} title={t("note")} collapsible defaultOpen category="notes">
+          {/* Notes */}
+          <FormSection icon={StickyNote} title={t("note")} collapsible defaultOpen={!!note}>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -876,7 +994,6 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
               className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground resize-y outline-none focus:ring-2 focus:ring-ring"
             />
           </FormSection>
-          </div>
 
           </div>
         </div>

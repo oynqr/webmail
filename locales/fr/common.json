@@ -129,7 +129,8 @@
     "folders": "Dossiers",
     "mail": "Messagerie",
     "nav_label": "Navigation",
-    "add_app": "Apps"
+    "add_app": "Apps",
+    "shared": "Partagé"
   },
   "sidebar_apps": {
     "modal_title": "Applications de la barre latérale",
@@ -670,14 +671,24 @@
       "files": "Fichiers",
       "contacts": "Contacts",
       "sidebar_apps": "Apps de la barre latérale",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "layout": "Mise en page",
+      "reading": "Lecture",
+      "composing": "Rédaction",
+      "content_senders": "Contenu et expéditeurs",
+      "about_data": "À propos et données",
+      "debug": "Débogage"
     },
     "tab_groups": {
       "general": "Général",
       "account": "Compte & Identité",
       "organization": "Organisation des e-mails",
       "apps": "Applications",
-      "system": "Système"
+      "system": "Système",
+      "appearance": "Apparence",
+      "mail": "Courrier",
+      "privacy": "Confidentialité et sécurité",
+      "advanced": "Avancé"
     },
     "appearance": {
       "title": "Apparence",
@@ -733,6 +744,10 @@
       "unified_mailbox": {
         "label": "Boîte aux lettres unifiée",
         "description": "Afficher les dossiers combinés (Réception, Envoyés, etc.) de tous les comptes connectés"
+      },
+      "colorful_sidebar_icons": {
+        "label": "Icônes colorées dans la barre latérale",
+        "description": "Colore les icônes de dossiers et d'étiquettes par type (Boîte de réception en bleu, Indésirable en rouge, Envoyés en vert, etc.). Désactivez pour une barre latérale monochrome."
       }
     },
     "keywords": {
@@ -1075,7 +1090,14 @@
         "disabled": "Authentification à deux facteurs désactivée",
         "enable_error": "Impossible d'activer la 2FA",
         "disable_error": "Impossible de désactiver la 2FA",
-        "setup_instructions": "Copiez cette URL dans votre application d'authentification (Google Authenticator, Authy, etc.) :"
+        "setup_instructions": "Copiez cette URL dans votre application d'authentification (Google Authenticator, Authy, etc.) :",
+        "verification_code": "Code de vérification",
+        "confirm": "Confirmer",
+        "disable": "Désactiver",
+        "disable_confirm_prompt": "Saisissez votre mot de passe pour désactiver l'authentification à deux facteurs.",
+        "password_required": "Le mot de passe est requis",
+        "code_required": "Le code de vérification est requis",
+        "code_invalid": "Code de vérification non valide. Vérifiez votre application d'authentification et réessayez."
       },
       "app_passwords": {
         "title": "Mots de passe d'application",
@@ -1092,7 +1114,25 @@
         "removed": "Mot de passe d'application supprimé",
         "add_error": "Impossible de créer le mot de passe d'application",
         "remove_error": "Impossible de supprimer le mot de passe d'application",
-        "none": "Aucun mot de passe d'application configuré"
+        "none": "Aucun mot de passe d'application configuré",
+        "done": "Terminé",
+        "expires_label": "Expire (facultatif)",
+        "copy_now_warning": "Copiez ce mot de passe maintenant - il ne sera plus affiché.",
+        "allowed_ips_label": "IP autorisées (facultatif)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Séparées par virgule ou espace. Laisser vide pour autoriser toute IP."
+      },
+      "api_keys": {
+        "title": "Clés API",
+        "description": "Créez des clés API pour les scripts et intégrations qui communiquent directement avec le serveur",
+        "name_label": "Nom de la clé",
+        "name_placeholder": "ex. Script de sauvegarde, CI runner",
+        "copy_now_warning": "Copiez cette clé API maintenant - elle ne sera plus affichée.",
+        "added": "Clé API créée",
+        "removed": "Clé API supprimée",
+        "add_error": "Échec de la création de la clé API",
+        "remove_error": "Échec de la suppression de la clé API",
+        "none": "Aucune clé API configurée"
       },
       "encryption": {
         "section_title": "Chiffrement au repos",
@@ -1415,7 +1455,9 @@
       "rule_summary": {
         "conditions_count": "{count, plural, one {# condition} other {# conditions}}",
         "actions_count": "{count, plural, one {# action} other {# actions}}"
-      }
+      },
+      "origin_external": "Externe",
+      "managed_by_tooltip": "Géré par {source}. Modifiez-le dans cette application, ou utilisez l'éditeur Sieve brut."
     },
     "templates": {
       "title": "Modèles d'e-mails",
@@ -1705,6 +1747,8 @@
     "empty_state_subtitle": "Créez votre premier contact ou importez depuis un fichier vCard",
     "empty_search": "Aucun contact ne correspond à votre recherche",
     "empty_search_hint": "Essayez un autre terme de recherche",
+    "empty_filtered": "Aucun contact ne correspond à vos filtres",
+    "empty_filtered_hint": "Ajustez ou effacez les filtres",
     "clear_search": "Effacer la recherche",
     "import_vcard": "Importer vCard",
     "delete_confirm_title": "Supprimer le contact",
@@ -1782,7 +1826,33 @@
       "import_to_smime": "Importer dans S/MIME",
       "cert_already_imported": "Certificat déjà importé",
       "cert_imported": "Certificat importé",
-      "cert_import_failed": "Échec de l'import du certificat"
+      "cert_import_failed": "Échec de l'import du certificat",
+      "section_contact": "Contact details",
+      "section_work": "Work",
+      "section_personal": "Personal",
+      "email_default_label": "Email",
+      "phone_default_label": "Phone",
+      "address_default_label": "Address",
+      "online_service_default_label": "Online",
+      "organization_label": "Organization",
+      "title_label": "Title",
+      "role_label": "Role",
+      "language_label": "Language",
+      "related_default_label": "Related",
+      "more_actions": "Plus d'actions",
+      "age_years": "{count, plural, one {1 an} other {# ans}}",
+      "years_since": "{count, plural, one {il y a 1 an} other {il y a # ans}}"
+    },
+    "activity": {
+      "recent_emails": "Recent Emails",
+      "upcoming_events": "Upcoming Events",
+      "no_emails": "No recent emails",
+      "no_events": "No upcoming events",
+      "no_subject": "(No subject)",
+      "no_title": "(No title)",
+      "load_failed": "Failed to load",
+      "unknown_sender": "Unknown sender",
+      "all_day": "All day"
     },
     "form": {
       "create_title": "Nouveau contact",
@@ -1878,7 +1948,13 @@
       "email_invalid": "Veuillez saisir une adresse e-mail valide",
       "email_error_inline": "Format d'e-mail invalide",
       "save_failed": "Échec de l'enregistrement du contact",
-      "delete": "Supprimer"
+      "delete": "Supprimer",
+      "upload_photo": "Téléverser une photo",
+      "remove_photo": "Supprimer la photo",
+      "photo_hint": "JPG ou PNG, jusqu’à 10 Mo. Sera redimensionnée.",
+      "photo_too_large": "L’image est trop grande (max 10 Mo)",
+      "photo_invalid": "Fichier image invalide",
+      "change_photo": "Modifier"
     },
     "groups": {
       "create": "Nouveau groupe",
@@ -1938,6 +2014,37 @@
       "error_create": "Échec de la création du contact",
       "error_update": "Échec de la mise à jour du contact",
       "error_delete": "Échec de la suppression du contact"
+    },
+    "context_menu": {
+      "open": "Ouvrir",
+      "edit": "Modifier",
+      "send_email": "Envoyer un courriel",
+      "add_to_group": "Ajouter au groupe",
+      "export_vcard": "Exporter en vCard",
+      "delete": "Supprimer",
+      "call": "Appeler",
+      "duplicate": "Dupliquer",
+      "print": "Imprimer"
+    },
+    "filters": {
+      "toggle": "Filtres",
+      "select": "Sélectionner",
+      "clear": "Effacer",
+      "close": "Fermer",
+      "title": "Filtres avancés",
+      "organization": "Entreprise",
+      "organization_placeholder": "ex. Acme",
+      "job_title": "Poste",
+      "job_title_placeholder": "ex. Designer",
+      "location": "Lieu",
+      "location_placeholder": "Ville ou pays",
+      "email_domain": "Domaine e-mail",
+      "email_domain_placeholder": "exemple.com",
+      "birthday_month": "Anniversaire en",
+      "any_month": "Tous les mois",
+      "has_email": "Avec e-mail",
+      "has_phone": "Avec téléphone",
+      "has_photo": "Avec photo"
     }
   },
   "calendar": {
@@ -2013,6 +2120,7 @@
       "tentative": "Provisoire",
       "needs_action": "En attente de réponse",
       "remove": "Retirer",
+      "edit": "Modifier",
       "email_placeholder": "Ajouter une adresse e-mail ou chercher des contacts",
       "send_invitations": "Envoyer les invitations aux participants",
       "status_summary": "{accepted} accepté(s), {pending} en attente",

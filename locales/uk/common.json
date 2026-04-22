@@ -129,7 +129,8 @@
     "folders": "Папки",
     "mail": "Пошта",
     "nav_label": "Навігація",
-    "add_app": "програми"
+    "add_app": "програми",
+    "shared": "Спільні"
   },
   "sidebar_apps": {
     "modal_title": "Програми бічної панелі",
@@ -670,14 +671,24 @@
       "contacts": "Контакти",
       "encryption": "Шифрування",
       "sidebar_apps": "Програми бічної панелі",
-      "notifications": "Сповіщення"
+      "notifications": "Сповіщення",
+      "layout": "Макет",
+      "reading": "Читання",
+      "composing": "Написання",
+      "content_senders": "Вміст і відправники",
+      "about_data": "Про програму та дані",
+      "debug": "Налагодження"
     },
     "tab_groups": {
       "general": "Загальний",
       "account": "Обліковий запис і ідентифікатор",
       "organization": "Організація пошти",
       "apps": "програми",
-      "system": "система"
+      "system": "система",
+      "appearance": "Вигляд",
+      "mail": "Пошта",
+      "privacy": "Конфіденційність і безпека",
+      "advanced": "Додатково"
     },
     "appearance": {
       "title": "Зовнішній вигляд",
@@ -733,6 +744,10 @@
       "unified_mailbox": {
         "label": "Спільна поштова скринька",
         "description": "Показувати об'єднані папки (Вхідні, Надіслані тощо) для всіх підключених облікових записів"
+      },
+      "colorful_sidebar_icons": {
+        "label": "Кольорові значки бічної панелі",
+        "description": "Забарвлюйте значки папок і тегів за типом (синя «Вхідні», червоний «Спам», зелена «Надіслані» тощо). Вимкніть для монохромної бічної панелі."
       }
     },
     "keywords": {
@@ -1075,7 +1090,14 @@
         "disabled": "Двофакторну автентифікацію вимкнено",
         "enable_error": "Не вдалося ввімкнути 2FA",
         "disable_error": "Не вдалося вимкнути 2FA",
-        "setup_instructions": "Скопіюйте цю URL-адресу в програму автентифікації (Google Authenticator, Authy тощо):"
+        "setup_instructions": "Скопіюйте цю URL-адресу в програму автентифікації (Google Authenticator, Authy тощо):",
+        "verification_code": "Код підтвердження",
+        "confirm": "Підтвердити",
+        "disable": "Вимкнути",
+        "disable_confirm_prompt": "Введіть пароль, щоб вимкнути двофакторну автентифікацію.",
+        "password_required": "Потрібен пароль",
+        "code_required": "Потрібен код підтвердження",
+        "code_invalid": "Недійсний код підтвердження. Перевірте додаток автентифікації та спробуйте ще раз."
       },
       "app_passwords": {
         "title": "Паролі програм",
@@ -1092,7 +1114,25 @@
         "removed": "Пароль програми видалено",
         "add_error": "Не вдалося створити пароль програми",
         "remove_error": "Не вдалося видалити пароль програми",
-        "none": "Паролі програм не налаштовано"
+        "none": "Паролі програм не налаштовано",
+        "done": "Готово",
+        "expires_label": "Термін дії (необов’язково)",
+        "copy_now_warning": "Скопіюйте цей пароль зараз - він більше не буде показаний.",
+        "allowed_ips_label": "Дозволені IP (необов’язково)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Через кому або пробіл. Залиште порожнім, щоб дозволити будь-який IP."
+      },
+      "api_keys": {
+        "title": "API-ключі",
+        "description": "Створюйте API-ключі для скриптів та інтеграцій, які звертаються до сервера напряму",
+        "name_label": "Назва ключа",
+        "name_placeholder": "напр. Скрипт резервної копії, CI runner",
+        "copy_now_warning": "Скопіюйте цей API-ключ зараз – він більше не буде показаний.",
+        "added": "API-ключ створено",
+        "removed": "API-ключ видалено",
+        "add_error": "Не вдалося створити API-ключ",
+        "remove_error": "Не вдалося видалити API-ключ",
+        "none": "API-ключі не налаштовано"
       },
       "encryption": {
         "section_title": "Шифрування в спокої",
@@ -1415,7 +1455,9 @@
       "rule_summary": {
         "conditions_count": "{count, plural, one {# умова} few {# умови} many {# умов} other {# умов}}",
         "actions_count": "{count, plural, one {# дія} few {# дії} many {# дій} other {# дій}}"
-      }
+      },
+      "origin_external": "Зовнішнє",
+      "managed_by_tooltip": "Керується {source}. Редагуйте в тому додатку або використовуйте редактор Sieve."
     },
     "templates": {
       "title": "Шаблони електронної пошти",
@@ -1705,6 +1747,8 @@
     "empty_state_subtitle": "Створіть свій перший контакт або імпортуйте його з файлу vCard",
     "empty_search": "Жоден контакт не відповідає вашому пошуку",
     "empty_search_hint": "Спробуйте інший термін пошуку",
+    "empty_filtered": "Жоден контакт не відповідає фільтрам",
+    "empty_filtered_hint": "Змініть або очистіть фільтри",
     "clear_search": "Очистити пошук",
     "import_vcard": "Імпорт vCard",
     "delete_confirm_title": "Видалити контакт",
@@ -1782,7 +1826,33 @@
       "calendar": "Календар",
       "calendar_uri": "URL-адреса календаря",
       "scheduling_uri": "URL-адреса планування",
-      "freebusy_uri": "Вільний/зайнятий URL"
+      "freebusy_uri": "Вільний/зайнятий URL",
+      "section_contact": "Contact details",
+      "section_work": "Work",
+      "section_personal": "Personal",
+      "email_default_label": "Email",
+      "phone_default_label": "Phone",
+      "address_default_label": "Address",
+      "online_service_default_label": "Online",
+      "organization_label": "Organization",
+      "title_label": "Title",
+      "role_label": "Role",
+      "language_label": "Language",
+      "related_default_label": "Related",
+      "more_actions": "Більше дій",
+      "age_years": "{count, plural, one {# рік} few {# роки} many {# років} other {# років}}",
+      "years_since": "{count, plural, one {# рік тому} few {# роки тому} many {# років тому} other {# років тому}}"
+    },
+    "activity": {
+      "recent_emails": "Recent Emails",
+      "upcoming_events": "Upcoming Events",
+      "no_emails": "No recent emails",
+      "no_events": "No upcoming events",
+      "no_subject": "(No subject)",
+      "no_title": "(No title)",
+      "load_failed": "Failed to load",
+      "unknown_sender": "Unknown sender",
+      "all_day": "All day"
     },
     "form": {
       "create_title": "Новий контакт",
@@ -1878,7 +1948,13 @@
       "email_invalid": "Введіть дійсну електронну адресу",
       "email_error_inline": "Недійсний формат електронної пошти",
       "save_failed": "Не вдалося зберегти контакт",
-      "delete": "Видалити"
+      "delete": "Видалити",
+      "upload_photo": "Завантажити фото",
+      "remove_photo": "Видалити фото",
+      "photo_hint": "JPG або PNG, до 10 МБ. Буде зменшено.",
+      "photo_too_large": "Зображення завелике (макс. 10 МБ)",
+      "photo_invalid": "Недійсний файл зображення",
+      "change_photo": "Змінити"
     },
     "groups": {
       "create": "Нова група",
@@ -1938,6 +2014,37 @@
       "error_create": "Не вдалося створити контакт",
       "error_update": "Не вдалося оновити контакт",
       "error_delete": "Не вдалося видалити контакт"
+    },
+    "context_menu": {
+      "open": "Відкрити",
+      "edit": "Редагувати",
+      "send_email": "Надіслати лист",
+      "add_to_group": "Додати до групи",
+      "export_vcard": "Експортувати як vCard",
+      "delete": "Видалити",
+      "call": "Зателефонувати",
+      "duplicate": "Дублювати",
+      "print": "Друк"
+    },
+    "filters": {
+      "toggle": "Фільтри",
+      "select": "Вибрати",
+      "clear": "Очистити",
+      "close": "Закрити",
+      "title": "Розширені фільтри",
+      "organization": "Компанія",
+      "organization_placeholder": "напр. Acme",
+      "job_title": "Посада",
+      "job_title_placeholder": "напр. Дизайнер",
+      "location": "Місцезнаходження",
+      "location_placeholder": "Місто або країна",
+      "email_domain": "Домен e-mail",
+      "email_domain_placeholder": "priklad.ua",
+      "birthday_month": "День народження в",
+      "any_month": "Будь-який місяць",
+      "has_email": "З ел. поштою",
+      "has_phone": "З телефоном",
+      "has_photo": "З фото"
     }
   },
   "calendar": {
@@ -2013,6 +2120,7 @@
       "tentative": "Орієнтовний",
       "needs_action": "Потребує дії",
       "remove": "видалити",
+      "edit": "Редагувати",
       "email_placeholder": "Додайте електронну адресу або знайдіть контакти",
       "send_invitations": "Надішліть запрошення учасникам",
       "status_summary": "{accepted} прийнято, {pending} очікує на розгляд",

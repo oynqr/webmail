@@ -17,9 +17,10 @@ interface ContactListItemProps {
   selectedContactIds: Set<string>;
   onClick: (e: React.MouseEvent) => void;
   onCheckboxClick: (e: React.MouseEvent) => void;
+  onContextMenu?: (e: React.MouseEvent, contact: ContactCard) => void;
 }
 
-export function ContactListItem({ contact, isSelected, isChecked, hasSelection, density, selectedContactIds, onClick, onCheckboxClick }: ContactListItemProps) {
+export function ContactListItem({ contact, isSelected, isChecked, hasSelection, density, selectedContactIds, onClick, onCheckboxClick, onContextMenu }: ContactListItemProps) {
   const name = getContactDisplayName(contact);
   const email = getContactPrimaryEmail(contact);
   const org = contact.organizations
@@ -56,6 +57,7 @@ export function ContactListItem({ contact, isSelected, isChecked, hasSelection, 
       draggable
       onDragStart={handleDragStart}
       onClick={onClick}
+      onContextMenu={onContextMenu ? (e) => onContextMenu(e, contact) : undefined}
       className={cn(
         "w-full flex items-center cursor-pointer select-none transition-all duration-200 border-b border-border",
         isSelected

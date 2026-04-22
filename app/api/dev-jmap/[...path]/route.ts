@@ -112,10 +112,9 @@ const emails: MockEmail[] = [
     preview: 'Hallo! This is a sample email to help you get started with the Bulwark Webmail development environment.',
     hasAttachment: false,
     textBody: [{ partId: 'p1', blobId: 'blob-001', size: 280, type: 'text/plain' }],
-    htmlBody: [{ partId: 'p2', blobId: 'blob-002', size: 420, type: 'text/html' }],
+    htmlBody: [],
     bodyValues: {
       p1: { value: 'Hallo!\n\nThis is a sample email to help you get started with the Bulwark Webmail development environment.\n\nFeel free to explore the UI - all data here is mock data.\n\nBeste Grüße,\nSophie' },
-      p2: { value: '<p>Hallo!</p><p>This is a sample email to help you get started with the <strong>Bulwark Webmail</strong> development environment.</p><p>Feel free to explore the UI - all data here is mock data.</p><p>Beste Grüße,<br>Sophie</p>' },
     },
   },
   {

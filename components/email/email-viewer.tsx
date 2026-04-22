@@ -4,7 +4,7 @@ import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } fr
 import ReactDOM from "react-dom";
 import DOMPurify from "dompurify";
 import { Email, ContactCard, Mailbox } from "@/lib/jmap/types";
-import { EMAIL_SANITIZE_CONFIG, collapseBlockedImageContainers, plainTextToSafeHtml } from "@/lib/email-sanitization";
+import { EMAIL_IFRAME_SANITIZE_CONFIG, collapseBlockedImageContainers, plainTextToSafeHtml } from "@/lib/email-sanitization";
 import { hasMeaningfulHtmlBody } from "@/lib/signature-utils";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
@@ -2322,7 +2322,7 @@ export function EmailViewer({
         let blockedExternalContent = false;
 
         // Use shared sanitization config as base (more secure)
-        const sanitizeConfig = { ...EMAIL_SANITIZE_CONFIG };
+        const sanitizeConfig = { ...EMAIL_IFRAME_SANITIZE_CONFIG };
 
         // Check if sender is trusted (localStorage list or address book)
         const senderEmail = email.from?.[0]?.email?.toLowerCase();
@@ -2438,7 +2438,7 @@ export function EmailViewer({
           return cidBlobUrls[cidRef] || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
         }
       );
-      const cleanHtml = DOMPurify.sanitize(htmlWithCidUrls, EMAIL_SANITIZE_CONFIG);
+      const cleanHtml = DOMPurify.sanitize(htmlWithCidUrls, EMAIL_IFRAME_SANITIZE_CONFIG);
       return { html: cleanHtml, isHtml: true };
     }
     if (smimeDecryptedText) {
@@ -2446,7 +2446,7 @@ export function EmailViewer({
     }
     // TNEF (winmail.dat) extracted content
     if (tnefHtml) {
-      const cleanHtml = DOMPurify.sanitize(tnefHtml, EMAIL_SANITIZE_CONFIG);
+      const cleanHtml = DOMPurify.sanitize(tnefHtml, EMAIL_IFRAME_SANITIZE_CONFIG);
       return { html: cleanHtml, isHtml: true };
     }
     if (tnefText) {
@@ -2454,7 +2454,7 @@ export function EmailViewer({
     }
     // Embedded message/rfc822 unwrapped content
     if (embeddedEmailHtml) {
-      const cleanHtml = DOMPurify.sanitize(embeddedEmailHtml, EMAIL_SANITIZE_CONFIG);
+      const cleanHtml = DOMPurify.sanitize(embeddedEmailHtml, EMAIL_IFRAME_SANITIZE_CONFIG);
       return { html: cleanHtml, isHtml: true };
     }
     if (embeddedEmailText) {
@@ -2603,7 +2603,7 @@ export function EmailViewer({
     return `<!DOCTYPE html>
 <html style="color-scheme: ${colorScheme};"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  body { margin: 0; padding: 16px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; color: #1a1a1a; background: #ffffff; word-wrap: break-word; overflow-wrap: break-word; }
+  body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; color: #1a1a1a; background: #ffffff; word-wrap: break-word; overflow-wrap: break-word; }
   img { max-width: 100% !important; height: auto !important; }
   a { color: #1a73e8; }
   table { max-width: 100% !important; table-layout: auto; overflow-wrap: break-word; }
@@ -2880,7 +2880,7 @@ export function EmailViewer({
     <>
       {/* Left: Reply actions */}
       <div className={cn("flex items-center gap-0", showBackButton ? "sm:gap-1" : "sm:gap-0.5")}>
-        {showBackButton && ((isTablet && !tabletListVisible) || (isFocusedMailLayout && !isMobile)) && onBack && (
+        {showBackButton && (isMobile || (isTablet && !tabletListVisible) || (isFocusedMailLayout && !isMobile)) && onBack && (
           <Button
             variant="ghost"
             size="icon"
@@ -3628,7 +3628,7 @@ export function EmailViewer({
         <div className="px-4 lg:px-6" style={{ paddingBlock: 'var(--density-header-py)' }}>
           <div className="flex items-start justify-between gap-2 lg:gap-4">
             {/* Back button (for below-subject mode on tablet) */}
-            {toolbarPosition === 'below-subject' && ((isTablet && !tabletListVisible) || (isFocusedMailLayout && !isMobile)) && onBack && (
+            {toolbarPosition === 'below-subject' && (isMobile || (isTablet && !tabletListVisible) || (isFocusedMailLayout && !isMobile)) && onBack && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -3676,8 +3676,8 @@ export function EmailViewer({
                 )}
               </div>
             </div>
-            {/* Date/time on the right of subject row */}
-            <div className="flex-shrink-0 text-right">
+            {/* Date/time on the right of subject row - hidden on mobile, shown next to sender */}
+            <div className="hidden sm:block flex-shrink-0 text-right">
               <span className="text-xs lg:text-sm text-muted-foreground whitespace-nowrap">
                 {formatDateTime(email.receivedAt, timeFormat, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
               </span>
@@ -4483,6 +4483,17 @@ export function EmailViewer({
                   </>
                 )}
               </div>
+            </div>
+            {/* Date/time + size on the right (mobile) */}
+            <div className="sm:hidden flex-shrink-0 text-right ml-2">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {formatDateTime(email.receivedAt, timeFormat, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+              </span>
+              {email.size > 0 && (
+                <div className="text-xs text-muted-foreground/60">
+                  {formatFileSize(email.size)}
+                </div>
+              )}
             </div>
           </div>
         </div>

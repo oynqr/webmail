@@ -7,7 +7,7 @@ import { AccountSwitcher } from "./account-switcher";
 import { icons as lucideIcons, type LucideIcon } from "lucide-react";
 import { useConfig } from "@/hooks/use-config";
 import { useThemeStore } from "@/stores/theme-store";
-import { usePathname, Link } from "@/i18n/navigation";
+import { usePathname, Link, useRouter } from "@/i18n/navigation";
 import NextLink from "next/link";
 import { useTranslations } from "next-intl";
 import { useCalendarStore } from "@/stores/calendar-store";
@@ -18,7 +18,7 @@ import { usePolicyStore } from "@/stores/policy-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useAccountStore } from "@/stores/account-store";
 import { getActiveAccountSlotHeaders } from "@/lib/auth/active-account-slot";
-import { getInitials } from "@/lib/account-utils";
+import { getInitials, MAX_ACCOUNTS } from "@/lib/account-utils";
 import { cn, formatFileSize } from "@/lib/utils";
 import { PluginSlot } from "@/components/plugins/plugin-slot";
 import { KeyboardShortcutsModal } from "@/components/keyboard-shortcuts-modal";
@@ -163,6 +163,7 @@ export function NavigationRail({
 }: NavigationRailProps) {
   const t = useTranslations("sidebar");
   const pathname = usePathname();
+  const router = useRouter();
   const { appLogoLightUrl, appLogoDarkUrl } = useConfig();
   const resolvedTheme = useThemeStore((s) => s.resolvedTheme);
   const { supportsCalendar } = useCalendarStore();
@@ -223,11 +224,12 @@ export function NavigationRail({
     let cancelled = false;
     const headers = getActiveAccountSlotHeaders();
     if (!headers['X-JMAP-Cookie-Slot']) return;
-    apiFetch('/api/admin/stalwart-check', { headers })
+    apiFetch('/api/admin/auth', { headers })
       .then(res => res.json())
       .then(data => {
-        if (!cancelled && data.isStalwartAdmin) {
-          setIsStalwartAdmin(true);
+        if (cancelled || !data.stalwartAdmin) return;
+        setIsStalwartAdmin(true);
+        if (!data.authenticated) {
           // Pre-create admin session so /admin works even after full page navigation
           apiFetch('/api/admin/auth', {
             method: 'POST',
@@ -605,6 +607,16 @@ export function NavigationRail({
                 </button>
               );
             })}
+            {accounts.length < MAX_ACCOUNTS && (
+              <button
+                onClick={() => router.push(`/login?mode=add-account` as never)}
+                className="flex items-center justify-center w-8 h-8 rounded-full border border-dashed border-muted-foreground/50 text-muted-foreground hover:border-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
+                title={t("add_account")}
+                aria-label={t("add_account")}
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            )}
             </div>
 
             {/* Logout button with popover */}

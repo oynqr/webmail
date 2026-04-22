@@ -13,7 +13,7 @@ function foldLine(line: string): string {
   return chunks.join("\r\n");
 }
 
-// RFC 5545 §3.3.11 — escape backslash, semicolon, comma, and newline in TEXT values.
+// RFC 5545 §3.3.11 - escape backslash, semicolon, comma, and newline in TEXT values.
 function escapeText(value: string): string {
   return value
     .replace(/\\/g, "\\\\")

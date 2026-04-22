@@ -8,7 +8,7 @@ import { EmailViewer } from "@/components/email/email-viewer";
 import { EmailComposer } from "@/components/email/email-composer";
 import type { ComposerDraftData } from "@/components/email/email-composer";
 import { ThreadConversationView } from "@/components/email/thread-conversation-view";
-import { MobileHeader, MobileViewerHeader } from "@/components/layout/mobile-header";
+import { MobileHeader } from "@/components/layout/mobile-header";
 import { ThreadGroup, Email, isUnifiedMailboxId, UNIFIED_ROLE_BY_ID } from "@/lib/jmap/types";
 import { useAccountStore } from "@/stores/account-store";
 import type { UnifiedAccountClient } from "@/lib/unified-mailbox";
@@ -455,8 +455,15 @@ export default function Home() {
     document.title = title;
   }, [showComposer, composerMode, selectedEmail, selectedMailbox, mailboxes, t, appName]);
 
-  // Check auth on mount
+  // Check auth on mount – skip when already authenticated so that navigating
+  // between routes doesn't retrigger checkAuth's transient `{ client: null,
+  // isLoading: true }` reset, which was flashing the spinner on every nav.
   useEffect(() => {
+    const state = useAuthStore.getState();
+    if (state.isAuthenticated && state.client) {
+      setInitialCheckDone(true);
+      return;
+    }
     checkAuth().finally(() => {
       setInitialCheckDone(true);
     });
@@ -493,7 +500,10 @@ export default function Home() {
   // Load mailboxes and emails when authenticated (only if not already loaded)
   useEffect(() => {
     if (isAuthenticated && client && mailboxes.length === 0) {
-      const loadData = async () => {
+      let retryTimer: ReturnType<typeof setTimeout> | null = null;
+      let cancelled = false;
+
+      const loadData = async (attempt = 1) => {
         try {
           // First fetch mailboxes and quota (inbox will be auto-selected in fetchMailboxes)
           await Promise.all([
@@ -504,6 +514,15 @@ export default function Home() {
           // Get the selected mailbox (should be inbox by default)
           const state = useEmailStore.getState();
           const selectedMailboxId = state.selectedMailbox;
+
+          // On first login the server may still be provisioning mailboxes.
+          // Retry a few times with back-off before giving up.
+          if (state.mailboxes.length === 0 && attempt <= 5 && !cancelled) {
+            const delay = Math.min(1000 * attempt, 5000);
+            debug.log('jmap', `[Mailbox] No mailboxes returned (attempt ${attempt}), retrying in ${delay}ms`);
+            retryTimer = setTimeout(() => loadData(attempt + 1), delay);
+            return;
+          }
 
           // Fetch emails for the selected mailbox
           if (selectedMailboxId) {
@@ -538,6 +557,12 @@ export default function Home() {
         }
       };
       loadData();
+
+      return () => {
+        cancelled = true;
+        if (retryTimer) clearTimeout(retryTimer);
+        client.closePushNotifications();
+      };
     }
 
     // Cleanup push notifications on unmount
@@ -813,8 +838,11 @@ export default function Home() {
   const handleArchive = async (emailToArchive: Email | null = selectedEmail) => {
     if (!client || !emailToArchive) return;
 
-    // Find archive mailbox
-    const archiveMailbox = mailboxes.find(m => m.role === "archive" || m.name.toLowerCase() === "archive");
+    // Read fresh mailboxes from the store – batch archive calls this in a loop,
+    // and each iteration needs to see folders created by prior iterations.
+    const currentMailboxes = useEmailStore.getState().mailboxes;
+
+    const archiveMailbox = currentMailboxes.find(m => m.role === "archive" || m.name.toLowerCase() === "archive");
     if (!archiveMailbox) return;
 
     const { archiveMode } = useSettingsStore.getState();
@@ -823,14 +851,12 @@ export default function Home() {
       if (archiveMode === 'single') {
         await moveThreadToMailbox(client, emailToArchive.id, archiveMailbox.id);
       } else {
-        // Determine year/month from the email's received date
         const emailDate = new Date(emailToArchive.receivedAt);
         const year = emailDate.getFullYear().toString();
         const month = (emailDate.getMonth() + 1).toString().padStart(2, '0');
         const archiveId = archiveMailbox.originalId || archiveMailbox.id;
 
-        // Find or create year subfolder under archive
-        let yearMailbox = mailboxes.find(
+        let yearMailbox = currentMailboxes.find(
           m => m.name === year && m.parentId === archiveId
         );
         if (!yearMailbox) {
@@ -841,9 +867,9 @@ export default function Home() {
         if (archiveMode === 'year') {
           await moveThreadToMailbox(client, emailToArchive.id, yearMailbox.id);
         } else {
-          // archiveMode === 'month' - find or create month subfolder under year
           const yearId = yearMailbox.originalId || yearMailbox.id;
-          let monthMailbox = mailboxes.find(
+          const afterYear = useEmailStore.getState().mailboxes;
+          let monthMailbox = afterYear.find(
             m => m.name === month && m.parentId === yearId
           );
           if (!monthMailbox) {
@@ -1492,9 +1518,12 @@ export default function Home() {
                         } else {
                           selectAllEmails();
                         }
-                      } else {
-                        // Enter selection mode by selecting the first email
-                        if (emails.length > 0) toggleEmailSelection(emails[0].id);
+                      } else if (emails.length > 0) {
+                        const currentId = selectedEmail?.id;
+                        const target = currentId && emails.some((e) => e.id === currentId)
+                          ? currentId
+                          : emails[0].id;
+                        toggleEmailSelection(target);
                       }
                     }}
                     className={cn(
@@ -1898,14 +1927,6 @@ export default function Home() {
               />
             ) : (
               <>
-                {/* Mobile Header for Viewer */}
-                {isMobile && activeView === "viewer" && (
-                  <MobileViewerHeader
-                    subject={selectedEmail?.subject}
-                    onBack={handleMobileBack}
-                  />
-                )}
-
                 <ErrorBoundary fallback={EmailViewerErrorFallback}>
                   <EmailViewer
                     email={selectedEmail}

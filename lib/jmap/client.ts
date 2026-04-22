@@ -1207,6 +1207,113 @@ export class JMAPClient implements IJMAPClient {
     ]);
   }
 
+  async batchArchiveEmails(
+    emails: Array<{ id: string; receivedAt: string }>,
+    archiveMailboxId: string,
+    mode: 'single' | 'year' | 'month',
+    existingMailboxes: Mailbox[],
+    accountId?: string,
+  ): Promise<void> {
+    if (emails.length === 0) return;
+    const targetAccountId = accountId || this.accountId;
+
+    if (mode === 'single') {
+      await this.batchMoveEmails(emails.map(e => e.id), archiveMailboxId, targetAccountId);
+      return;
+    }
+
+    type Dest = { year: string; month?: string };
+    const destFor = new Map<string, Dest>();
+    for (const e of emails) {
+      const d = new Date(e.receivedAt);
+      const year = d.getFullYear().toString();
+      const month = (d.getMonth() + 1).toString().padStart(2, '0');
+      destFor.set(e.id, mode === 'year' ? { year } : { year, month });
+    }
+
+    // Resolve each destination folder to either an existing id or a creation-id reference ("#<cid>").
+    const yearIdFor = new Map<string, string>();
+    const monthIdFor = new Map<string, string>();
+    const createEntries: Record<string, Record<string, unknown>> = {};
+
+    const findExisting = (name: string, parentId: string) =>
+      existingMailboxes.find(m =>
+        m.accountId === targetAccountId &&
+        m.name === name &&
+        (m.parentId === parentId || m.parentId === (parentId.startsWith('#') ? undefined : parentId)),
+      );
+
+    for (const dest of destFor.values()) {
+      if (!yearIdFor.has(dest.year)) {
+        const existing = findExisting(dest.year, archiveMailboxId);
+        if (existing) {
+          yearIdFor.set(dest.year, existing.originalId || existing.id);
+        } else {
+          const cid = `year-${dest.year}`;
+          createEntries[cid] = { name: dest.year, parentId: archiveMailboxId };
+          yearIdFor.set(dest.year, `#${cid}`);
+        }
+      }
+
+      if (mode === 'month' && dest.month) {
+        const monthKey = `${dest.year}/${dest.month}`;
+        if (!monthIdFor.has(monthKey)) {
+          const yearRef = yearIdFor.get(dest.year)!;
+          // Only look up existing month folders under real (non-creation-ref) year ids.
+          const existingMonth = yearRef.startsWith('#')
+            ? undefined
+            : findExisting(dest.month, yearRef);
+          if (existingMonth) {
+            monthIdFor.set(monthKey, existingMonth.originalId || existingMonth.id);
+          } else {
+            const cid = `month-${dest.year}-${dest.month}`;
+            createEntries[cid] = { name: dest.month, parentId: yearRef };
+            monthIdFor.set(monthKey, `#${cid}`);
+          }
+        }
+      }
+    }
+
+    const updates: Record<string, { mailboxIds: Record<string, true> }> = {};
+    for (const [emailId, dest] of destFor.entries()) {
+      const destId = mode === 'month' && dest.month
+        ? monthIdFor.get(`${dest.year}/${dest.month}`)!
+        : yearIdFor.get(dest.year)!;
+      updates[emailId] = { mailboxIds: { [destId]: true } };
+    }
+
+    const methodCalls: JMAPMethodCall[] = [];
+    const hasCreates = Object.keys(createEntries).length > 0;
+    if (hasCreates) {
+      methodCalls.push(['Mailbox/set', { accountId: targetAccountId, create: createEntries }, '0']);
+    }
+    methodCalls.push(['Email/set', { accountId: targetAccountId, update: updates }, String(methodCalls.length)]);
+
+    const response = await this.request(methodCalls);
+
+    if (hasCreates) {
+      const mailboxResult = response.methodResponses?.[0]?.[1];
+      const notCreated = mailboxResult?.notCreated as Record<string, { type?: string; properties?: string[]; description?: string }> | undefined;
+      const failures = notCreated ? Object.entries(notCreated) : [];
+      if (failures.length > 0) {
+        const [cid, err] = failures[0];
+        const parts = [err.type || 'unknown'];
+        if (err.properties?.length) parts.push(`properties=[${err.properties.join(', ')}]`);
+        if (err.description) parts.push(err.description);
+        throw new Error(`Failed to create archive folder '${cid}': ${parts.join(' – ')}`);
+      }
+    }
+
+    const emailIdx = hasCreates ? 1 : 0;
+    const emailResult = response.methodResponses?.[emailIdx]?.[1];
+    const notUpdated = emailResult?.notUpdated as Record<string, { type?: string; description?: string }> | undefined;
+    const emailFailures = notUpdated ? Object.entries(notUpdated) : [];
+    if (emailFailures.length > 0) {
+      const [id, err] = emailFailures[0];
+      throw new Error(`Failed to move ${emailFailures.length} email(s), first: ${id} – ${err.type || 'unknown'}${err.description ? ` (${err.description})` : ''}`);
+    }
+  }
+
   async moveEmail(emailId: string, toMailboxId: string, accountId?: string): Promise<void> {
     const targetAccountId = accountId || this.accountId;
     const response = await this.request([
@@ -1316,7 +1423,13 @@ export class JMAPClient implements IJMAPClient {
 
     const result = response.methodResponses?.[0]?.[1];
     if (result?.notCreated?.[createId]) {
-      throw new Error(`Failed to create mailbox: ${result.notCreated[createId].type || 'unknown error'}`);
+      const err = result.notCreated[createId];
+      const details = [err.type || 'unknown error'];
+      if (Array.isArray(err.properties) && err.properties.length > 0) {
+        details.push(`properties=[${err.properties.join(', ')}]`);
+      }
+      if (err.description) details.push(err.description);
+      throw new Error(`Failed to create mailbox: ${details.join(' – ')}`);
     }
 
     const created = result?.created?.[createId];
@@ -2556,6 +2669,13 @@ export class JMAPClient implements IJMAPClient {
 
   hasCapability(capability: string): boolean {
     return capability in this.capabilities;
+  }
+
+  /** Check whether a capability is present on the primary account. */
+  hasAccountCapability(capability: string, accountId?: string): boolean {
+    const id = accountId || this.accountId;
+    const caps = this.session?.accounts?.[id]?.accountCapabilities;
+    return !!caps && capability in caps;
   }
 
   getMaxSizeUpload(): number {

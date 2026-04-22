@@ -129,7 +129,8 @@
     "folders": "フォルダ",
     "mail": "メール",
     "nav_label": "ナビゲーション",
-    "add_app": "アプリ"
+    "add_app": "アプリ",
+    "shared": "共有"
   },
   "sidebar_apps": {
     "modal_title": "サイドバーアプリ",
@@ -670,14 +671,24 @@
       "files": "ファイル",
       "contacts": "連絡先",
       "sidebar_apps": "サイドバーアプリ",
-      "notifications": "通知"
+      "notifications": "通知",
+      "layout": "レイアウト",
+      "reading": "閲覧",
+      "composing": "作成",
+      "content_senders": "コンテンツと送信者",
+      "about_data": "情報とデータ",
+      "debug": "デバッグ"
     },
     "tab_groups": {
       "general": "一般",
       "account": "アカウントと身元",
       "organization": "メール整理",
       "apps": "アプリ",
-      "system": "システム"
+      "system": "システム",
+      "appearance": "外観",
+      "mail": "メール",
+      "privacy": "プライバシーとセキュリティ",
+      "advanced": "詳細"
     },
     "appearance": {
       "title": "外観",
@@ -733,6 +744,10 @@
       "unified_mailbox": {
         "label": "統合メールボックス",
         "description": "接続されたすべてのアカウントの統合フォルダ（受信トレイ、送信済みなど）を表示"
+      },
+      "colorful_sidebar_icons": {
+        "label": "カラフルなサイドバーアイコン",
+        "description": "フォルダーとタグのアイコンを種類別に色分けします（受信トレイは青、迷惑メールは赤、送信済みは緑など）。モノクロのサイドバーにするには無効にしてください。"
       }
     },
     "keywords": {
@@ -1075,7 +1090,14 @@
         "disabled": "二要素認証が無効になりました",
         "enable_error": "2FAを有効にできませんでした",
         "disable_error": "2FAを無効にできませんでした",
-        "setup_instructions": "このURLを認証アプリ（Google Authenticator、Authyなど）にコピーしてください："
+        "setup_instructions": "このURLを認証アプリ（Google Authenticator、Authyなど）にコピーしてください：",
+        "verification_code": "確認コード",
+        "confirm": "確認",
+        "disable": "無効化",
+        "disable_confirm_prompt": "二要素認証を無効にするにはパスワードを入力してください。",
+        "password_required": "パスワードが必要です",
+        "code_required": "確認コードが必要です",
+        "code_invalid": "確認コードが無効です。認証アプリを確認してもう一度お試しください。"
       },
       "app_passwords": {
         "title": "アプリパスワード",
@@ -1092,7 +1114,25 @@
         "removed": "アプリパスワードが削除されました",
         "add_error": "アプリパスワードを作成できませんでした",
         "remove_error": "アプリパスワードを削除できませんでした",
-        "none": "アプリパスワードは設定されていません"
+        "none": "アプリパスワードは設定されていません",
+        "done": "完了",
+        "expires_label": "有効期限（任意）",
+        "copy_now_warning": "今すぐこのパスワードをコピーしてください - 再表示されません。",
+        "allowed_ips_label": "許可するIP（任意）",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "カンマまたは空白で区切ります。空欄の場合、すべてのIPを許可します。"
+      },
+      "api_keys": {
+        "title": "APIキー",
+        "description": "サーバーと直接通信するスクリプトや連携用にAPIキーを作成します",
+        "name_label": "キー名",
+        "name_placeholder": "例: バックアップスクリプト、CIランナー",
+        "copy_now_warning": "このAPIキーを今すぐコピーしてください - 二度と表示されません。",
+        "added": "APIキーを作成しました",
+        "removed": "APIキーを削除しました",
+        "add_error": "APIキーの作成に失敗しました",
+        "remove_error": "APIキーの削除に失敗しました",
+        "none": "APIキーは設定されていません"
       },
       "encryption": {
         "section_title": "保存時の暗号化",
@@ -1415,7 +1455,9 @@
       "rule_summary": {
         "conditions_count": "{count, plural, other {#個の条件}}",
         "actions_count": "{count, plural, other {#個のアクション}}"
-      }
+      },
+      "origin_external": "外部",
+      "managed_by_tooltip": "{source} によって管理されています。そのアプリで編集するか、生の Sieve エディターを使用してください。"
     },
     "templates": {
       "title": "メールテンプレート",
@@ -1705,6 +1747,8 @@
     "empty_state_subtitle": "最初の連絡先を作成するか、vCardファイルからインポートしてください",
     "empty_search": "検索に一致する連絡先がありません",
     "empty_search_hint": "別の検索語をお試しください",
+    "empty_filtered": "フィルターに一致する連絡先がありません",
+    "empty_filtered_hint": "フィルターを調整またはクリアしてください",
     "clear_search": "検索をクリア",
     "import_vcard": "vCardをインポート",
     "delete_confirm_title": "連絡先を削除",
@@ -1782,7 +1826,33 @@
       "import_to_smime": "S/MIME にインポート",
       "cert_already_imported": "証明書はすでにインポートされています",
       "cert_imported": "証明書をインポートしました",
-      "cert_import_failed": "証明書のインポートに失敗しました"
+      "cert_import_failed": "証明書のインポートに失敗しました",
+      "section_contact": "Contact details",
+      "section_work": "Work",
+      "section_personal": "Personal",
+      "email_default_label": "Email",
+      "phone_default_label": "Phone",
+      "address_default_label": "Address",
+      "online_service_default_label": "Online",
+      "organization_label": "Organization",
+      "title_label": "Title",
+      "role_label": "Role",
+      "language_label": "Language",
+      "related_default_label": "Related",
+      "more_actions": "その他の操作",
+      "age_years": "{count}歳",
+      "years_since": "{count}年前"
+    },
+    "activity": {
+      "recent_emails": "Recent Emails",
+      "upcoming_events": "Upcoming Events",
+      "no_emails": "No recent emails",
+      "no_events": "No upcoming events",
+      "no_subject": "(No subject)",
+      "no_title": "(No title)",
+      "load_failed": "Failed to load",
+      "unknown_sender": "Unknown sender",
+      "all_day": "All day"
     },
     "form": {
       "create_title": "新しい連絡先",
@@ -1878,7 +1948,13 @@
       "email_invalid": "有効なメールアドレスを入力してください",
       "email_error_inline": "メールアドレスの形式が正しくありません",
       "save_failed": "連絡先の保存に失敗しました",
-      "delete": "削除"
+      "delete": "削除",
+      "upload_photo": "写真をアップロード",
+      "remove_photo": "写真を削除",
+      "photo_hint": "JPGまたはPNG、最大10MB。リサイズされます。",
+      "photo_too_large": "画像が大きすぎます (最大10MB)",
+      "photo_invalid": "無効な画像ファイル",
+      "change_photo": "変更"
     },
     "groups": {
       "create": "新しいグループ",
@@ -1938,6 +2014,37 @@
       "error_create": "連絡先の作成に失敗しました",
       "error_update": "連絡先の更新に失敗しました",
       "error_delete": "連絡先の削除に失敗しました"
+    },
+    "context_menu": {
+      "open": "開く",
+      "edit": "編集",
+      "send_email": "メール送信",
+      "add_to_group": "グループに追加",
+      "export_vcard": "vCardとしてエクスポート",
+      "delete": "削除",
+      "call": "電話する",
+      "duplicate": "複製",
+      "print": "印刷"
+    },
+    "filters": {
+      "toggle": "フィルター",
+      "select": "選択",
+      "clear": "クリア",
+      "close": "閉じる",
+      "title": "詳細フィルター",
+      "organization": "会社",
+      "organization_placeholder": "例: Acme",
+      "job_title": "役職",
+      "job_title_placeholder": "例: デザイナー",
+      "location": "場所",
+      "location_placeholder": "都市または国",
+      "email_domain": "メールドメイン",
+      "email_domain_placeholder": "example.com",
+      "birthday_month": "誕生月",
+      "any_month": "すべての月",
+      "has_email": "メールあり",
+      "has_phone": "電話あり",
+      "has_photo": "写真あり"
     }
   },
   "calendar": {
@@ -2013,6 +2120,7 @@
       "tentative": "仮承諾",
       "needs_action": "未回答",
       "remove": "削除",
+      "edit": "編集",
       "email_placeholder": "メールアドレスを追加または連絡先を検索",
       "send_invitations": "参加者に招待を送信",
       "status_summary": "{accepted}人承諾、{pending}人保留",

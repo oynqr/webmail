@@ -77,6 +77,7 @@ interface EmailStore {
   deleteEmail: (client: IJMAPClient, emailId: string, forceDelete?: boolean) => Promise<void>;
   markAsRead: (client: IJMAPClient, emailId: string, read: boolean) => Promise<void>;
   moveToMailbox: (client: IJMAPClient, emailId: string, mailboxId: string) => Promise<void>;
+  moveEmailsToMailbox: (client: IJMAPClient, emailIds: string[], mailboxId: string) => Promise<void>;
   moveThreadToMailbox: (client: IJMAPClient, emailId: string, mailboxId: string) => Promise<void>;
   searchEmails: (client: IJMAPClient, query: string) => Promise<void>;
   advancedSearch: (client: IJMAPClient) => Promise<void>;
@@ -89,6 +90,7 @@ interface EmailStore {
   batchMarkAsRead: (client: IJMAPClient, read: boolean) => Promise<void>;
   batchDelete: (client: IJMAPClient, permanent?: boolean) => Promise<void>;
   batchMoveToMailbox: (client: IJMAPClient, mailboxId: string) => Promise<void>;
+  batchArchive: (client: IJMAPClient) => Promise<void>;
 
   // Spam operations
   spamUndoCache: Map<string, { emailId: string; originalMailboxId: string; accountId?: string }>;
@@ -802,6 +804,80 @@ export const useEmailStore = create<EmailStore>((set, get) => ({
     }
   },
 
+  moveEmailsToMailbox: async (client, emailIds, destinationMailboxId) => {
+    if (emailIds.length === 0) return;
+    if (emailIds.length === 1) {
+      await get().moveToMailbox(client, emailIds[0], destinationMailboxId);
+      return;
+    }
+
+    try {
+      const { emails, mailboxes, selectedMailbox, isUnifiedView } = get();
+      const destMailbox = mailboxes.find(mb => mb.id === destinationMailboxId);
+      const jmapDestId = destMailbox?.originalId || destinationMailboxId;
+      const idSet = new Set(emailIds);
+      const affected = emails.filter(e => idSet.has(e.id));
+
+      if (isUnifiedView) {
+        // In unified view, emails may span accounts – group and dispatch per-account.
+        const byAccount = new Map<string, string[]>();
+        for (const e of affected) {
+          const acct = e.accountId || '__default__';
+          if (!byAccount.has(acct)) byAccount.set(acct, []);
+          byAccount.get(acct)!.push(e.id);
+        }
+        await Promise.all(Array.from(byAccount.entries()).map(async ([acct, ids]) => {
+          const acctClient = acct === '__default__' ? client : useAuthStore.getState().getClientForAccount(acct);
+          if (!acctClient) return;
+          await acctClient.batchMoveEmails(ids, jmapDestId);
+        }));
+      } else {
+        const currentMailbox = mailboxes.find(mb => mb.id === selectedMailbox);
+        const accountId = currentMailbox?.isShared ? currentMailbox.accountId : undefined;
+        await client.batchMoveEmails(emailIds, jmapDestId, accountId);
+      }
+
+      // Adjust counters and drop moved emails from the current view.
+      let unreadDelta = 0;
+      const sourceMailboxIds = new Set<string>();
+      for (const e of affected) {
+        if (!e.keywords?.$seen) unreadDelta += 1;
+        if (e.mailboxIds) for (const mid of Object.keys(e.mailboxIds)) sourceMailboxIds.add(mid);
+      }
+      const movedCount = affected.length;
+
+      set((state) => ({
+        emails: state.emails.filter(e => !idSet.has(e.id)),
+        selectedEmail: state.selectedEmail && idSet.has(state.selectedEmail.id) ? null : state.selectedEmail,
+        selectedEmailIds: (() => {
+          const next = new Set(state.selectedEmailIds);
+          for (const id of idSet) next.delete(id);
+          return next;
+        })(),
+        mailboxes: state.mailboxes.map(mb => {
+          if (sourceMailboxIds.has(mb.id)) {
+            return {
+              ...mb,
+              totalEmails: Math.max(0, mb.totalEmails - movedCount),
+              unreadEmails: Math.max(0, mb.unreadEmails - unreadDelta),
+            };
+          }
+          if (mb.id === destinationMailboxId) {
+            return {
+              ...mb,
+              totalEmails: mb.totalEmails + movedCount,
+              unreadEmails: mb.unreadEmails + unreadDelta,
+            };
+          }
+          return mb;
+        }),
+      }));
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Failed to move emails' });
+      throw error;
+    }
+  },
+
   moveThreadToMailbox: async (client, emailId, destinationMailboxId) => {
     try {
       const state = get();
@@ -1187,6 +1263,43 @@ export const useEmailStore = create<EmailStore>((set, get) => ({
         error: error instanceof Error ? error.message : "Failed to move emails",
         isLoading: false
       });
+    }
+  },
+
+  batchArchive: async (client) => {
+    const { selectedEmailIds, emails, mailboxes, fetchMailboxes, fetchEmails, selectedMailbox } = get();
+    if (selectedEmailIds.size === 0) return;
+
+    const archiveMailbox = mailboxes.find(m => m.role === 'archive' || m.name.toLowerCase() === 'archive');
+    if (!archiveMailbox) return;
+
+    const mode = useSettingsStore.getState().archiveMode;
+    const archiveId = archiveMailbox.originalId || archiveMailbox.id;
+
+    const selected = emails.filter(e => selectedEmailIds.has(e.id));
+    if (selected.length === 0) return;
+
+    set({ isLoading: true, error: null });
+    try {
+      await client.batchArchiveEmails(
+        selected.map(e => ({ id: e.id, receivedAt: e.receivedAt })),
+        archiveId,
+        mode,
+        mailboxes,
+        archiveMailbox.accountId,
+      );
+
+      const remaining = emails.filter(e => !selectedEmailIds.has(e.id));
+      set({ emails: remaining, selectedEmailIds: new Set(), isLoading: false });
+
+      await fetchMailboxes(client);
+      await fetchEmails(client, selectedMailbox);
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to archive emails',
+        isLoading: false,
+      });
+      throw error;
     }
   },
 

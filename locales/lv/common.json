@@ -129,7 +129,8 @@
     "folders": "Mapes",
     "mail": "Pasts",
     "nav_label": "Navigācija",
-    "add_app": "Lietotnes"
+    "add_app": "Lietotnes",
+    "shared": "Koplietots"
   },
   "sidebar_apps": {
     "modal_title": "Sānu joslas lietotnes",
@@ -670,14 +671,24 @@
       "contacts": "Kontakti",
       "encryption": "Šifrēšana",
       "sidebar_apps": "Sānu joslas lietotnes",
-      "notifications": "Paziņojumi"
+      "notifications": "Paziņojumi",
+      "layout": "Izkārtojums",
+      "reading": "Lasīšana",
+      "composing": "Rakstīšana",
+      "content_senders": "Saturs un sūtītāji",
+      "about_data": "Par un dati",
+      "debug": "Atkļūdošana"
     },
     "tab_groups": {
       "general": "Vispārīgi",
       "account": "Konts un identitāte",
       "organization": "Pasta organizēšana",
       "apps": "Lietotnes",
-      "system": "Sistēma"
+      "system": "Sistēma",
+      "appearance": "Izskats",
+      "mail": "Pasts",
+      "privacy": "Privātums un drošība",
+      "advanced": "Papildu"
     },
     "appearance": {
       "title": "Izskats",
@@ -733,6 +744,10 @@
       "unified_mailbox": {
         "label": "Apvienotā pastkaste",
         "description": "Rādīt apvienotās mapes (Iesūtne, Nosūtītie u.c.) no visiem pievienotajiem kontiem"
+      },
+      "colorful_sidebar_icons": {
+        "label": "Krāsainas sānjoslas ikonas",
+        "description": "Iekrāsojiet mapju un birku ikonas pēc to veida (zila Iesūtne, sarkana Mēstules, zaļa Nosūtītie utt.). Atspējojiet, lai iegūtu vienkrāsainu sānjoslu."
       }
     },
     "keywords": {
@@ -1075,7 +1090,14 @@
         "disabled": "2FA ir izslēgta",
         "enable_error": "Neizdevās iespējot 2FA",
         "disable_error": "Neizdevās izslēgt 2FA",
-        "setup_instructions": "Nokopējiet šo URL savā autentifikācijas lietotnē (Google Authenticator, Authy utt.):"
+        "setup_instructions": "Nokopējiet šo URL savā autentifikācijas lietotnē (Google Authenticator, Authy utt.):",
+        "verification_code": "Verifikācijas kods",
+        "confirm": "Apstiprināt",
+        "disable": "Atspējot",
+        "disable_confirm_prompt": "Ievadiet paroli, lai atspējotu divpakāpju autentifikāciju.",
+        "password_required": "Nepieciešama parole",
+        "code_required": "Nepieciešams verifikācijas kods",
+        "code_invalid": "Nederīgs verifikācijas kods. Pārbaudiet autentifikācijas lietotni un mēģiniet vēlreiz."
       },
       "app_passwords": {
         "title": "Lietotņu paroles",
@@ -1092,7 +1114,25 @@
         "removed": "Lietotnes parole izdzēsta",
         "add_error": "Neizdevās izveidot lietotnes paroli",
         "remove_error": "Neizdevās izdzēst lietotnes paroli",
-        "none": "Lietotņu paroles nav iestatītas"
+        "none": "Lietotņu paroles nav iestatītas",
+        "done": "Gatavs",
+        "expires_label": "Derīguma termiņš (pēc izvēles)",
+        "copy_now_warning": "Kopējiet šo paroli tagad - tā vairs netiks rādīta.",
+        "allowed_ips_label": "Atļautās IP (neobligāti)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Atdalītas ar komatu vai atstarpi. Atstājiet tukšu, lai atļautu jebkuru IP."
+      },
+      "api_keys": {
+        "title": "API atslēgas",
+        "description": "Izveidojiet API atslēgas skriptiem un integrācijām, kas tieši sazinās ar serveri",
+        "name_label": "Atslēgas nosaukums",
+        "name_placeholder": "piem. Dublēšanas skripts, CI palaidējs",
+        "copy_now_warning": "Kopējiet šo API atslēgu tagad - tā vairs netiks parādīta.",
+        "added": "API atslēga izveidota",
+        "removed": "API atslēga noņemta",
+        "add_error": "Neizdevās izveidot API atslēgu",
+        "remove_error": "Neizdevās noņemt API atslēgu",
+        "none": "API atslēgas nav konfigurētas"
       },
       "encryption": {
         "section_title": "Krātuves šifrēšana",
@@ -1415,7 +1455,9 @@
       "rule_summary": {
         "conditions_count": "{count, plural, one {# nosacījums} other {# nosacījumi}}",
         "actions_count": "{count, plural, one {# darbība} other {# darbības}}"
-      }
+      },
+      "origin_external": "Ārējs",
+      "managed_by_tooltip": "Pārvalda {source}. Rediģējiet to šajā lietotnē vai izmantojiet neapstrādāto Sieve redaktoru."
     },
     "templates": {
       "title": "Vēstuļu veidnes",
@@ -1701,6 +1743,8 @@
     "empty_state_subtitle": "Izveidojiet pirmo kontaktu vai importējiet no vCard faila",
     "empty_search": "Nav kontaktu, kas atbilstu vaicājumam",
     "empty_search_hint": "Mēģiniet citu meklēšanas vaicājumu",
+    "empty_filtered": "Nav kontaktu, kas atbilstu filtriem",
+    "empty_filtered_hint": "Pielāgojiet vai notīriet filtrus",
     "clear_search": "Notīrīt meklēšanu",
     "import_vcard": "vCard imports",
     "delete_confirm_title": "Dzēst kontaktu",
@@ -1778,7 +1822,33 @@
       "calendar": "Kalendārs",
       "calendar_uri": "Kalendāra URL",
       "scheduling_uri": "Plānošanas URL",
-      "freebusy_uri": "Pieejamības URL"
+      "freebusy_uri": "Pieejamības URL",
+      "section_contact": "Contact details",
+      "section_work": "Work",
+      "section_personal": "Personal",
+      "email_default_label": "Email",
+      "phone_default_label": "Phone",
+      "address_default_label": "Address",
+      "online_service_default_label": "Online",
+      "organization_label": "Organization",
+      "title_label": "Title",
+      "role_label": "Role",
+      "language_label": "Language",
+      "related_default_label": "Related",
+      "more_actions": "Citas darbības",
+      "age_years": "{count, plural, one {1 gads} other {# gadi}}",
+      "years_since": "{count, plural, one {pirms 1 gada} other {pirms # gadiem}}"
+    },
+    "activity": {
+      "recent_emails": "Recent Emails",
+      "upcoming_events": "Upcoming Events",
+      "no_emails": "No recent emails",
+      "no_events": "No upcoming events",
+      "no_subject": "(No subject)",
+      "no_title": "(No title)",
+      "load_failed": "Failed to load",
+      "unknown_sender": "Unknown sender",
+      "all_day": "All day"
     },
     "form": {
       "create_title": "Jauns kontakts",
@@ -1874,7 +1944,13 @@
       "email_invalid": "Ievadiet derīgu e-pasta adresi",
       "email_error_inline": "Nederīgs e-pasta formāts",
       "save_failed": "Neizdevās saglabāt kontaktu",
-      "delete": "Dzēst"
+      "delete": "Dzēst",
+      "upload_photo": "Augšupielādēt foto",
+      "remove_photo": "Noņemt foto",
+      "photo_hint": "JPG vai PNG, līdz 10 MB. Tiks mainīts izmērs.",
+      "photo_too_large": "Attēls ir pārāk liels (maks. 10 MB)",
+      "photo_invalid": "Nederīgs attēla fails",
+      "change_photo": "Mainīt"
     },
     "groups": {
       "create": "Jauna grupa",
@@ -1938,7 +2014,38 @@
     "rename_category": "Pārdēvēt kategoriju",
     "category_name_label": "Kategorijas nosaukums",
     "category_renamed": "Kategorija pārdēvēta",
-    "category_rename_failed": "Neizdevās pārdēvēt kategoriju"
+    "category_rename_failed": "Neizdevās pārdēvēt kategoriju",
+    "context_menu": {
+      "open": "Atvērt",
+      "edit": "Rediģēt",
+      "send_email": "Sūtīt e-pastu",
+      "add_to_group": "Pievienot grupai",
+      "export_vcard": "Eksportēt kā vCard",
+      "delete": "Dzēst",
+      "call": "Zvanīt",
+      "duplicate": "Dublēt",
+      "print": "Drukāt"
+    },
+    "filters": {
+      "toggle": "Filtri",
+      "select": "Atlasīt",
+      "clear": "Notīrīt",
+      "close": "Aizvērt",
+      "title": "Paplašinātie filtri",
+      "organization": "Uzņēmums",
+      "organization_placeholder": "piem. Acme",
+      "job_title": "Amats",
+      "job_title_placeholder": "piem. Dizainers",
+      "location": "Atrašanās vieta",
+      "location_placeholder": "Pilsēta vai valsts",
+      "email_domain": "E-pasta domēns",
+      "email_domain_placeholder": "piemers.lv",
+      "birthday_month": "Dzimšanas diena",
+      "any_month": "Jebkurš mēnesis",
+      "has_email": "Ar e-pastu",
+      "has_phone": "Ar tālruni",
+      "has_photo": "Ar foto"
+    }
   },
   "calendar": {
     "title": "Kalendārs",
@@ -2012,6 +2119,7 @@
       "tentative": "Pagaidām",
       "needs_action": "Nepieciešama atbilde",
       "remove": "Noņemt",
+      "edit": "Rediģēt",
       "email_placeholder": "Pievienojiet adresi vai kontaktu",
       "send_invitations": "Sūtīt uzaicinājumus dalībniekiem",
       "status_summary": "{accepted} pieņēmuši, {pending} gaida",

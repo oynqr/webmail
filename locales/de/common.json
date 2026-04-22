@@ -129,7 +129,8 @@
     "folders": "Ordner",
     "mail": "E-Mail",
     "nav_label": "Navigation",
-    "add_app": "Apps"
+    "add_app": "Apps",
+    "shared": "Geteilt"
   },
   "sidebar_apps": {
     "modal_title": "Sidebar-Apps",
@@ -670,14 +671,24 @@
       "files": "Dateien",
       "contacts": "Kontakte",
       "sidebar_apps": "Sidebar-Apps",
-      "notifications": "Benachrichtigungen"
+      "notifications": "Benachrichtigungen",
+      "layout": "Layout",
+      "reading": "Lesen",
+      "composing": "Verfassen",
+      "content_senders": "Inhalte & Absender",
+      "about_data": "Über & Daten",
+      "debug": "Debug"
     },
     "tab_groups": {
       "general": "Allgemein",
       "account": "Konto & Identität",
       "organization": "E-Mail-Organisation",
       "apps": "Apps",
-      "system": "System"
+      "system": "System",
+      "appearance": "Darstellung",
+      "mail": "E-Mail",
+      "privacy": "Datenschutz & Sicherheit",
+      "advanced": "Erweitert"
     },
     "appearance": {
       "title": "Darstellung",
@@ -733,6 +744,10 @@
       "unified_mailbox": {
         "label": "Gemeinsames Postfach",
         "description": "Kombinierte Ordner (Posteingang, Gesendet usw.) für alle verbundenen Konten anzeigen"
+      },
+      "colorful_sidebar_icons": {
+        "label": "Farbige Seitenleistensymbole",
+        "description": "Ordner- und Tag-Symbole nach Typ einfärben (blauer Posteingang, roter Spam, grüner Gesendet usw.). Für eine monochrome Seitenleiste deaktivieren."
       }
     },
     "keywords": {
@@ -1075,7 +1090,14 @@
         "disabled": "Zwei-Faktor-Authentifizierung deaktiviert",
         "enable_error": "2FA konnte nicht aktiviert werden",
         "disable_error": "2FA konnte nicht deaktiviert werden",
-        "setup_instructions": "Kopieren Sie diese URL in Ihre Authenticator-App (Google Authenticator, Authy, etc.):"
+        "setup_instructions": "Kopieren Sie diese URL in Ihre Authenticator-App (Google Authenticator, Authy, etc.):",
+        "verification_code": "Verifizierungscode",
+        "confirm": "Bestätigen",
+        "disable": "Deaktivieren",
+        "disable_confirm_prompt": "Geben Sie Ihr Passwort ein, um die Zwei-Faktor-Authentifizierung zu deaktivieren.",
+        "password_required": "Passwort ist erforderlich",
+        "code_required": "Verifizierungscode ist erforderlich",
+        "code_invalid": "Ungültiger Verifizierungscode. Überprüfen Sie Ihre Authenticator-App und versuchen Sie es erneut."
       },
       "app_passwords": {
         "title": "App-Passwörter",
@@ -1092,7 +1114,25 @@
         "removed": "App-Passwort entfernt",
         "add_error": "App-Passwort konnte nicht erstellt werden",
         "remove_error": "App-Passwort konnte nicht entfernt werden",
-        "none": "Keine App-Passwörter konfiguriert"
+        "none": "Keine App-Passwörter konfiguriert",
+        "done": "Fertig",
+        "expires_label": "Läuft ab (optional)",
+        "copy_now_warning": "Kopieren Sie dieses Passwort jetzt - es wird nicht erneut angezeigt.",
+        "allowed_ips_label": "Erlaubte IPs (optional)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Komma- oder leerzeichengetrennt. Leer lassen, um jede IP zuzulassen."
+      },
+      "api_keys": {
+        "title": "API-Schlüssel",
+        "description": "Erstellen Sie API-Schlüssel für Skripte und Integrationen, die direkt mit dem Server kommunizieren",
+        "name_label": "Schlüsselname",
+        "name_placeholder": "z.B. Backup-Skript, CI-Runner",
+        "copy_now_warning": "Kopieren Sie diesen API-Schlüssel jetzt - er wird nicht erneut angezeigt.",
+        "added": "API-Schlüssel erstellt",
+        "removed": "API-Schlüssel entfernt",
+        "add_error": "API-Schlüssel konnte nicht erstellt werden",
+        "remove_error": "API-Schlüssel konnte nicht entfernt werden",
+        "none": "Keine API-Schlüssel konfiguriert"
       },
       "encryption": {
         "section_title": "Verschlüsselung im Ruhezustand",
@@ -1415,7 +1455,9 @@
       "rule_summary": {
         "conditions_count": "{count, plural, one {# Bedingung} other {# Bedingungen}}",
         "actions_count": "{count, plural, one {# Aktion} other {# Aktionen}}"
-      }
+      },
+      "origin_external": "Extern",
+      "managed_by_tooltip": "Verwaltet von {source}. Bearbeiten Sie sie in dieser App oder verwenden Sie den rohen Sieve-Editor."
     },
     "templates": {
       "title": "E-Mail-Vorlagen",
@@ -1705,6 +1747,8 @@
     "empty_state_subtitle": "Erstellen Sie Ihren ersten Kontakt oder importieren Sie aus einer vCard-Datei",
     "empty_search": "Keine Kontakte gefunden",
     "empty_search_hint": "Versuchen Sie einen anderen Suchbegriff",
+    "empty_filtered": "Keine Kontakte entsprechen Ihren Filtern",
+    "empty_filtered_hint": "Passen Sie die Filter an oder entfernen Sie sie",
     "clear_search": "Suche löschen",
     "import_vcard": "vCard importieren",
     "delete_confirm_title": "Kontakt löschen",
@@ -1782,7 +1826,33 @@
       "import_to_smime": "In S/MIME importieren",
       "cert_already_imported": "Zertifikat bereits importiert",
       "cert_imported": "Zertifikat importiert",
-      "cert_import_failed": "Import des Zertifikats fehlgeschlagen"
+      "cert_import_failed": "Import des Zertifikats fehlgeschlagen",
+      "section_contact": "Contact details",
+      "section_work": "Work",
+      "section_personal": "Personal",
+      "email_default_label": "Email",
+      "phone_default_label": "Phone",
+      "address_default_label": "Address",
+      "online_service_default_label": "Online",
+      "organization_label": "Organization",
+      "title_label": "Title",
+      "role_label": "Role",
+      "language_label": "Language",
+      "related_default_label": "Related",
+      "more_actions": "Weitere Aktionen",
+      "age_years": "{count, plural, one {1 Jahr alt} other {# Jahre alt}}",
+      "years_since": "{count, plural, one {1 Jahr} other {# Jahre}}"
+    },
+    "activity": {
+      "recent_emails": "Recent Emails",
+      "upcoming_events": "Upcoming Events",
+      "no_emails": "No recent emails",
+      "no_events": "No upcoming events",
+      "no_subject": "(No subject)",
+      "no_title": "(No title)",
+      "load_failed": "Failed to load",
+      "unknown_sender": "Unknown sender",
+      "all_day": "All day"
     },
     "form": {
       "create_title": "Neuer Kontakt",
@@ -1878,7 +1948,13 @@
       "email_invalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
       "email_error_inline": "Ungültiges E-Mail-Format",
       "save_failed": "Kontakt konnte nicht gespeichert werden",
-      "delete": "Löschen"
+      "delete": "Löschen",
+      "upload_photo": "Foto hochladen",
+      "remove_photo": "Foto entfernen",
+      "photo_hint": "JPG oder PNG, bis zu 10 MB. Wird verkleinert.",
+      "photo_too_large": "Bild ist zu groß (max. 10 MB)",
+      "photo_invalid": "Ungültige Bilddatei",
+      "change_photo": "Ändern"
     },
     "groups": {
       "create": "Neue Gruppe",
@@ -1938,6 +2014,37 @@
       "error_create": "Kontakt konnte nicht erstellt werden",
       "error_update": "Kontakt konnte nicht aktualisiert werden",
       "error_delete": "Kontakt konnte nicht gelöscht werden"
+    },
+    "context_menu": {
+      "open": "Öffnen",
+      "edit": "Bearbeiten",
+      "send_email": "E-Mail senden",
+      "add_to_group": "Zur Gruppe hinzufügen",
+      "export_vcard": "Als vCard exportieren",
+      "delete": "Löschen",
+      "call": "Anrufen",
+      "duplicate": "Duplizieren",
+      "print": "Drucken"
+    },
+    "filters": {
+      "toggle": "Filter",
+      "select": "Auswählen",
+      "clear": "Zurücksetzen",
+      "close": "Schließen",
+      "title": "Erweiterte Filter",
+      "organization": "Firma",
+      "organization_placeholder": "z. B. Acme GmbH",
+      "job_title": "Berufsbezeichnung",
+      "job_title_placeholder": "z. B. Designer",
+      "location": "Ort",
+      "location_placeholder": "Stadt oder Land",
+      "email_domain": "E-Mail-Domain",
+      "email_domain_placeholder": "beispiel.de",
+      "birthday_month": "Geburtstag im",
+      "any_month": "Beliebiger Monat",
+      "has_email": "Mit E-Mail",
+      "has_phone": "Mit Telefon",
+      "has_photo": "Mit Foto"
     }
   },
   "calendar": {
@@ -2013,6 +2120,7 @@
       "tentative": "Vorläufig",
       "needs_action": "Antwort ausstehend",
       "remove": "Entfernen",
+      "edit": "Bearbeiten",
       "email_placeholder": "E-Mail-Adresse hinzufügen oder Kontakte durchsuchen",
       "send_invitations": "Einladungen an Teilnehmer senden",
       "status_summary": "{accepted} zugesagt, {pending} ausstehend",

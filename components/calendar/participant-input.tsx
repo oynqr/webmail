@@ -90,13 +90,11 @@ export const ParticipantInput = forwardRef<ParticipantInputHandle, ParticipantIn
   }, [showSuggestions, activeIndex, suggestions, query, addParticipant]);
 
   const handleBlur = useCallback(() => {
-    setTimeout(() => {
-      setShowSuggestions(false);
-      const trimmed = query.trim();
-      if (trimmed && EMAIL_REGEX.test(trimmed)) {
-        addParticipant({ name: "", email: trimmed });
-      }
-    }, 200);
+    const trimmed = query.trim();
+    if (trimmed && EMAIL_REGEX.test(trimmed)) {
+      addParticipant({ name: "", email: trimmed });
+    }
+    setTimeout(() => setShowSuggestions(false), 200);
   }, [query, addParticipant]);
 
   useImperativeHandle(ref, () => ({
@@ -167,7 +165,22 @@ export const ParticipantInput = forwardRef<ParticipantInputHandle, ParticipantIn
               key={`${p.email}-${i}`}
               className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-muted text-foreground max-w-[200px]"
             >
-              <span className="truncate">{p.name || p.email}</span>
+              {!disabled ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onRemove(p.email);
+                    setQuery(p.email);
+                    setTimeout(() => inputRef.current?.focus(), 0);
+                  }}
+                  className="truncate hover:underline focus:outline-none focus:underline cursor-text"
+                  aria-label={`${t("edit")} ${p.name || p.email}`}
+                >
+                  {p.name || p.email}
+                </button>
+              ) : (
+                <span className="truncate">{p.name || p.email}</span>
+              )}
               {!disabled && (
                 <button
                   type="button"

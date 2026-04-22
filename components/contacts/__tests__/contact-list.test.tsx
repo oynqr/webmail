@@ -36,7 +36,6 @@ const defaultProps = {
   onSearchChange: vi.fn(),
   onSelectContact: vi.fn(),
   onCreateNew: vi.fn(),
-  categoryLabel: 'All Contacts',
   selectedContactIds: new Set<string>(),
   onToggleSelection: vi.fn(),
   onSelectRangeContacts: vi.fn(),
@@ -45,6 +44,9 @@ const defaultProps = {
   onBulkDelete: vi.fn(),
   onBulkAddToGroup: vi.fn(),
   onBulkExport: vi.fn(),
+  onEditContact: vi.fn(),
+  onDeleteContact: vi.fn(),
+  onAddContactToGroup: vi.fn(),
 };
 
 describe('ContactList', () => {
@@ -76,8 +78,4 @@ describe('ContactList', () => {
     expect(screen.getByText('bulk.export')).toBeInTheDocument();
   });
 
-  it('shows category label with count', () => {
-    render(<ContactList {...defaultProps} />);
-    expect(screen.getByText('All Contacts (2)')).toBeInTheDocument();
-  });
 });

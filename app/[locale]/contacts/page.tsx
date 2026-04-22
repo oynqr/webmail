@@ -98,13 +98,20 @@ export default function ContactsPage() {
 
   // Panel resize state - contact list
   const [listWidth, setListWidth] = useState(() => {
-    try { const v = localStorage.getItem("contacts-list-width"); return v ? Number(v) : 320; } catch { return 320; }
+    try { const v = localStorage.getItem("contacts-list-width"); return v ? Number(v) : 384; } catch { return 384; }
   });
   const [isListResizing, setIsListResizing] = useState(false);
-  const listDragStartWidth = useRef(320);
+  const listDragStartWidth = useRef(384);
 
-  // Check auth on mount
+  // Check auth on mount – skip when already authenticated so that navigating
+  // between routes doesn't retrigger checkAuth's transient `{ client: null,
+  // isLoading: true }` reset, which was flashing the spinner on every nav.
   useEffect(() => {
+    const state = useAuthStore.getState();
+    if (state.isAuthenticated && state.client) {
+      setInitialCheckDone(true);
+      return;
+    }
     checkAuth().finally(() => {
       setInitialCheckDone(true);
     });
@@ -171,21 +178,6 @@ export default function ContactsPage() {
     // Show members of the selected group
     return getGroupMembers(activeCategory.groupId);
   }, [activeCategory, individuals, getGroupMembers]);
-
-  // Label for the current category
-  const categoryLabel = useMemo(() => {
-    if (activeCategory === "all") return t("tabs.all");
-    if (activeCategory === "uncategorized") return t("no_category");
-    if ("addressBookId" in activeCategory) {
-      const book = addressBooks.find(b => b.id === activeCategory.addressBookId);
-      return book?.name || t("tabs.all");
-    }
-    if ("keyword" in activeCategory) {
-      return activeCategory.keyword;
-    }
-    const group = contacts.find(c => c.id === activeCategory.groupId);
-    return group ? getContactDisplayName(group) : t("tabs.all");
-  }, [activeCategory, contacts, addressBooks, t]);
 
   const handleSelectCategory = useCallback((category: ContactCategory) => {
     setActiveCategory(category);
@@ -259,9 +251,7 @@ export default function ContactsPage() {
     setView("edit");
   };
 
-  const handleDelete = async () => {
-    if (!selectedContact) return;
-
+  const deleteContactById = useCallback(async (contactId: string) => {
     const confirmed = await confirmDialog({
       title: t("delete_confirm_title"),
       message: t("delete_confirm"),
@@ -272,17 +262,59 @@ export default function ContactsPage() {
 
     try {
       if (supportsSync && client) {
-        await deleteContact(client, selectedContact.id);
+        await deleteContact(client, contactId);
       } else {
-        deleteLocalContact(selectedContact.id);
+        deleteLocalContact(contactId);
       }
       toast.success(t("toast.deleted"));
-      setView("list");
+      if (selectedContactId === contactId) setView("list");
     } catch (error) {
       console.error('Failed to delete contact:', error);
       toast.error(t("toast.error_delete"));
     }
+  }, [confirmDialog, t, supportsSync, client, deleteContact, deleteLocalContact, selectedContactId]);
+
+  const handleDelete = async () => {
+    if (!selectedContact) return;
+    await deleteContactById(selectedContact.id);
   };
+
+  const handleEditContact = useCallback((id: string) => {
+    setSelectedContact(id);
+    setView("edit");
+  }, [setSelectedContact]);
+
+  const handleDeleteContact = useCallback((contact: ContactCard) => {
+    void deleteContactById(contact.id);
+  }, [deleteContactById]);
+
+  const handleAddContactToGroup = useCallback((id: string) => {
+    clearSelection();
+    toggleContactSelection(id);
+    if (groups.length === 0) {
+      setView("group-create");
+      return;
+    }
+    setView("bulk-add-to-group");
+  }, [clearSelection, toggleContactSelection, groups.length]);
+
+  const handleDuplicateContact = useCallback(async (source: ContactCard) => {
+    const { id: _id, created: _created, updated: _updated, ...rest } = source;
+    void _id; void _created; void _updated;
+    const data: Partial<ContactCard> = JSON.parse(JSON.stringify(rest));
+    if (supportsSync && client) {
+      await createContact(client, data);
+      toast.success(t("toast.created"));
+    } else {
+      const localContact: ContactCard = {
+        id: `local-${generateUUID()}`,
+        addressBookIds: data.addressBookIds || {},
+        ...data,
+      };
+      addLocalContact(localContact);
+      toast.success(t("toast.created"));
+    }
+  }, [supportsSync, client, createContact, addLocalContact, t]);
 
   const handleSaveNew = useCallback(async (data: Partial<ContactCard>) => {
     if (supportsSync && client) {
@@ -585,6 +617,16 @@ export default function ContactsPage() {
             contact={selectedContact}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onAddToGroup={
+              selectedContact
+                ? () => handleAddContactToGroup(selectedContact.id)
+                : undefined
+            }
+            onDuplicate={
+              selectedContact
+                ? () => void handleDuplicateContact(selectedContact)
+                : undefined
+            }
             isMobile={isMobile}
           />
         );
@@ -680,7 +722,6 @@ export default function ContactsPage() {
                   onSearchChange={setSearchQuery}
                   onSelectContact={handleSelectContact}
                   onCreateNew={handleCreateNew}
-                  categoryLabel={categoryLabel}
                   className="flex-1"
                   selectedContactIds={selectedContactIds}
                   onToggleSelection={toggleContactSelection}
@@ -690,6 +731,9 @@ export default function ContactsPage() {
                   onBulkDelete={handleBulkDelete}
                   onBulkAddToGroup={handleBulkAddToGroup}
                   onBulkExport={handleBulkExport}
+                  onEditContact={handleEditContact}
+                  onDeleteContact={handleDeleteContact}
+                  onAddContactToGroup={handleAddContactToGroup}
                 />
               </div>
 
@@ -701,7 +745,7 @@ export default function ContactsPage() {
                     setIsListResizing(false);
                     localStorage.setItem("contacts-list-width", String(listWidth));
                   }}
-                  onDoubleClick={() => { setListWidth(320); localStorage.setItem("contacts-list-width", "320"); }}
+                  onDoubleClick={() => { setListWidth(384); localStorage.setItem("contacts-list-width", "384"); }}
                 />
               )}
             </>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { useUIStore } from "@/stores/ui-store";
 
 // Tailwind v4 breakpoints
@@ -12,26 +12,30 @@ const BREAKPOINTS = {
   "2xl": 1536,
 } as const;
 
+const getMediaQueryServerSnapshot = () => false;
+
 /**
- * SSR-safe media query hook
- * Returns false during SSR to prevent hydration mismatch
+ * SSR-safe media query hook. On SSR and the first hydration pass we report
+ * `false`; on all subsequent client renders (including client-side navigation
+ * remounts) we read `matchMedia` synchronously, so components don't flash
+ * through a one-frame "mobile" layout on desktop.
  */
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      const mq = window.matchMedia(query);
+      mq.addEventListener("change", callback);
+      return () => mq.removeEventListener("change", callback);
+    },
+    [query],
+  );
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia(query);
-    setMatches(mediaQuery.matches);
+  const getSnapshot = useCallback(
+    () => window.matchMedia(query).matches,
+    [query],
+  );
 
-    const handler = (event: MediaQueryListEvent) => {
-      setMatches(event.matches);
-    };
-
-    mediaQuery.addEventListener("change", handler);
-    return () => mediaQuery.removeEventListener("change", handler);
-  }, [query]);
-
-  return matches;
+  return useSyncExternalStore(subscribe, getSnapshot, getMediaQueryServerSnapshot);
 }
 
 /**

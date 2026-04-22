@@ -129,7 +129,8 @@
     "folders": "Foldery",
     "mail": "Poczta",
     "nav_label": "Nawigacja",
-    "add_app": "Aplikacje"
+    "add_app": "Aplikacje",
+    "shared": "Udostępnione"
   },
   "sidebar_apps": {
     "modal_title": "Aplikacje paska bocznego",
@@ -670,14 +671,24 @@
       "contacts": "Kontakty",
       "encryption": "Szyfrowanie",
       "sidebar_apps": "Aplikacje paska bocznego",
-      "notifications": "Powiadomienia"
+      "notifications": "Powiadomienia",
+      "layout": "Układ",
+      "reading": "Czytanie",
+      "composing": "Tworzenie",
+      "content_senders": "Treść i nadawcy",
+      "about_data": "O programie i dane",
+      "debug": "Debugowanie"
     },
     "tab_groups": {
       "general": "Ogólne",
       "account": "Konto i tożsamość",
       "organization": "Organizacja poczty",
       "apps": "Aplikacje",
-      "system": "System"
+      "system": "System",
+      "appearance": "Wygląd",
+      "mail": "Poczta",
+      "privacy": "Prywatność i bezpieczeństwo",
+      "advanced": "Zaawansowane"
     },
     "appearance": {
       "title": "Wygląd",
@@ -733,6 +744,10 @@
       "unified_mailbox": {
         "label": "Wspólna skrzynka",
         "description": "Wyświetlaj połączone foldery (Odebrane, Wysłane itp.) ze wszystkich połączonych kont"
+      },
+      "colorful_sidebar_icons": {
+        "label": "Kolorowe ikony paska bocznego",
+        "description": "Koloruj ikony folderów i tagów według typu (niebieska Skrzynka odbiorcza, czerwona Spam, zielona Wysłane itp.). Wyłącz, aby uzyskać monochromatyczny pasek boczny."
       }
     },
     "keywords": {
@@ -1075,7 +1090,14 @@
         "disabled": "Uwierzytelnianie dwuskładnikowe wyłączone",
         "enable_error": "Nie udało się włączyć 2FA",
         "disable_error": "Nie udało się wyłączyć 2FA",
-        "setup_instructions": "Skopiuj ten adres URL do swojej aplikacji uwierzytelniającej (Google Authenticator, Authy itp.):"
+        "setup_instructions": "Skopiuj ten adres URL do swojej aplikacji uwierzytelniającej (Google Authenticator, Authy itp.):",
+        "verification_code": "Kod weryfikacyjny",
+        "confirm": "Potwierdź",
+        "disable": "Wyłącz",
+        "disable_confirm_prompt": "Wprowadź hasło, aby wyłączyć uwierzytelnianie dwuskładnikowe.",
+        "password_required": "Hasło jest wymagane",
+        "code_required": "Kod weryfikacyjny jest wymagany",
+        "code_invalid": "Nieprawidłowy kod weryfikacyjny. Sprawdź aplikację uwierzytelniającą i spróbuj ponownie."
       },
       "app_passwords": {
         "title": "Hasła aplikacji",
@@ -1092,7 +1114,25 @@
         "removed": "Hasło aplikacji zostało usunięte",
         "add_error": "Nie udało się utworzyć hasła aplikacji",
         "remove_error": "Nie udało się usunąć hasła aplikacji",
-        "none": "Brak skonfigurowanych haseł aplikacji"
+        "none": "Brak skonfigurowanych haseł aplikacji",
+        "done": "Gotowe",
+        "expires_label": "Wygasa (opcjonalnie)",
+        "copy_now_warning": "Skopiuj to hasło teraz - nie zostanie ponownie wyświetlone.",
+        "allowed_ips_label": "Dozwolone adresy IP (opcjonalnie)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Oddzielone przecinkiem lub spacją. Pozostaw puste, aby zezwolić na dowolny IP."
+      },
+      "api_keys": {
+        "title": "Klucze API",
+        "description": "Twórz klucze API dla skryptów i integracji komunikujących się bezpośrednio z serwerem",
+        "name_label": "Nazwa klucza",
+        "name_placeholder": "np. Skrypt kopii zapasowej, CI runner",
+        "copy_now_warning": "Skopiuj ten klucz API teraz - nie zostanie pokazany ponownie.",
+        "added": "Klucz API utworzony",
+        "removed": "Klucz API usunięty",
+        "add_error": "Nie udało się utworzyć klucza API",
+        "remove_error": "Nie udało się usunąć klucza API",
+        "none": "Brak skonfigurowanych kluczy API"
       },
       "encryption": {
         "section_title": "Szyfrowanie danych w spoczynku",
@@ -1415,7 +1455,9 @@
       "rule_summary": {
         "conditions_count": "{count, plural, one {# warunek} other {# warunków}}",
         "actions_count": "{count, plural, one {# akcja} other {# akcji}}"
-      }
+      },
+      "origin_external": "Zewnętrzny",
+      "managed_by_tooltip": "Zarządzane przez {source}. Edytuj w tej aplikacji lub użyj surowego edytora Sieve."
     },
     "templates": {
       "title": "Szablony wiadomości e-mail",
@@ -1705,6 +1747,8 @@
     "empty_state_subtitle": "Utwórz pierwszy kontakt lub zaimportuj z pliku vCard",
     "empty_search": "Żadne kontakty nie pasują do wyszukiwania",
     "empty_search_hint": "Spróbuj użyć innego wyszukiwanego hasła",
+    "empty_filtered": "Żadne kontakty nie pasują do filtrów",
+    "empty_filtered_hint": "Dostosuj lub wyczyść filtry",
     "clear_search": "Wyczyść wyszukiwanie",
     "import_vcard": "Importuj vCard",
     "delete_confirm_title": "Usuń kontakt",
@@ -1782,7 +1826,33 @@
       "calendar": "Kalendarz",
       "calendar_uri": "Adres URL kalendarza",
       "scheduling_uri": "Adres URL planowania",
-      "freebusy_uri": "Adres URL wolny/zajęty"
+      "freebusy_uri": "Adres URL wolny/zajęty",
+      "section_contact": "Contact details",
+      "section_work": "Work",
+      "section_personal": "Personal",
+      "email_default_label": "Email",
+      "phone_default_label": "Phone",
+      "address_default_label": "Address",
+      "online_service_default_label": "Online",
+      "organization_label": "Organization",
+      "title_label": "Title",
+      "role_label": "Role",
+      "language_label": "Language",
+      "related_default_label": "Related",
+      "more_actions": "Więcej działań",
+      "age_years": "{count, plural, one {1 rok} few {# lata} many {# lat} other {# lat}}",
+      "years_since": "{count, plural, one {1 rok temu} few {# lata temu} many {# lat temu} other {# lat temu}}"
+    },
+    "activity": {
+      "recent_emails": "Recent Emails",
+      "upcoming_events": "Upcoming Events",
+      "no_emails": "No recent emails",
+      "no_events": "No upcoming events",
+      "no_subject": "(No subject)",
+      "no_title": "(No title)",
+      "load_failed": "Failed to load",
+      "unknown_sender": "Unknown sender",
+      "all_day": "All day"
     },
     "form": {
       "create_title": "Nowy kontakt",
@@ -1878,7 +1948,13 @@
       "email_invalid": "Wprowadź prawidłowy adres e-mail",
       "email_error_inline": "Nieprawidłowy format adresu e-mail",
       "save_failed": "Nie udało się zapisać kontaktu",
-      "delete": "Usuń"
+      "delete": "Usuń",
+      "upload_photo": "Prześlij zdjęcie",
+      "remove_photo": "Usuń zdjęcie",
+      "photo_hint": "JPG lub PNG, do 10 MB. Zostanie zmniejszone.",
+      "photo_too_large": "Obraz jest za duży (maks. 10 MB)",
+      "photo_invalid": "Nieprawidłowy plik obrazu",
+      "change_photo": "Zmień"
     },
     "groups": {
       "create": "Nowa grupa",
@@ -1938,6 +2014,37 @@
       "error_create": "Nie udało się utworzyć kontaktu",
       "error_update": "Nie udało się zaktualizować kontaktu",
       "error_delete": "Nie udało się usunąć kontaktu"
+    },
+    "context_menu": {
+      "open": "Otwórz",
+      "edit": "Edytuj",
+      "send_email": "Wyślij e-mail",
+      "add_to_group": "Dodaj do grupy",
+      "export_vcard": "Eksportuj jako vCard",
+      "delete": "Usuń",
+      "call": "Zadzwoń",
+      "duplicate": "Duplikuj",
+      "print": "Drukuj"
+    },
+    "filters": {
+      "toggle": "Filtry",
+      "select": "Zaznacz",
+      "clear": "Wyczyść",
+      "close": "Zamknij",
+      "title": "Filtry zaawansowane",
+      "organization": "Firma",
+      "organization_placeholder": "np. Acme",
+      "job_title": "Stanowisko",
+      "job_title_placeholder": "np. Projektant",
+      "location": "Lokalizacja",
+      "location_placeholder": "Miasto lub kraj",
+      "email_domain": "Domena e-mail",
+      "email_domain_placeholder": "przyklad.pl",
+      "birthday_month": "Urodziny w",
+      "any_month": "Dowolny miesiąc",
+      "has_email": "Z e-mailem",
+      "has_phone": "Z telefonem",
+      "has_photo": "Ze zdjęciem"
     }
   },
   "calendar": {
@@ -2013,6 +2120,7 @@
       "tentative": "Wstępnie",
       "needs_action": "Wymaga działania",
       "remove": "Usuń",
+      "edit": "Edytuj",
       "email_placeholder": "Dodaj adres e-mail lub wyszukaj kontakty",
       "send_invitations": "Wyślij zaproszenia do uczestników",
       "status_summary": "{accepted} zaakceptowano, {pending} oczekuje",

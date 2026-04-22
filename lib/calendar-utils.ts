@@ -219,10 +219,26 @@ export function layoutOverlappingEvents(
     return (b.endMinutes - b.startMinutes) - (a.endMinutes - a.startMinutes);
   });
 
-  const columns: { event: CalendarEvent; end: number }[][] = [];
   const result: TimedEventLayout[] = [];
+  let columns: { event: CalendarEvent; end: number }[][] = [];
+  let clusterStart = 0;
+  let clusterMaxEnd = 0;
+
+  const flushCluster = () => {
+    const total = columns.length;
+    for (let i = clusterStart; i < result.length; i++) {
+      result[i].totalColumns = total;
+    }
+  };
 
   for (const event of sorted) {
+    if (columns.length > 0 && event.startMinutes >= clusterMaxEnd) {
+      flushCluster();
+      clusterStart = result.length;
+      columns = [];
+      clusterMaxEnd = 0;
+    }
+
     let placed = false;
     for (let col = 0; col < columns.length; col++) {
       if (columns[col].every(e => e.end <= event.startMinutes)) {
@@ -236,10 +252,10 @@ export function layoutOverlappingEvents(
       columns.push([{ event: event.event, end: event.endMinutes }]);
       result.push({ ...event, column: columns.length - 1, totalColumns: 0 });
     }
+    clusterMaxEnd = Math.max(clusterMaxEnd, event.endMinutes);
   }
 
-  const total = columns.length;
-  result.forEach(r => r.totalColumns = total);
+  flushCluster();
   return result;
 }
 
@@ -255,4 +271,23 @@ export function formatSnapTime(minutes: number, timeFormat: "12h" | "24h"): stri
 
 export function getPrimaryCalendarId(event: Pick<CalendarEvent, 'calendarIds'>): string | undefined {
   return Object.keys(event.calendarIds || {})[0];
+}
+
+export function formatIsoInTimeZone(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+  const map: Record<string, string> = {};
+  for (const part of parts) {
+    if (part.type !== "literal") map[part.type] = part.value;
+  }
+  const hour = map.hour === "24" ? "00" : map.hour;
+  return `${map.year}-${map.month}-${map.day}T${hour}:${map.minute}:${map.second}`;
 }

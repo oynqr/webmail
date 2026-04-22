@@ -508,7 +508,7 @@ function escapeRegex(s: string): string {
 /**
  * Nextcloud Mail wraps its managed filter region with a pair of
  * `### Nextcloud Mail: Filters ### DON'T EDIT ###` markers and typically
- * emits two such regions — one enclosing its own `require [...]` line and
+ * emits two such regions - one enclosing its own `require [...]` line and
  * another enclosing the if-blocks it generates from its `# FILTER: [...]`
  * JSON comments. Parsing the interior blocks individually loses the outer
  * markers (causing later rules to fall back to "External") and mis-attaches

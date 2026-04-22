@@ -6,6 +6,7 @@ import { useEmailStore } from "@/stores/email-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useDragDropContext } from "@/contexts/drag-drop-context";
 import { toast } from "@/stores/toast-store";
+import { getMailboxPath } from "@/lib/utils";
 
 interface UseMailboxDropOptions {
   mailbox: Mailbox;
@@ -30,7 +31,7 @@ interface UseMailboxDropReturn {
 export function useMailboxDrop({ mailbox, onDropComplete, onSuccess, onError }: UseMailboxDropOptions): UseMailboxDropReturn {
   const [isOver, setIsOver] = useState(false);
   const { client } = useAuthStore();
-  const { moveToMailbox, selectedEmailIds, clearSelection, fetchEmails, selectedMailbox } = useEmailStore();
+  const { moveEmailsToMailbox, selectedEmailIds, clearSelection, fetchEmails, selectedMailbox, mailboxes } = useEmailStore();
   const { isDragging, sourceMailboxId, draggedEmails, endDrag } = useDragDropContext();
 
   // Determine if this is a valid drop target
@@ -106,13 +107,8 @@ export function useMailboxDrop({ mailbox, onDropComplete, onSuccess, onError }: 
 
       const emailIds: string[] = JSON.parse(emailIdsJson);
 
-      // Get the destination mailbox ID (use originalId for shared folders)
-      const destinationId = mailbox.originalId || mailbox.id;
-
-      // Move emails one by one (store handles counter updates)
-      for (const emailId of emailIds) {
-        await moveToMailbox(client, emailId, destinationId);
-      }
+      // Move in a single bulk JMAP request (store handles counter updates).
+      await moveEmailsToMailbox(client, emailIds, mailbox.id);
 
       // Clear selection if any selected emails were moved
       if (emailIds.some(id => selectedEmailIds.has(id))) {
@@ -122,15 +118,15 @@ export function useMailboxDrop({ mailbox, onDropComplete, onSuccess, onError }: 
       // Refresh the current mailbox view
       await fetchEmails(client, selectedMailbox);
 
-      // Call success callback if provided, otherwise use fallback
+      const mailboxPath = getMailboxPath(mailbox, mailboxes);
+
       if (onSuccess) {
-        onSuccess(emailIds.length, mailbox.name);
+        onSuccess(emailIds.length, mailboxPath);
       } else {
-        // Fallback for backward compatibility
         if (emailIds.length === 1) {
-          toast.success("Email moved", `Moved to ${mailbox.name}`);
+          toast.success("Email moved", `Moved to ${mailboxPath}`);
         } else {
-          toast.success("Emails moved", `${emailIds.length} emails moved to ${mailbox.name}`);
+          toast.success("Emails moved", `${emailIds.length} emails moved to ${mailboxPath}`);
         }
       }
 
@@ -148,7 +144,7 @@ export function useMailboxDrop({ mailbox, onDropComplete, onSuccess, onError }: 
     } finally {
       endDrag();
     }
-  }, [client, mailbox, isValidTarget, moveToMailbox, selectedEmailIds, clearSelection, fetchEmails, selectedMailbox, endDrag, onDropComplete, onSuccess, onError]);
+  }, [client, mailbox, mailboxes, isValidTarget, moveEmailsToMailbox, selectedEmailIds, clearSelection, fetchEmails, selectedMailbox, endDrag, onDropComplete, onSuccess, onError]);
 
   const valid = isValidTarget();
 

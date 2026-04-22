@@ -216,7 +216,7 @@ export function EmailComposer({
   const [attachments, setAttachments] = useState<ComposerAttachment[]>(() => {
     if (mode === 'forward' && replyTo?.attachments?.length) {
       return replyTo.attachments
-        // Skip inline cid-referenced images — they're embedded in the forwarded HTML body
+        // Skip inline cid-referenced images - they're embedded in the forwarded HTML body
         // (matches the viewer's hideInlineImageAttachments logic).
         .filter(att => !(att.cid && att.disposition === 'inline' && (att.type || '').startsWith('image/')))
         .map(att => ({

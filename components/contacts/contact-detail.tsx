@@ -1,22 +1,37 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { Mail, Phone, Building, MapPin, StickyNote, Pencil, Trash2, BookUser, Copy, Send, Globe, Cake, Tag, KeyRound, Users, Briefcase, Heart, Languages, Calendar, UserCircle, ShieldCheck, ShieldAlert, Download } from "lucide-react";
+import { Mail, Phone, Building, MapPin, StickyNote, Pencil, Trash2, BookUser, Copy, Send, Globe, Cake, KeyRound, Users, Briefcase, Heart, Languages, Calendar, UserCircle, ShieldCheck, ShieldAlert, Download, MoreHorizontal, Printer } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ContactCard, AnniversaryDate, PartialDate } from "@/lib/jmap/types";
-import { getContactDisplayName, getContactPrimaryEmail } from "@/stores/contact-store";
+import { getContactDisplayName, getContactPrimaryEmail, getContactPhotoUri } from "@/stores/contact-store";
+import { ContactActivity } from "./contact-activity";
 import { useSmimeStore } from "@/stores/smime-store";
 import { parseCertificatePemOrDer, extractCertificateInfo } from "@/lib/smime/certificate-utils";
 import type { CertificateInfo } from "@/lib/smime/types";
 import { toast } from "@/stores/toast-store";
+import { exportContact } from "./contact-export";
+import { printContact } from "./contact-print";
+
+type MoreItem =
+  | {
+      icon: React.ComponentType<{ className?: string }>;
+      label: string;
+      onClick: () => void;
+      destructive?: boolean;
+      separator?: false;
+    }
+  | { separator: true };
 
 interface ContactDetailProps {
   contact: ContactCard | null;
   onEdit: () => void;
   onDelete: () => void;
+  onAddToGroup?: () => void;
+  onDuplicate?: () => void;
   isMobile?: boolean;
   className?: string;
 }
@@ -26,9 +41,45 @@ function formatPhoneFeatures(features?: Record<string, boolean>): string {
   return Object.keys(features).filter(k => features[k]).join(", ");
 }
 
+function getDateParts(dateInput: AnniversaryDate): { year?: number; month?: number; day?: number } {
+  if (typeof dateInput === "object" && dateInput !== null) {
+    if (dateInput["@type"] === "Timestamp" && typeof dateInput.utc === "string") {
+      const d = new Date(dateInput.utc);
+      if (!isNaN(d.getTime())) {
+        return { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate() };
+      }
+      return {};
+    }
+    const pd = dateInput as PartialDate;
+    return { year: pd.year, month: pd.month, day: pd.day };
+  }
+  const s = String(dateInput);
+  if (s.startsWith("--")) {
+    const parts = s.substring(2).split("-");
+    return { month: parseInt(parts[0], 10), day: parts[1] ? parseInt(parts[1], 10) : undefined };
+  }
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() };
+  }
+  return {};
+}
+
+function getCompletedYears(dateInput: AnniversaryDate): number | null {
+  const { year, month, day } = getDateParts(dateInput);
+  if (!year) return null;
+  const now = new Date();
+  let years = now.getFullYear() - year;
+  const m = month ?? 1;
+  const d = day ?? 1;
+  const nowM = now.getMonth() + 1;
+  const nowD = now.getDate();
+  if (nowM < m || (nowM === m && nowD < d)) years -= 1;
+  if (years < 0) return null;
+  return years;
+}
+
 function formatDate(dateInput: AnniversaryDate): string {
-  // Handle RFC 9553 PartialDate objects: { year?, month?, day?, calendarScale? }
-  // Handle RFC 9553 Timestamp objects: { "@type": "Timestamp", utc: "..." }
   if (typeof dateInput === 'object' && dateInput !== null) {
     if (dateInput['@type'] === 'Timestamp' && typeof dateInput.utc === 'string') {
       try {
@@ -40,20 +91,15 @@ function formatDate(dateInput: AnniversaryDate): string {
       return String(dateInput.utc);
     }
     const pd = dateInput as PartialDate;
-    const year = pd.year;
-    const month = pd.month;
-    const day = pd.day;
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const parts: string[] = [];
-    if (month && monthNames[month - 1]) parts.push(monthNames[month - 1]);
-    if (day) parts.push(String(day));
-    if (year) parts.push(String(year));
+    if (pd.month && monthNames[pd.month - 1]) parts.push(monthNames[pd.month - 1]);
+    if (pd.day) parts.push(String(pd.day));
+    if (pd.year) parts.push(String(pd.year));
     return parts.join(' ') || String(dateInput);
   }
   const dateStr = String(dateInput);
-  // Handle both ISO dates and partial dates like 1990-01-15 or --01-15
   if (dateStr.startsWith("--")) {
-    // Partial date without year
     const parts = dateStr.substring(2).split("-");
     const month = parseInt(parts[0], 10);
     const day = parts[1] ? parseInt(parts[1], 10) : undefined;
@@ -69,7 +115,7 @@ function formatDate(dateInput: AnniversaryDate): string {
   return dateStr;
 }
 
-export function ContactDetail({ contact, onEdit, onDelete, isMobile, className }: ContactDetailProps) {
+export function ContactDetail({ contact, onEdit, onDelete, onAddToGroup, onDuplicate, isMobile, className }: ContactDetailProps) {
   const t = useTranslations("contacts");
   const smimeStore = useSmimeStore();
   const [parsedCerts, setParsedCerts] = useState<Map<number, CertificateInfo>>(new Map());
@@ -87,7 +133,6 @@ export function ContactDetail({ contact, onEdit, onDelete, isMobile, className }
         try {
           let derBytes: ArrayBuffer | string | null = null;
           if (key.uri.startsWith('data:')) {
-            // data URI - extract base64 content
             const commaIdx = key.uri.indexOf(',');
             if (commaIdx === -1) continue;
             const b64 = key.uri.substring(commaIdx + 1);
@@ -96,7 +141,6 @@ export function ContactDetail({ contact, onEdit, onDelete, isMobile, className }
             for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j);
             derBytes = bytes.buffer;
           } else if (key.uri.startsWith('-----BEGIN')) {
-            // PEM-encoded certificate inline
             derBytes = key.uri;
           }
           if (!derBytes) continue;
@@ -127,6 +171,29 @@ export function ContactDetail({ contact, onEdit, onDelete, isMobile, className }
 
   const name = getContactDisplayName(contact);
   const email = getContactPrimaryEmail(contact);
+  const photoUri = getContactPhotoUri(contact);
+  const phone = contact.phones ? Object.values(contact.phones)[0]?.number : undefined;
+
+  const handleExport = () => {
+    exportContact(contact);
+    toast.success(t("export.success", { count: 1 }));
+  };
+
+  const handlePrint = () => {
+    printContact(contact, name);
+  };
+
+  const moreItems: MoreItem[] = [];
+  if (onAddToGroup) {
+    moreItems.push({ icon: Users, label: t("context_menu.add_to_group"), onClick: onAddToGroup });
+  }
+  if (onDuplicate) {
+    moreItems.push({ icon: Copy, label: t("context_menu.duplicate"), onClick: onDuplicate });
+  }
+  moreItems.push({ icon: Download, label: t("context_menu.export_vcard"), onClick: handleExport });
+  moreItems.push({ icon: Printer, label: t("context_menu.print"), onClick: handlePrint });
+  moreItems.push({ separator: true });
+  moreItems.push({ icon: Trash2, label: t("context_menu.delete"), onClick: onDelete, destructive: true });
   const emails = contact.emails ? Object.values(contact.emails) : [];
   const phones = contact.phones ? Object.values(contact.phones) : [];
   const orgs = contact.organizations ? Object.values(contact.organizations) : [];
@@ -170,255 +237,259 @@ export function ContactDetail({ contact, onEdit, onDelete, isMobile, className }
 
   const hasNickname = nicknames.length > 0;
   const titleLine = jobTitles.length > 0 ? jobTitles.map(t => t.name).join(", ") : undefined;
+  const subtitleParts = [titleLine, orgs[0]?.name].filter(Boolean) as string[];
+  const hasContactDetails = emails.length > 0 || phones.length > 0 || addresses.length > 0 || onlineServices.length > 0;
+  const hasWork = titles.length > 0 || orgs.length > 0;
+  const hasGender = !!(contact.speakToAs && (contact.speakToAs.grammaticalGender || contact.speakToAs.pronouns));
+  const hasPersonal = anniversaries.length > 0 || personalInfo.length > 0 || hasGender || preferredLanguages.length > 0;
 
   return (
     <div className={cn("flex flex-col h-full overflow-y-auto", className)}>
       <div className={cn("border-b border-border", isMobile ? "px-4 py-4" : "px-6 py-6")}>
         <div className={cn("flex gap-4", isMobile ? "flex-col" : "items-start justify-between")}>
-          <div className="flex items-center gap-4">
-            <Avatar name={name} email={email} size={isMobile ? "md" : "lg"} />
+          <div className="flex items-center gap-4 min-w-0 flex-1">
+            <Avatar name={name} email={email} contactPhotoUri={photoUri} size={isMobile ? "md" : "lg"} />
             <div className="min-w-0 flex-1">
               <h2 className={cn("font-semibold truncate", isMobile ? "text-lg" : "text-xl")}>{name || "-"}</h2>
               {hasNickname && (
                 <p className="text-sm text-muted-foreground truncate">&ldquo;{nicknames.map(n => n.name).join(", ")}&rdquo;</p>
               )}
-              {titleLine && (
-                <p className="text-sm text-muted-foreground truncate">{titleLine}</p>
-              )}
-              {orgs.length > 0 && orgs[0].name && (
-                <p className="text-sm text-muted-foreground truncate">{orgs[0].name}</p>
+              {subtitleParts.length > 0 && (
+                <p className="text-sm text-muted-foreground truncate">{subtitleParts.join(" · ")}</p>
               )}
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-shrink-0 flex-wrap">
+            {email && (
+              <a
+                href={`mailto:${email}`}
+                className="inline-flex items-center justify-center rounded-md font-medium h-9 px-3 text-sm border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors touch-manipulation"
+              >
+                <Send className="w-4 h-4 mr-1" />
+                {t("detail.compose_email")}
+              </a>
+            )}
+            {phone && (
+              <a
+                href={`tel:${phone}`}
+                className="inline-flex items-center justify-center rounded-md font-medium h-9 px-3 text-sm border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors touch-manipulation"
+              >
+                <Phone className="w-4 h-4 mr-1" />
+                {t("context_menu.call")}
+              </a>
+            )}
             <Button variant="outline" size="sm" onClick={onEdit} className="touch-manipulation">
               <Pencil className="w-4 h-4 mr-1" />
               {t("form.edit_title")}
             </Button>
-            <Button variant="outline" size="sm" onClick={onDelete} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950 touch-manipulation">
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            <MoreActionsMenu items={moreItems} label={t("detail.more_actions")} />
           </div>
         </div>
       </div>
 
-      <div className="px-6 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {/* Contact info */}
-          {emails.length > 0 && (
-            <Section icon={Mail} title={t("detail.emails")} category="contact">
+      <div className={cn("divide-y divide-border/60", isMobile ? "px-4" : "px-6")}>
+        {hasContactDetails && (
+          <Section title={t("detail.section_contact")}>
+            <div className="space-y-3">
               {emails.map((e, i) => (
-                <div key={i} className="flex items-center gap-2 group">
-                  <a href={`mailto:${e.address}`} className="text-sm text-primary hover:underline">
-                    {e.address}
-                  </a>
-                  {e.contexts && <ContextBadge contexts={e.contexts} />}
-                  {e.label && <span className="text-xs text-muted-foreground">({e.label})</span>}
-                  <div className={cn(
-                    "flex items-center gap-0.5 transition-opacity",
-                    isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                  )}>
-                    <a
-                      href={`mailto:${e.address}`}
-                      className="p-1.5 rounded hover:bg-muted transition-colors touch-manipulation"
-                      title={t("detail.compose_email")}
-                      aria-label={t("detail.compose_email")}
-                    >
-                      <Send className="w-3.5 h-3.5 text-muted-foreground" />
+                <FieldRow key={`em${i}`} icon={Mail} label={e.label || formatContexts(e.contexts) || t("detail.email_default_label")}>
+                  <div className="flex items-center gap-2 group">
+                    <a href={`mailto:${e.address}`} className="text-sm text-primary hover:underline break-all">
+                      {e.address}
                     </a>
-                    <CopyButton value={e.address} label={t("detail.copy_email")} successMsg={t("detail.copied")} failMsg={t("detail.copy_failed")} />
+                    <RowActions>
+                      <a
+                        href={`mailto:${e.address}`}
+                        className="p-1.5 rounded hover:bg-muted transition-colors touch-manipulation"
+                        title={t("detail.compose_email")}
+                        aria-label={t("detail.compose_email")}
+                      >
+                        <Send className="w-3.5 h-3.5 text-muted-foreground" />
+                      </a>
+                      <CopyButton value={e.address} label={t("detail.copy_email")} successMsg={t("detail.copied")} failMsg={t("detail.copy_failed")} />
+                    </RowActions>
                   </div>
-                </div>
+                </FieldRow>
               ))}
-            </Section>
-          )}
 
-          {phones.length > 0 && (
-            <Section icon={Phone} title={t("detail.phones")} category="contact">
               {phones.map((p, i) => {
-                const featureStr = formatPhoneFeatures(p.features);
+                const features = formatPhoneFeatures(p.features);
+                const labelParts = [p.label, formatContexts(p.contexts), features].filter(Boolean) as string[];
                 return (
-                  <div key={i} className="flex items-center gap-2 group">
-                    <a href={`tel:${p.number}`} className="text-sm text-primary hover:underline">
-                      {p.number}
-                    </a>
-                    {p.contexts && <ContextBadge contexts={p.contexts} />}
-                    {featureStr && (
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{featureStr}</span>
-                    )}
-                    <CopyButton
-                      value={p.number}
-                      label={t("detail.copy_phone")}
-                      successMsg={t("detail.copied")}
-                      failMsg={t("detail.copy_failed")}
-                      className={isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"}
-                    />
-                  </div>
+                  <FieldRow key={`ph${i}`} icon={Phone} label={labelParts.length ? labelParts.join(" · ") : t("detail.phone_default_label")}>
+                    <div className="flex items-center gap-2 group">
+                      <a href={`tel:${p.number}`} className="text-sm text-primary hover:underline">
+                        {p.number}
+                      </a>
+                      <RowActions>
+                        <CopyButton value={p.number} label={t("detail.copy_phone")} successMsg={t("detail.copied")} failMsg={t("detail.copy_failed")} />
+                      </RowActions>
+                    </div>
+                  </FieldRow>
                 );
               })}
-            </Section>
-          )}
 
-          {(roles.length > 0 || jobTitles.length > 1) && (
-            <Section icon={Briefcase} title={t("detail.titles")} category="work">
-              {titles.map((tl, i) => (
-                <div key={i} className="text-sm flex items-center gap-2">
-                  <span>{tl.name}</span>
-                  {tl.kind && (
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{tl.kind}</span>
-                  )}
-                </div>
-              ))}
-            </Section>
-          )}
-
-          {orgs.length > 0 && (
-            <Section icon={Building} title={t("detail.organizations")} category="work">
-              {orgs.map((o, i) => (
-                <div key={i} className="text-sm">
-                  {o.name}
-                  {o.units && o.units.length > 0 && (
-                    <span className="text-muted-foreground"> - {o.units.map(u => u.name).join(", ")}</span>
-                  )}
-                </div>
-              ))}
-            </Section>
-          )}
-
-          {/* Addresses span full width */}
-          {addresses.length > 0 && (
-            <div className="md:col-span-2 xl:col-span-3">
-              <Section icon={MapPin} title={t("detail.addresses")} category="location">
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                  {addresses.map((a, i) => (
-                    <div key={i} className="text-sm space-y-0.5 rounded-md border border-border/60 bg-muted/30 p-3">
-                      <div>
-                        {a.full || a.fullAddress
-                          ? (a.full || a.fullAddress)
-                          : a.components && a.components.length > 0
-                            ? a.components.filter(c => c.kind !== 'separator').map(c => c.value).filter(Boolean).join(", ")
-                            : [a.street, a.locality, a.region, a.postcode, a.country].filter(Boolean).join(", ")}
-                        {a.contexts && <ContextBadge contexts={a.contexts} />}
-                      </div>
+              {addresses.map((a, i) => {
+                const lines: string[] = [];
+                if (a.full || a.fullAddress) {
+                  lines.push((a.full || a.fullAddress) as string);
+                } else if (a.components && a.components.length > 0) {
+                  const joined = a.components.filter(c => c.kind !== 'separator').map(c => c.value).filter(Boolean).join(", ");
+                  if (joined) lines.push(joined);
+                } else {
+                  const parts = [a.street, [a.postcode, a.locality].filter(Boolean).join(" "), a.region, a.country]
+                    .map(s => (typeof s === "string" ? s.trim() : ""))
+                    .filter(Boolean) as string[];
+                  lines.push(...parts);
+                }
+                return (
+                  <FieldRow key={`ad${i}`} icon={MapPin} label={formatContexts(a.contexts) || t("detail.address_default_label")}>
+                    <div className="text-sm space-y-0.5">
+                      {lines.map((line, idx) => (
+                        <div key={idx}>{line}</div>
+                      ))}
                       {a.timeZone && (
                         <div className="text-xs text-muted-foreground">{t("detail.timezone")}: {a.timeZone}</div>
                       )}
                     </div>
-                  ))}
-                </div>
-              </Section>
-            </div>
-          )}
+                  </FieldRow>
+                );
+              })}
 
-          {onlineServices.length > 0 && (
-            <Section icon={Globe} title={t("detail.online_services")} category="digital">
               {onlineServices.map((svc, i) => (
-                <div key={i} className="flex items-center gap-2 group">
-                  {typeof svc.uri === 'string' && svc.uri.startsWith("http") ? (
-                    <a href={svc.uri} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline break-all">
-                      {svc.user || svc.uri}
-                    </a>
-                  ) : (
-                    <span className="text-sm break-all">{svc.user || String(svc.uri ?? '')}</span>
-                  )}
-                  {svc.service && (
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{svc.service}</span>
-                  )}
-                  {svc.contexts && <ContextBadge contexts={svc.contexts} />}
-                  <CopyButton
-                    value={svc.user || svc.uri}
-                    label={t("detail.copy_url")}
-                    successMsg={t("detail.copied")}
-                    failMsg={t("detail.copy_failed")}
-                    className={isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"}
-                  />
-                </div>
+                <FieldRow
+                  key={`os${i}`}
+                  icon={Globe}
+                  label={[svc.service, formatContexts(svc.contexts)].filter(Boolean).join(" · ") || t("detail.online_service_default_label")}
+                >
+                  <div className="flex items-center gap-2 group">
+                    {typeof svc.uri === 'string' && svc.uri.startsWith("http") ? (
+                      <a href={svc.uri} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline break-all">
+                        {svc.user || svc.uri}
+                      </a>
+                    ) : (
+                      <span className="text-sm break-all">{svc.user || String(svc.uri ?? '')}</span>
+                    )}
+                    <RowActions>
+                      <CopyButton value={svc.user || svc.uri} label={t("detail.copy_url")} successMsg={t("detail.copied")} failMsg={t("detail.copy_failed")} />
+                    </RowActions>
+                  </div>
+                </FieldRow>
               ))}
-            </Section>
-          )}
+            </div>
+          </Section>
+        )}
 
-          {anniversaries.length > 0 && (
-            <Section icon={Cake} title={t("detail.anniversaries")} category="personal">
-              {anniversaries.map((ann, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm">
-                  <span>{formatDate(ann.date)}</span>
-                  <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                    {t(`detail.anniversary_${ann.kind}`)}
-                  </span>
-                </div>
+        {hasWork && (
+          <Section title={t("detail.section_work")}>
+            <div className="space-y-3">
+              {orgs.map((o, i) => (
+                <FieldRow key={`org${i}`} icon={Building} label={t("detail.organization_label")}>
+                  <div className="text-sm">
+                    {o.name}
+                    {o.units && o.units.length > 0 && (
+                      <span className="text-muted-foreground"> · {o.units.map(u => u.name).join(", ")}</span>
+                    )}
+                  </div>
+                </FieldRow>
               ))}
-            </Section>
-          )}
-
-          {personalInfo.length > 0 && (
-            <Section icon={Heart} title={t("detail.personal_info")} category="personal">
-              {personalInfo.map((pi, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm">
-                  <span>{pi.value}</span>
-                  <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{t(`detail.personal_${pi.kind}`)}</span>
-                  {pi.level && (
-                    <span className="text-xs text-muted-foreground">({pi.level})</span>
-                  )}
-                </div>
+              {titles.map((tl, i) => (
+                <FieldRow
+                  key={`tl${i}`}
+                  icon={Briefcase}
+                  label={tl.kind === "role" ? t("detail.role_label") : t("detail.title_label")}
+                >
+                  <div className="text-sm">{tl.name}</div>
+                </FieldRow>
               ))}
-            </Section>
-          )}
+            </div>
+          </Section>
+        )}
 
-          {contact.speakToAs && (contact.speakToAs.grammaticalGender || contact.speakToAs.pronouns) && (
-            <Section icon={UserCircle} title={t("detail.gender")} category="personal">
-              <div className="text-sm">
-                {contact.speakToAs.grammaticalGender && <span>{t(`detail.gender_${contact.speakToAs.grammaticalGender}`, { defaultValue: contact.speakToAs.grammaticalGender })}</span>}
-                {contact.speakToAs.pronouns && (() => {
-                  const firstPronoun = Object.values(contact.speakToAs!.pronouns!)[0]?.pronouns;
-                  return firstPronoun ? (
-                    <span className="text-muted-foreground">{contact.speakToAs!.grammaticalGender ? " - " : ""}{firstPronoun}</span>
-                  ) : null;
-                })()}
-              </div>
-            </Section>
-          )}
-
-          {preferredLanguages.length > 0 && (
-            <Section icon={Languages} title={t("detail.languages")} category="personal">
+        {hasPersonal && (
+          <Section title={t("detail.section_personal")}>
+            <div className="space-y-3">
+              {anniversaries.map((ann, i) => {
+                const years = getCompletedYears(ann.date);
+                const suffixKey = ann.kind === "birth" ? "detail.age_years" : "detail.years_since";
+                return (
+                  <FieldRow key={`an${i}`} icon={Cake} label={t(`detail.anniversary_${ann.kind}`)}>
+                    <div className="text-sm">
+                      {formatDate(ann.date)}
+                      {years !== null && (
+                        <span className="text-muted-foreground"> · {t(suffixKey, { count: years })}</span>
+                      )}
+                    </div>
+                  </FieldRow>
+                );
+              })}
+              {hasGender && (
+                <FieldRow icon={UserCircle} label={t("detail.gender")}>
+                  <div className="text-sm">
+                    {contact.speakToAs?.grammaticalGender && (
+                      <span>{t(`detail.gender_${contact.speakToAs.grammaticalGender}`, { defaultValue: contact.speakToAs.grammaticalGender })}</span>
+                    )}
+                    {contact.speakToAs?.pronouns && (() => {
+                      const firstPronoun = Object.values(contact.speakToAs!.pronouns!)[0]?.pronouns;
+                      return firstPronoun ? (
+                        <span className="text-muted-foreground">{contact.speakToAs!.grammaticalGender ? " · " : ""}{firstPronoun}</span>
+                      ) : null;
+                    })()}
+                  </div>
+                </FieldRow>
+              )}
               {preferredLanguages.map((lang, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm">
-                  <span>{lang.language}</span>
-                  {lang.contexts && <ContextBadge contexts={lang.contexts} />}
-                </div>
+                <FieldRow
+                  key={`lg${i}`}
+                  icon={Languages}
+                  label={formatContexts(lang.contexts) || t("detail.language_label")}
+                >
+                  <div className="text-sm">{lang.language}</div>
+                </FieldRow>
               ))}
-            </Section>
-          )}
+              {personalInfo.map((pi, i) => (
+                <FieldRow
+                  key={`pi${i}`}
+                  icon={Heart}
+                  label={`${t(`detail.personal_${pi.kind}`)}${pi.level ? ` · ${pi.level}` : ""}`}
+                >
+                  <div className="text-sm">{pi.value}</div>
+                </FieldRow>
+              ))}
+            </div>
+          </Section>
+        )}
 
-          {keywords.length > 0 && (
-            <Section icon={Tag} title={t("detail.categories")} category="digital">
-              <div className="flex flex-wrap gap-1.5">
-                {keywords.map((kw, i) => (
-                  <span key={i} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
-                    {kw}
-                  </span>
-                ))}
-              </div>
-            </Section>
-          )}
+        {keywords.length > 0 && (
+          <Section title={t("detail.categories")}>
+            <div className="flex flex-wrap gap-1.5">
+              {keywords.map((kw, i) => (
+                <span key={i} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                  {kw}
+                </span>
+              ))}
+            </div>
+          </Section>
+        )}
 
-          {relatedTo.length > 0 && (
-            <Section icon={Users} title={t("detail.related_contacts")} category="personal">
+        {relatedTo.length > 0 && (
+          <Section title={t("detail.related_contacts")}>
+            <div className="space-y-2">
               {relatedTo.map(([uri, rel], i) => {
                 const relType = rel.relation ? Object.keys(rel.relation).find(k => rel.relation![k]) : undefined;
                 return (
-                  <div key={i} className="flex items-center gap-2 text-sm">
-                    <span>{uri}</span>
-                    {relType && (
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{relType}</span>
-                    )}
-                  </div>
+                  <FieldRow key={`rel${i}`} icon={Users} label={relType || t("detail.related_default_label")}>
+                    <div className="text-sm break-all">{uri}</div>
+                  </FieldRow>
                 );
               })}
-            </Section>
-          )}
+            </div>
+          </Section>
+        )}
 
-          {cryptoKeys.length > 0 && (
-            <Section icon={KeyRound} title={t("detail.crypto_keys")} category="digital">
+        {cryptoKeys.length > 0 && (
+          <Section title={t("detail.crypto_keys")}>
+            <div className="space-y-3">
               {cryptoKeys.map((key, i) => {
                 const certInfo = parsedCerts.get(i);
                 const isExpired = certInfo ? new Date(certInfo.notAfter) < new Date() : false;
@@ -427,7 +498,7 @@ export function ContactDetail({ contact, onEdit, onDelete, isMobile, className }
                   : false;
 
                 return (
-                  <div key={i} className="p-3 rounded-lg border border-border space-y-1">
+                  <div key={i} className="rounded-md border border-border/60 bg-muted/30 p-3 space-y-1">
                     {certInfo ? (
                       <>
                         <div className="flex items-center gap-2">
@@ -448,12 +519,7 @@ export function ContactDetail({ contact, onEdit, onDelete, isMobile, className }
                           {certInfo.algorithm && <p>{t("detail.cert_algorithm")}: {certInfo.algorithm}</p>}
                         </div>
                         {!alreadyImported && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="ml-4 mt-1"
-                            onClick={() => handleImportContactCert(i)}
-                          >
+                          <Button variant="ghost" size="sm" className="ml-4 mt-1" onClick={() => handleImportContactCert(i)}>
                             <Download className="w-3 h-3 mr-1" />
                             {t("detail.import_to_smime")}
                           </Button>
@@ -463,7 +529,8 @@ export function ContactDetail({ contact, onEdit, onDelete, isMobile, className }
                         )}
                       </>
                     ) : (
-                      <div className="text-sm break-all">
+                      <div className="flex items-start gap-2 text-sm break-all">
+                        <KeyRound className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                         {typeof key.uri === 'string' && key.uri.startsWith("http") ? (
                           <a href={key.uri} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                             {key.uri}
@@ -476,88 +543,165 @@ export function ContactDetail({ contact, onEdit, onDelete, isMobile, className }
                   </div>
                 );
               })}
-            </Section>
-          )}
+            </div>
+          </Section>
+        )}
 
-          {(contact.calendarUri || contact.schedulingUri || contact.freeBusyUri) && (
-            <Section icon={Calendar} title={t("detail.calendar")} category="calendar">
+        {(contact.calendarUri || contact.schedulingUri || contact.freeBusyUri) && (
+          <Section title={t("detail.calendar")}>
+            <div className="space-y-3">
               {contact.calendarUri && (
-                <div className="text-sm">
-                  <span className="text-muted-foreground">{t("detail.calendar_uri")}: </span>
-                  <a href={contact.calendarUri} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">{contact.calendarUri}</a>
-                </div>
+                <FieldRow icon={Calendar} label={t("detail.calendar_uri")}>
+                  <a href={contact.calendarUri} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline break-all">
+                    {contact.calendarUri}
+                  </a>
+                </FieldRow>
               )}
               {contact.schedulingUri && (
-                <div className="text-sm">
-                  <span className="text-muted-foreground">{t("detail.scheduling_uri")}: </span>
-                  <a href={contact.schedulingUri} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">{contact.schedulingUri}</a>
-                </div>
+                <FieldRow icon={Calendar} label={t("detail.scheduling_uri")}>
+                  <a href={contact.schedulingUri} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline break-all">
+                    {contact.schedulingUri}
+                  </a>
+                </FieldRow>
               )}
               {contact.freeBusyUri && (
-                <div className="text-sm">
-                  <span className="text-muted-foreground">{t("detail.freebusy_uri")}: </span>
-                  <a href={contact.freeBusyUri} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">{contact.freeBusyUri}</a>
-                </div>
+                <FieldRow icon={Calendar} label={t("detail.freebusy_uri")}>
+                  <a href={contact.freeBusyUri} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline break-all">
+                    {contact.freeBusyUri}
+                  </a>
+                </FieldRow>
               )}
-            </Section>
-          )}
+            </div>
+          </Section>
+        )}
 
-          {/* Notes span full width */}
-          {notes.length > 0 && (
-            <div className="md:col-span-2 xl:col-span-3">
-              <Section icon={StickyNote} title={t("detail.notes")} category="notes">
+        {notes.length > 0 && (
+          <Section title={t("detail.notes")}>
+            <div className="flex items-start gap-3">
+              <StickyNote className="w-4 h-4 text-muted-foreground mt-1 flex-shrink-0" />
+              <div className="text-sm space-y-2 flex-1 min-w-0">
                 {notes.map((n, i) => (
-                  <p key={i} className="text-sm whitespace-pre-wrap">{n.note}</p>
+                  <p key={i} className="whitespace-pre-wrap">{n.note}</p>
                 ))}
-              </Section>
+              </div>
             </div>
-          )}
+          </Section>
+        )}
 
-          {/* Timestamps span full width */}
-          {(contact.created || contact.updated) && (
-            <div className="md:col-span-2 xl:col-span-3 pt-2 border-t border-border text-xs text-muted-foreground space-y-1">
-              {contact.created && <div>{t("detail.created")}: {formatDate(contact.created)}</div>}
-              {contact.updated && <div>{t("detail.updated")}: {formatDate(contact.updated)}</div>}
-            </div>
-          )}
+        <ContactActivity contact={contact} />
+
+        {(contact.created || contact.updated) && (
+          <div className="py-4 text-xs text-muted-foreground space-y-1">
+            {contact.created && <div>{t("detail.created")}: {formatDate(contact.created)}</div>}
+            {contact.updated && <div>{t("detail.updated")}: {formatDate(contact.updated)}</div>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function formatContexts(contexts?: Record<string, boolean>): string {
+  if (!contexts) return "";
+  return Object.keys(contexts).filter(k => contexts[k]).join(", ");
+}
+
+export function Section({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
+  return (
+    <section className={cn("py-6", className)}>
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function FieldRow({ icon: Icon, label, children }: { icon: React.ComponentType<{ className?: string }>; label?: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-start gap-3">
+      <Icon className="w-4 h-4 text-muted-foreground mt-1 flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        {label && <div className="text-xs text-muted-foreground mb-0.5">{label}</div>}
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function RowActions({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+      {children}
+    </div>
+  );
+}
+
+function MoreActionsMenu({ items, label }: { items: MoreItem[]; label: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocMouseDown = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocMouseDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  if (items.length === 0) return null;
+
+  return (
+    <div ref={ref} className="relative">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setOpen((o) => !o)}
+        title={label}
+        aria-label={label}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="touch-manipulation"
+      >
+        <MoreHorizontal className="w-4 h-4" />
+      </Button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-full mt-1 z-30 min-w-[200px] rounded-md border border-border bg-popover text-popover-foreground shadow-lg py-1 animate-in fade-in-0 zoom-in-95 duration-100"
+        >
+          {items.map((item, i) => {
+            if (item.separator) {
+              return <div key={i} role="separator" className="my-1 h-px bg-border" />;
+            }
+            return (
+              <button
+                key={i}
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  item.onClick();
+                  setOpen(false);
+                }}
+                className={cn(
+                  "w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left hover:bg-muted focus:bg-muted focus:outline-none transition-colors",
+                  item.destructive && "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 focus:bg-red-50 dark:focus:bg-red-950",
+                )}
+              >
+                <item.icon className={cn("w-4 h-4 flex-shrink-0", item.destructive ? "text-red-600 dark:text-red-400" : "text-muted-foreground")} />
+                <span className="flex-1">{item.label}</span>
+              </button>
+            );
+          })}
         </div>
-      </div>
+      )}
     </div>
-  );
-}
-
-type SectionCategory = "contact" | "work" | "location" | "personal" | "digital" | "calendar" | "notes";
-
-const categoryStyles: Record<SectionCategory, string> = {
-  contact: "border-l-blue-400 dark:border-l-blue-500",
-  work: "border-l-amber-400 dark:border-l-amber-500",
-  location: "border-l-emerald-400 dark:border-l-emerald-500",
-  personal: "border-l-violet-400 dark:border-l-violet-500",
-  digital: "border-l-cyan-400 dark:border-l-cyan-500",
-  calendar: "border-l-rose-400 dark:border-l-rose-500",
-  notes: "border-l-stone-400 dark:border-l-stone-500",
-};
-
-function Section({ icon: Icon, title, children, category = "contact" }: { icon: React.ComponentType<{ className?: string }>; title: string; children: React.ReactNode; category?: SectionCategory }) {
-  return (
-    <div className={cn("rounded-lg border border-border bg-card p-4 border-l-[3px]", categoryStyles[category])}>
-      <div className="flex items-center gap-2 mb-2.5">
-        <Icon className="w-4 h-4 text-muted-foreground" />
-        <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
-      </div>
-      <div className="space-y-1.5 pl-6">{children}</div>
-    </div>
-  );
-}
-
-function ContextBadge({ contexts }: { contexts: Record<string, boolean> }) {
-  const labels = Object.keys(contexts).filter(k => contexts[k]);
-  if (labels.length === 0) return null;
-
-  return (
-    <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground ml-1">
-      {labels.join(", ")}
-    </span>
   );
 }
 
@@ -572,7 +716,7 @@ function CopyButton({ value, label, successMsg, failMsg, className }: { value: s
           toast.error(failMsg);
         }
       }}
-      className={cn("p-1.5 rounded hover:bg-muted transition-colors touch-manipulation transition-opacity", className)}
+      className={cn("p-1.5 rounded hover:bg-muted transition-colors touch-manipulation", className)}
       title={label}
       aria-label={label}
     >

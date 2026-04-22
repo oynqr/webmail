@@ -49,6 +49,10 @@ export class DemoJMAPClient implements IJMAPClient {
 
   // ── Capabilities ──────────────────────────────────────────────
 
+  hasAccountCapability(_capability: string, _accountId?: string): boolean {
+    return false;
+  }
+
   getCapabilities(): Record<string, unknown> {
     return {
       'urn:ietf:params:jmap:core': { maxSizeUpload: 50_000_000, maxCallsInRequest: 16, maxObjectsInGet: 500 },
@@ -261,6 +265,35 @@ export class DemoJMAPClient implements IJMAPClient {
     for (const id of emailIds) {
       const email = this.data.emails.find(e => e.id === id);
       if (email) email.mailboxIds = { [toMailboxId]: true };
+    }
+    this.recalcMailboxCounts();
+  }
+
+  async batchArchiveEmails(
+    emails: Array<{ id: string; receivedAt: string }>,
+    archiveMailboxId: string,
+    mode: 'single' | 'year' | 'month',
+  ): Promise<void> {
+    if (emails.length === 0) return;
+    if (mode === 'single') {
+      await this.batchMoveEmails(emails.map(e => e.id), archiveMailboxId);
+      return;
+    }
+    for (const { id, receivedAt } of emails) {
+      const email = this.data.emails.find(e => e.id === id);
+      if (!email) continue;
+      const d = new Date(receivedAt);
+      const year = d.getFullYear().toString();
+      const month = (d.getMonth() + 1).toString().padStart(2, '0');
+      let yearBox = this.data.mailboxes.find(m => m.name === year && m.parentId === archiveMailboxId);
+      if (!yearBox) yearBox = await this.createMailbox(year, archiveMailboxId);
+      let destId = yearBox.id;
+      if (mode === 'month') {
+        let monthBox = this.data.mailboxes.find(m => m.name === month && m.parentId === yearBox!.id);
+        if (!monthBox) monthBox = await this.createMailbox(month, yearBox.id);
+        destId = monthBox.id;
+      }
+      email.mailboxIds = { [destId]: true };
     }
     this.recalcMailboxCounts();
   }

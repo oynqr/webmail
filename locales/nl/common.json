@@ -129,7 +129,8 @@
     "folders": "Mappen",
     "mail": "E-mail",
     "nav_label": "Navigatie",
-    "add_app": "Apps"
+    "add_app": "Apps",
+    "shared": "Gedeeld"
   },
   "sidebar_apps": {
     "modal_title": "Zijbalk-apps",
@@ -670,14 +671,24 @@
       "files": "Bestanden",
       "contacts": "Contacten",
       "sidebar_apps": "Zijbalk-apps",
-      "notifications": "Meldingen"
+      "notifications": "Meldingen",
+      "layout": "Indeling",
+      "reading": "Lezen",
+      "composing": "Opstellen",
+      "content_senders": "Inhoud en afzenders",
+      "about_data": "Over en gegevens",
+      "debug": "Debuggen"
     },
     "tab_groups": {
       "general": "Algemeen",
       "account": "Account & identiteit",
       "organization": "E-mailorganisatie",
       "apps": "Apps",
-      "system": "Systeem"
+      "system": "Systeem",
+      "appearance": "Weergave",
+      "mail": "E-mail",
+      "privacy": "Privacy en beveiliging",
+      "advanced": "Geavanceerd"
     },
     "appearance": {
       "title": "Uiterlijk",
@@ -733,6 +744,10 @@
       "unified_mailbox": {
         "label": "Gecombineerd postvak",
         "description": "Gecombineerde mappen (Postvak IN, Verzonden, enz.) van alle verbonden accounts weergeven"
+      },
+      "colorful_sidebar_icons": {
+        "label": "Gekleurde zijbalkpictogrammen",
+        "description": "Kleur map- en tagpictogrammen op type (blauw Postvak IN, rood Spam, groen Verzonden, enz.). Schakel uit voor een monochrome zijbalk."
       }
     },
     "keywords": {
@@ -1075,7 +1090,14 @@
         "disabled": "Tweefactorauthenticatie uitgeschakeld",
         "enable_error": "Kan 2FA niet inschakelen",
         "disable_error": "Kan 2FA niet uitschakelen",
-        "setup_instructions": "Kopieer deze URL naar uw authenticator-app (Google Authenticator, Authy, etc.):"
+        "setup_instructions": "Kopieer deze URL naar uw authenticator-app (Google Authenticator, Authy, etc.):",
+        "verification_code": "Verificatiecode",
+        "confirm": "Bevestigen",
+        "disable": "Uitschakelen",
+        "disable_confirm_prompt": "Voer uw wachtwoord in om tweefactorauthenticatie uit te schakelen.",
+        "password_required": "Wachtwoord is vereist",
+        "code_required": "Verificatiecode is vereist",
+        "code_invalid": "Ongeldige verificatiecode. Controleer uw authenticator-app en probeer het opnieuw."
       },
       "app_passwords": {
         "title": "App-wachtwoorden",
@@ -1092,7 +1114,25 @@
         "removed": "App-wachtwoord verwijderd",
         "add_error": "Kan app-wachtwoord niet aanmaken",
         "remove_error": "Kan app-wachtwoord niet verwijderen",
-        "none": "Geen app-wachtwoorden geconfigureerd"
+        "none": "Geen app-wachtwoorden geconfigureerd",
+        "done": "Klaar",
+        "expires_label": "Verloopt (optioneel)",
+        "copy_now_warning": "Kopieer dit wachtwoord nu - het wordt niet opnieuw weergegeven.",
+        "allowed_ips_label": "Toegestane IP's (optioneel)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Gescheiden door komma of spatie. Laat leeg om elk IP toe te staan."
+      },
+      "api_keys": {
+        "title": "API-sleutels",
+        "description": "Maak API-sleutels voor scripts en integraties die rechtstreeks met de server praten",
+        "name_label": "Sleutelnaam",
+        "name_placeholder": "bijv. Back-upscript, CI-runner",
+        "copy_now_warning": "Kopieer deze API-sleutel nu - hij wordt niet opnieuw getoond.",
+        "added": "API-sleutel aangemaakt",
+        "removed": "API-sleutel verwijderd",
+        "add_error": "API-sleutel aanmaken mislukt",
+        "remove_error": "API-sleutel verwijderen mislukt",
+        "none": "Geen API-sleutels geconfigureerd"
       },
       "encryption": {
         "section_title": "Versleuteling in rust",
@@ -1415,7 +1455,9 @@
       "rule_summary": {
         "conditions_count": "{count, plural, one {# voorwaarde} other {# voorwaarden}}",
         "actions_count": "{count, plural, one {# actie} other {# acties}}"
-      }
+      },
+      "origin_external": "Extern",
+      "managed_by_tooltip": "Beheerd door {source}. Bewerk het in die app of gebruik de ruwe Sieve-editor."
     },
     "templates": {
       "title": "E-mailsjablonen",
@@ -1705,6 +1747,8 @@
     "empty_state_subtitle": "Maak uw eerste contact aan of importeer vanuit een vCard-bestand",
     "empty_search": "Geen contacten gevonden",
     "empty_search_hint": "Probeer een andere zoekterm",
+    "empty_filtered": "Geen contacten voldoen aan uw filters",
+    "empty_filtered_hint": "Pas filters aan of wis ze",
     "clear_search": "Zoekopdracht wissen",
     "import_vcard": "vCard importeren",
     "delete_confirm_title": "Contact verwijderen",
@@ -1782,7 +1826,33 @@
       "import_to_smime": "Importeren naar S/MIME",
       "cert_already_imported": "Certificaat is al geïmporteerd",
       "cert_imported": "Certificaat geïmporteerd",
-      "cert_import_failed": "Importeren van certificaat mislukt"
+      "cert_import_failed": "Importeren van certificaat mislukt",
+      "section_contact": "Contact details",
+      "section_work": "Work",
+      "section_personal": "Personal",
+      "email_default_label": "Email",
+      "phone_default_label": "Phone",
+      "address_default_label": "Address",
+      "online_service_default_label": "Online",
+      "organization_label": "Organization",
+      "title_label": "Title",
+      "role_label": "Role",
+      "language_label": "Language",
+      "related_default_label": "Related",
+      "more_actions": "Meer acties",
+      "age_years": "{count, plural, one {1 jaar} other {# jaar}}",
+      "years_since": "{count, plural, one {1 jaar geleden} other {# jaar geleden}}"
+    },
+    "activity": {
+      "recent_emails": "Recent Emails",
+      "upcoming_events": "Upcoming Events",
+      "no_emails": "No recent emails",
+      "no_events": "No upcoming events",
+      "no_subject": "(No subject)",
+      "no_title": "(No title)",
+      "load_failed": "Failed to load",
+      "unknown_sender": "Unknown sender",
+      "all_day": "All day"
     },
     "form": {
       "create_title": "Nieuw contact",
@@ -1878,7 +1948,13 @@
       "email_invalid": "Voer een geldig e-mailadres in",
       "email_error_inline": "Ongeldig e-mailformaat",
       "save_failed": "Kon contact niet opslaan",
-      "delete": "Verwijderen"
+      "delete": "Verwijderen",
+      "upload_photo": "Foto uploaden",
+      "remove_photo": "Foto verwijderen",
+      "photo_hint": "JPG of PNG, tot 10 MB. Wordt verkleind.",
+      "photo_too_large": "Afbeelding is te groot (max 10 MB)",
+      "photo_invalid": "Ongeldig afbeeldingsbestand",
+      "change_photo": "Wijzigen"
     },
     "groups": {
       "create": "Nieuwe groep",
@@ -1938,6 +2014,37 @@
       "error_create": "Kon contact niet aanmaken",
       "error_update": "Kon contact niet bijwerken",
       "error_delete": "Kon contact niet verwijderen"
+    },
+    "context_menu": {
+      "open": "Openen",
+      "edit": "Bewerken",
+      "send_email": "E-mail verzenden",
+      "add_to_group": "Aan groep toevoegen",
+      "export_vcard": "Exporteren als vCard",
+      "delete": "Verwijderen",
+      "call": "Bellen",
+      "duplicate": "Dupliceren",
+      "print": "Afdrukken"
+    },
+    "filters": {
+      "toggle": "Filters",
+      "select": "Selecteren",
+      "clear": "Wissen",
+      "close": "Sluiten",
+      "title": "Geavanceerde filters",
+      "organization": "Bedrijf",
+      "organization_placeholder": "bijv. Acme",
+      "job_title": "Functie",
+      "job_title_placeholder": "bijv. Ontwerper",
+      "location": "Locatie",
+      "location_placeholder": "Stad of land",
+      "email_domain": "E-maildomein",
+      "email_domain_placeholder": "voorbeeld.nl",
+      "birthday_month": "Verjaardag in",
+      "any_month": "Elke maand",
+      "has_email": "Met e-mail",
+      "has_phone": "Met telefoon",
+      "has_photo": "Met foto"
     }
   },
   "calendar": {
@@ -2013,6 +2120,7 @@
       "tentative": "Voorlopig",
       "needs_action": "Reactie vereist",
       "remove": "Verwijderen",
+      "edit": "Bewerken",
       "email_placeholder": "E-mailadres toevoegen of contacten zoeken",
       "send_invitations": "Uitnodigingen sturen naar deelnemers",
       "status_summary": "{accepted} geaccepteerd, {pending} in afwachting",

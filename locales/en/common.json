@@ -426,7 +426,9 @@
       "cancel_info": "The organizer has cancelled this event.",
       "event_updated": "Update #{sequence}",
       "event_status_tentative": "Tentative",
-      "event_status_cancelled": "Cancelled"
+      "event_status_cancelled": "Cancelled",
+      "expand": "Show details",
+      "collapse": "Hide details"
     },
     "send": "Send",
     "more": "more"
@@ -671,14 +673,24 @@
       "contacts": "Contacts",
       "encryption": "Encryption",
       "sidebar_apps": "Sidebar Apps",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "layout": "Layout",
+      "reading": "Reading",
+      "composing": "Composing",
+      "content_senders": "Content & Senders",
+      "about_data": "About & Data",
+      "debug": "Debug"
     },
     "tab_groups": {
       "general": "General",
       "account": "Account & Identity",
       "organization": "Mail Organization",
       "apps": "Apps",
-      "system": "System"
+      "system": "System",
+      "appearance": "Appearance",
+      "mail": "Mail",
+      "privacy": "Privacy & Security",
+      "advanced": "Advanced"
     },
     "appearance": {
       "title": "Appearance",
@@ -1080,7 +1092,14 @@
         "disabled": "Two-factor authentication disabled",
         "enable_error": "Failed to enable 2FA",
         "disable_error": "Failed to disable 2FA",
-        "setup_instructions": "Copy this URL into your authenticator app (Google Authenticator, Authy, etc.):"
+        "setup_instructions": "Copy this URL into your authenticator app (Google Authenticator, Authy, etc.):",
+        "verification_code": "Verification code",
+        "confirm": "Confirm",
+        "disable": "Disable",
+        "disable_confirm_prompt": "Enter your password to disable two-factor authentication.",
+        "password_required": "Password is required",
+        "code_required": "Verification code is required",
+        "code_invalid": "Invalid verification code. Check your authenticator app and try again."
       },
       "app_passwords": {
         "title": "App Passwords",
@@ -1088,16 +1107,34 @@
         "add": "Add",
         "create": "Create",
         "cancel": "Cancel",
+        "done": "Done",
         "generate": "Generate",
         "name_label": "App Name",
         "name_placeholder": "e.g. Thunderbird, iPhone Mail",
+        "expires_label": "Expires (optional)",
+        "allowed_ips_label": "Allowed IPs (optional)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Comma- or space-separated. Leave empty to allow any IP.",
         "password_label": "Password (leave empty to auto-generate)",
         "password_placeholder": "Auto-generated if empty",
+        "copy_now_warning": "Copy this password now - it will not be shown again.",
         "added": "App password created",
         "removed": "App password removed",
         "add_error": "Failed to create app password",
         "remove_error": "Failed to remove app password",
         "none": "No app passwords configured"
+      },
+      "api_keys": {
+        "title": "API Keys",
+        "description": "Create API keys for scripts and integrations that talk to the server directly",
+        "name_label": "Key Name",
+        "name_placeholder": "e.g. Backup script, CI runner",
+        "copy_now_warning": "Copy this API key now - it will not be shown again.",
+        "added": "API key created",
+        "removed": "API key removed",
+        "add_error": "Failed to create API key",
+        "remove_error": "Failed to remove API key",
+        "none": "No API keys configured"
       },
       "encryption": {
         "section_title": "Encryption at Rest",
@@ -1285,6 +1322,8 @@
     "contacts": {
       "title": "Contacts",
       "description": "Import and export your contacts",
+      "group_by_letter_label": "Group by first letter",
+      "group_by_letter_description": "Show alphabetical section headers in the contact list",
       "import_label": "Import Contacts",
       "import_description": "Import contacts from a vCard (.vcf) file",
       "export_label": "Export Contacts",
@@ -1712,6 +1751,8 @@
     "empty_state_subtitle": "Create your first contact or import from a vCard file",
     "empty_search": "No contacts match your search",
     "empty_search_hint": "Try a different search term",
+    "empty_filtered": "No contacts match your filters",
+    "empty_filtered_hint": "Try adjusting or clearing filters",
     "clear_search": "Clear search",
     "import_vcard": "Import vCard",
     "delete_confirm_title": "Delete contact",
@@ -1789,7 +1830,33 @@
       "calendar": "Calendar",
       "calendar_uri": "Calendar URL",
       "scheduling_uri": "Scheduling URL",
-      "freebusy_uri": "Free/Busy URL"
+      "freebusy_uri": "Free/Busy URL",
+      "section_contact": "Contact details",
+      "section_work": "Work",
+      "section_personal": "Personal",
+      "email_default_label": "Email",
+      "phone_default_label": "Phone",
+      "address_default_label": "Address",
+      "online_service_default_label": "Online",
+      "organization_label": "Organization",
+      "title_label": "Title",
+      "role_label": "Role",
+      "language_label": "Language",
+      "related_default_label": "Related",
+      "more_actions": "More actions",
+      "age_years": "{count, plural, one {1 year old} other {# years old}}",
+      "years_since": "{count, plural, one {1 year} other {# years}}"
+    },
+    "activity": {
+      "recent_emails": "Recent Emails",
+      "upcoming_events": "Upcoming Events",
+      "no_emails": "No recent emails",
+      "no_events": "No upcoming events",
+      "no_subject": "(No subject)",
+      "no_title": "(No title)",
+      "load_failed": "Failed to load",
+      "unknown_sender": "Unknown sender",
+      "all_day": "All day"
     },
     "form": {
       "create_title": "New Contact",
@@ -1885,7 +1952,13 @@
       "email_invalid": "Please enter a valid email address",
       "email_error_inline": "Invalid email format",
       "save_failed": "Failed to save contact",
-      "delete": "Delete"
+      "delete": "Delete",
+      "upload_photo": "Upload photo",
+      "remove_photo": "Remove photo",
+      "photo_hint": "JPG or PNG, up to 10 MB. Will be resized.",
+      "photo_too_large": "Image is too large (max 10 MB)",
+      "photo_invalid": "Invalid image file",
+      "change_photo": "Change"
     },
     "groups": {
       "create": "New Group",
@@ -1945,6 +2018,37 @@
       "error_create": "Failed to create contact",
       "error_update": "Failed to update contact",
       "error_delete": "Failed to delete contact"
+    },
+    "context_menu": {
+      "open": "Open",
+      "edit": "Edit",
+      "send_email": "Send email",
+      "add_to_group": "Add to group",
+      "export_vcard": "Export as vCard",
+      "delete": "Delete",
+      "call": "Call",
+      "duplicate": "Duplicate",
+      "print": "Print"
+    },
+    "filters": {
+      "toggle": "Filters",
+      "select": "Select",
+      "clear": "Clear",
+      "close": "Close",
+      "title": "Advanced filters",
+      "organization": "Company",
+      "organization_placeholder": "e.g. Acme Corp",
+      "job_title": "Job title",
+      "job_title_placeholder": "e.g. Designer",
+      "location": "Location",
+      "location_placeholder": "City or country",
+      "email_domain": "Email domain",
+      "email_domain_placeholder": "example.com",
+      "birthday_month": "Birthday in",
+      "any_month": "Any month",
+      "has_email": "Has email",
+      "has_phone": "Has phone",
+      "has_photo": "Has photo"
     }
   },
   "calendar": {
@@ -2020,6 +2124,7 @@
       "tentative": "Tentative",
       "needs_action": "Needs action",
       "remove": "Remove",
+      "edit": "Edit",
       "email_placeholder": "Add email address or search contacts",
       "send_invitations": "Send invitations to participants",
       "status_summary": "{accepted} accepted, {pending} pending",

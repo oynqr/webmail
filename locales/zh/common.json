@@ -129,7 +129,8 @@
     "folders": "文件夹",
     "mail": "邮件",
     "nav_label": "导航",
-    "add_app": "应用"
+    "add_app": "应用",
+    "shared": "共享"
   },
   "sidebar_apps": {
     "modal_title": "侧边栏应用",
@@ -670,14 +671,24 @@
       "contacts": "联系人",
       "encryption": "加密",
       "sidebar_apps": "侧边栏应用",
-      "notifications": "通知"
+      "notifications": "通知",
+      "layout": "布局",
+      "reading": "阅读",
+      "composing": "撰写",
+      "content_senders": "内容和发件人",
+      "about_data": "关于和数据",
+      "debug": "调试"
     },
     "tab_groups": {
       "general": "通用",
       "account": "账户与身份",
       "organization": "邮件组织",
       "apps": "应用",
-      "system": "系统"
+      "system": "系统",
+      "appearance": "外观",
+      "mail": "邮件",
+      "privacy": "隐私和安全",
+      "advanced": "高级"
     },
     "appearance": {
       "title": "外观",
@@ -733,6 +744,10 @@
       "unified_mailbox": {
         "label": "统一邮箱",
         "description": "显示所有已连接账户的合并文件夹（收件箱、已发送等）"
+      },
+      "colorful_sidebar_icons": {
+        "label": "彩色侧边栏图标",
+        "description": "按类型为文件夹和标签图标着色（蓝色收件箱、红色垃圾邮件、绿色已发送等）。禁用以获得单色侧边栏。"
       }
     },
     "keywords": {
@@ -1075,7 +1090,14 @@
         "disabled": "禁用双因素身份验证",
         "enable_error": "无法启用 2FA",
         "disable_error": "无法禁用 2FA",
-        "setup_instructions": "请将此 URL 复制到身份验证器应用（Google Authenticator、Authy 等）中："
+        "setup_instructions": "请将此 URL 复制到身份验证器应用（Google Authenticator、Authy 等）中：",
+        "verification_code": "验证码",
+        "confirm": "确认",
+        "disable": "禁用",
+        "disable_confirm_prompt": "输入密码以禁用双重身份验证。",
+        "password_required": "需要密码",
+        "code_required": "需要验证码",
+        "code_invalid": "验证码无效。请检查您的身份验证应用并重试。"
       },
       "app_passwords": {
         "title": "应用密码",
@@ -1092,7 +1114,25 @@
         "removed": "应用密码已删除",
         "add_error": "创建应用密码失败",
         "remove_error": "无法删除应用密码",
-        "none": "未配置应用密码"
+        "none": "未配置应用密码",
+        "done": "完成",
+        "expires_label": "过期时间（可选）",
+        "copy_now_warning": "立即复制此密码--它将不再显示。",
+        "allowed_ips_label": "允许的 IP（可选）",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "用逗号或空格分隔。留空则允许任意 IP。"
+      },
+      "api_keys": {
+        "title": "API 密钥",
+        "description": "为直接与服务器通信的脚本和集成创建 API 密钥",
+        "name_label": "密钥名称",
+        "name_placeholder": "如：备份脚本、CI runner",
+        "copy_now_warning": "请立即复制此 API 密钥 - 它将不会再次显示。",
+        "added": "API 密钥已创建",
+        "removed": "API 密钥已删除",
+        "add_error": "创建 API 密钥失败",
+        "remove_error": "删除 API 密钥失败",
+        "none": "未配置 API 密钥"
       },
       "encryption": {
         "section_title": "静态加密",
@@ -1415,7 +1455,9 @@
       "rule_summary": {
         "conditions_count": "{count, plural, one {# 个条件} other {# 个条件}}",
         "actions_count": "{count, plural, one {# 个操作} other {# 个操作}}"
-      }
+      },
+      "origin_external": "外部",
+      "managed_by_tooltip": "由 {source} 管理。请在该应用中编辑，或使用原始 Sieve 编辑器。"
     },
     "templates": {
       "title": "邮件模板",
@@ -1705,6 +1747,8 @@
     "empty_state_subtitle": "创建您的第一个联系人或从 vCard 文件导入",
     "empty_search": "没有符合您搜索条件的联系人",
     "empty_search_hint": "尝试不同的搜索词",
+    "empty_filtered": "没有符合您筛选条件的联系人",
+    "empty_filtered_hint": "请调整或清除筛选条件",
     "clear_search": "清除搜索",
     "import_vcard": "导入 vCard",
     "delete_confirm_title": "删除联系人",
@@ -1782,7 +1826,33 @@
       "calendar": "日历",
       "calendar_uri": "日历 URL",
       "scheduling_uri": "调度 URL",
-      "freebusy_uri": "空闲/忙碌 URL"
+      "freebusy_uri": "空闲/忙碌 URL",
+      "section_contact": "Contact details",
+      "section_work": "Work",
+      "section_personal": "Personal",
+      "email_default_label": "Email",
+      "phone_default_label": "Phone",
+      "address_default_label": "Address",
+      "online_service_default_label": "Online",
+      "organization_label": "Organization",
+      "title_label": "Title",
+      "role_label": "Role",
+      "language_label": "Language",
+      "related_default_label": "Related",
+      "more_actions": "更多操作",
+      "age_years": "{count}岁",
+      "years_since": "{count}年前"
+    },
+    "activity": {
+      "recent_emails": "Recent Emails",
+      "upcoming_events": "Upcoming Events",
+      "no_emails": "No recent emails",
+      "no_events": "No upcoming events",
+      "no_subject": "(No subject)",
+      "no_title": "(No title)",
+      "load_failed": "Failed to load",
+      "unknown_sender": "Unknown sender",
+      "all_day": "All day"
     },
     "form": {
       "create_title": "新联系人",
@@ -1878,7 +1948,13 @@
       "email_invalid": "请输入有效的邮箱地址",
       "email_error_inline": "邮箱地址格式无效",
       "save_failed": "保存联系人失败",
-      "delete": "删除"
+      "delete": "删除",
+      "upload_photo": "上传照片",
+      "remove_photo": "移除照片",
+      "photo_hint": "JPG 或 PNG, 最大 10MB。将会调整大小。",
+      "photo_too_large": "图像过大 (最大 10MB)",
+      "photo_invalid": "无效的图像文件",
+      "change_photo": "更改"
     },
     "groups": {
       "create": "新建群组",
@@ -1938,6 +2014,37 @@
       "error_create": "创建联系人失败",
       "error_update": "无法更新联系人",
       "error_delete": "删除联系人失败"
+    },
+    "context_menu": {
+      "open": "打开",
+      "edit": "编辑",
+      "send_email": "发送邮件",
+      "add_to_group": "加入群组",
+      "export_vcard": "导出为 vCard",
+      "delete": "删除",
+      "call": "拨打电话",
+      "duplicate": "复制",
+      "print": "打印"
+    },
+    "filters": {
+      "toggle": "筛选",
+      "select": "选择",
+      "clear": "清除",
+      "close": "关闭",
+      "title": "高级筛选",
+      "organization": "公司",
+      "organization_placeholder": "例如 Acme",
+      "job_title": "职位",
+      "job_title_placeholder": "例如 设计师",
+      "location": "所在地",
+      "location_placeholder": "城市或国家",
+      "email_domain": "邮箱域名",
+      "email_domain_placeholder": "example.com",
+      "birthday_month": "生日月份",
+      "any_month": "任意月份",
+      "has_email": "有邮箱",
+      "has_phone": "有电话",
+      "has_photo": "有照片"
     }
   },
   "calendar": {
@@ -2013,6 +2120,7 @@
       "tentative": "暂定",
       "needs_action": "待处理",
       "remove": "移除",
+      "edit": "编辑",
       "email_placeholder": "添加邮箱地址或搜索联系人",
       "send_invitations": "向参与者发送邀请",
       "status_summary": "{accepted} 已接受，{pending} 待处理",

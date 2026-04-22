@@ -1,9 +1,10 @@
 import { useState, useCallback, useRef, type PointerEvent, type DragEvent } from "react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { toast } from "@/stores/toast-store";
 import { debug } from "@/lib/debug";
+import { formatIsoInTimeZone } from "@/lib/calendar-utils";
 import type { Calendar } from "@/lib/jmap/types";
 
 interface DragCreateState {
@@ -12,9 +13,13 @@ interface DragCreateState {
   endMinutes: number;
 }
 
+export type ResizeEdge = "top" | "bottom";
+
 interface ResizeState {
   eventId: string;
+  topPx: number;
   heightPx: number;
+  startMinutes: number;
   durationMinutes: number;
 }
 
@@ -40,6 +45,7 @@ interface UseTimeGridInteractionsOptions {
     created: string;
     error: string;
   };
+  isMobile?: boolean;
 }
 
 export function useTimeGridInteractions({
@@ -47,6 +53,7 @@ export function useTimeGridInteractions({
   calendars,
   onCreateRange,
   errorMessages,
+  isMobile,
 }: UseTimeGridInteractionsOptions) {
   const snapToMinutes = useCallback((clientY: number, containerTop: number): number => {
     const raw = ((clientY - containerTop) / hourHeight) * 60;
@@ -72,6 +79,7 @@ export function useTimeGridInteractions({
     dayKey: string,
     dayDate: Date,
   ) => {
+    if (isMobile) return;
     if (e.button !== 0) return;
     if ((e.target as HTMLElement).closest("[data-calendar-event], [data-resize-handle]")) return;
 
@@ -82,7 +90,7 @@ export function useTimeGridInteractions({
       dayKey, dayDate, startMinutes: minutes,
       pointerId: e.pointerId, startY: e.clientY, captured: false,
     };
-  }, [snapToMinutes]);
+  }, [snapToMinutes, isMobile]);
 
   const handleGridPointerMove = useCallback((e: PointerEvent<HTMLDivElement>) => {
     if (!dragRef.current) return;
@@ -130,43 +138,65 @@ export function useTimeGridInteractions({
   // --- Resize ---
   const resizeRef = useRef<{
     eventId: string;
+    edge: ResizeEdge;
     startY: number;
+    originalStartMinutes: number;
     originalDurationMinutes: number;
-    originalHeightPx: number;
     pointerId: number;
   } | null>(null);
 
   const [resizeVisual, setResizeVisual] = useState<ResizeState | null>(null);
 
+  const computeResize = useCallback((
+    ref: NonNullable<typeof resizeRef.current>,
+    clientY: number,
+  ): { startMinutes: number; durationMinutes: number } => {
+    const deltaY = clientY - ref.startY;
+    const deltaMinutes = Math.round((deltaY / hourHeight) * 60 / 15) * 15;
+    const originalEnd = ref.originalStartMinutes + ref.originalDurationMinutes;
+
+    if (ref.edge === "bottom") {
+      const newDuration = Math.max(15, ref.originalDurationMinutes + deltaMinutes);
+      return { startMinutes: ref.originalStartMinutes, durationMinutes: newDuration };
+    }
+    // Top edge: move start, keep end fixed. Clamp so duration stays >= 15 and start >= 0.
+    let newStart = ref.originalStartMinutes + deltaMinutes;
+    newStart = Math.max(0, Math.min(originalEnd - 15, newStart));
+    return { startMinutes: newStart, durationMinutes: originalEnd - newStart };
+  }, [hourHeight]);
+
   const handleResizePointerDown = useCallback((
     eventId: string,
+    edge: ResizeEdge,
+    originalStartMinutes: number,
     originalDurationMinutes: number,
     e: PointerEvent,
   ) => {
     e.stopPropagation();
     e.preventDefault();
 
-    const originalHeightPx = Math.max(20, (originalDurationMinutes / 60) * hourHeight);
     resizeRef.current = {
       eventId,
+      edge,
       startY: e.clientY,
+      originalStartMinutes,
       originalDurationMinutes,
-      originalHeightPx,
       pointerId: e.pointerId,
     };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  }, [hourHeight]);
+  }, []);
 
   const handleResizePointerMove = useCallback((e: PointerEvent) => {
     if (!resizeRef.current) return;
-
-    const deltaY = e.clientY - resizeRef.current.startY;
-    const newHeightPx = Math.max(hourHeight / 4, resizeRef.current.originalHeightPx + deltaY);
-    const newDurationMinutes = Math.max(15, Math.round((newHeightPx / hourHeight) * 60 / 15) * 15);
-    const snappedHeight = (newDurationMinutes / 60) * hourHeight;
-
-    setResizeVisual({ eventId: resizeRef.current.eventId, heightPx: snappedHeight, durationMinutes: newDurationMinutes });
-  }, [hourHeight]);
+    const { startMinutes, durationMinutes } = computeResize(resizeRef.current, e.clientY);
+    setResizeVisual({
+      eventId: resizeRef.current.eventId,
+      topPx: (startMinutes / 60) * hourHeight,
+      heightPx: (durationMinutes / 60) * hourHeight,
+      startMinutes,
+      durationMinutes,
+    });
+  }, [hourHeight, computeResize]);
 
   const handleResizePointerUp = useCallback(async (e: PointerEvent) => {
     const resize = resizeRef.current;
@@ -179,11 +209,11 @@ export function useTimeGridInteractions({
 
     try { (e.target as HTMLElement).releasePointerCapture(resize.pointerId); } catch { /* may already be released */ }
 
-    const deltaY = e.clientY - resize.startY;
-    const newHeightPx = Math.max(hourHeight / 4, resize.originalHeightPx + deltaY);
-    const newDurationMinutes = Math.max(15, Math.round((newHeightPx / hourHeight) * 60 / 15) * 15);
+    const { startMinutes: newStartMinutes, durationMinutes: newDurationMinutes } = computeResize(resize, e.clientY);
 
-    if (newDurationMinutes === resize.originalDurationMinutes) {
+    const startChanged = newStartMinutes !== resize.originalStartMinutes;
+    const durationChanged = newDurationMinutes !== resize.originalDurationMinutes;
+    if (!startChanged && !durationChanged) {
       setResizeVisual(null);
       return;
     }
@@ -205,14 +235,21 @@ export function useTimeGridInteractions({
     try {
       const event = useCalendarStore.getState().events.find(ev => ev.id === resize.eventId);
       const hasParticipants = event?.participants && Object.keys(event.participants).length > 0;
-      await useCalendarStore.getState().updateEvent(client, resize.eventId, { duration: dur }, hasParticipants || undefined);
+      const updates: { start?: string; duration: string } = { duration: dur };
+      if (startChanged && event?.start) {
+        // Shift the event's floating `start` wall-clock by the delta (preserves event.timeZone).
+        const deltaMinutes = newStartMinutes - resize.originalStartMinutes;
+        const shifted = new Date(parseISO(event.start).getTime() + deltaMinutes * 60000);
+        updates.start = format(shifted, "yyyy-MM-dd'T'HH:mm:ss");
+      }
+      await useCalendarStore.getState().updateEvent(client, resize.eventId, updates, hasParticipants || undefined);
     } catch (error) {
       debug.error("Failed to resize event:", resize.eventId, error);
       toast.error(errorMessages.resize);
     } finally {
       setResizeVisual(null);
     }
-  }, [hourHeight, errorMessages.resize]);
+  }, [computeResize, errorMessages.resize]);
 
   // --- Click / Double-click / Quick-create ---
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -317,14 +354,18 @@ export function useTimeGridInteractions({
       const minutes = snapDragMinutes(e);
       const newStart = new Date(day);
       newStart.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
-      const newStartISO = format(newStart, "yyyy-MM-dd'T'HH:mm:ss");
+      const event = useCalendarStore.getState().events.find(ev => ev.id === data.eventId);
+      // Emit `start` as a floating wall-clock in the event's own timeZone.
+      // If we used browser-local, the server would reinterpret it in event.timeZone
+      // and shift the event by the offset between the two zones.
+      const eventTimeZone = event?.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const newStartISO = formatIsoInTimeZone(newStart, eventTimeZone);
       if (newStartISO === data.originalStart) return;
       const client = useAuthStore.getState().client;
       if (!client) {
         toast.error(errorMessages.move);
         return;
       }
-      const event = useCalendarStore.getState().events.find(ev => ev.id === data.eventId);
       const hasParticipants = event?.participants && Object.keys(event.participants).length > 0;
       await useCalendarStore.getState().updateEvent(client, data.eventId, { start: newStartISO }, hasParticipants || undefined);
     } catch {

@@ -2,15 +2,13 @@
 
 import { useTranslations } from 'next-intl';
 import { useThemeStore } from '@/stores/theme-store';
-import { useSettingsStore, type ToolbarPosition, type Density } from '@/stores/settings-store';
-import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { useSettingsStore, type Density } from '@/stores/settings-store';
 import { SettingsSection, SettingItem, RadioGroup, ToggleSwitch } from './settings-section';
 import { cn } from '@/lib/utils';
 import { useTour } from '@/components/tour/tour-provider';
 import { Button } from '@/components/ui/button';
 import { PlayCircle } from 'lucide-react';
 import { usePolicyStore } from '@/stores/policy-store';
-import { useAccountStore } from '@/stores/account-store';
 
 const DENSITY_PREVIEW: Record<Density, { py: string; gap: string; showAvatar: boolean; showPreview: boolean }> = {
   'extra-compact': { py: 'py-0.5', gap: 'gap-1.5', showAvatar: false, showPreview: false },
@@ -66,16 +64,15 @@ function DensityPreview({ density }: { density: Density }) {
 
 export function AppearanceSettings() {
   const t = useTranslations('settings.appearance');
+  const tAdvanced = useTranslations('settings.advanced');
   const tTour = useTranslations('tour');
   const { theme, setTheme } = useThemeStore();
-  const { fontSize, density, animationsEnabled, toolbarPosition, showToolbarLabels, hideAccountSwitcher, showRailAccountList, enableUnifiedMailbox, colorfulSidebarIcons, updateSetting } = useSettingsStore();
+  const { fontSize, density, animationsEnabled, senderFavicons, updateSetting } = useSettingsStore();
   const { startTour, resetTourCompletion } = useTour();
   const { isSettingLocked, isSettingHidden } = usePolicyStore();
-  const accounts = useAccountStore(s => s.accounts);
 
   return (
     <SettingsSection title={t('title')} description={t('description')}>
-      {/* Theme */}
       <SettingItem label={t('theme.label')} description={t('theme.description')}>
         <RadioGroup
           value={theme}
@@ -88,12 +85,6 @@ export function AppearanceSettings() {
         />
       </SettingItem>
 
-      {/* Language */}
-      <SettingItem label={t('language.label')} description={t('language.description')}>
-        <LanguageSwitcher />
-      </SettingItem>
-
-      {/* Font Size */}
       {!isSettingHidden('fontSize') && (
       <SettingItem label={t('font_size.label')} description={t('font_size.description')} locked={isSettingLocked('fontSize')}>
         <RadioGroup
@@ -108,7 +99,6 @@ export function AppearanceSettings() {
       </SettingItem>
       )}
 
-      {/* Density */}
       {!isSettingHidden('density') && (
       <SettingItem label={t('list_density.label')} description={t('list_density.description')} locked={isSettingLocked('density')}>
         <RadioGroup
@@ -127,64 +117,6 @@ export function AppearanceSettings() {
       </SettingItem>
       )}
 
-      {/* Toolbar Position */}
-      <SettingItem label={t('toolbar_position.label')} description={t('toolbar_position.description')}>
-        <RadioGroup
-          value={toolbarPosition}
-          onChange={(value) => updateSetting('toolbarPosition', value as ToolbarPosition)}
-          options={[
-            { value: 'top', label: t('toolbar_position.top') },
-            { value: 'below-subject', label: t('toolbar_position.below_subject') },
-          ]}
-        />
-      </SettingItem>
-
-      {/* Toolbar Labels */}
-      <SettingItem label={t('toolbar_labels.label')} description={t('toolbar_labels.description')}>
-        <ToggleSwitch
-          checked={showToolbarLabels}
-          onChange={(checked) => updateSetting('showToolbarLabels', checked)}
-        />
-      </SettingItem>
-
-      {/* Hide Account Switcher */}
-      <SettingItem label={t('hide_account_switcher.label')} description={t('hide_account_switcher.description')}>
-        <ToggleSwitch
-          checked={hideAccountSwitcher}
-          onChange={(checked) => updateSetting('hideAccountSwitcher', checked)}
-        />
-      </SettingItem>
-
-      {/* Show Rail Account List */}
-      <SettingItem label={t('show_rail_account_list.label')} description={t('show_rail_account_list.description')}>
-        <ToggleSwitch
-          checked={showRailAccountList}
-          onChange={(checked) => updateSetting('showRailAccountList', checked)}
-        />
-      </SettingItem>
-
-      {/* Colorful Sidebar Icons */}
-      <SettingItem label={t('colorful_sidebar_icons.label')} description={t('colorful_sidebar_icons.description')}>
-        <ToggleSwitch
-          checked={colorfulSidebarIcons}
-          onChange={(checked) => updateSetting('colorfulSidebarIcons', checked)}
-        />
-      </SettingItem>
-
-      {/* Unified Mailbox */}
-      {accounts.length > 1 && (
-        <SettingItem
-          label={t('unified_mailbox.label')}
-          description={t('unified_mailbox.description')}
-        >
-          <ToggleSwitch
-            checked={enableUnifiedMailbox}
-            onChange={(v) => updateSetting('enableUnifiedMailbox', v)}
-          />
-        </SettingItem>
-      )}
-
-      {/* Animations */}
       {!isSettingHidden('animationsEnabled') && (
       <SettingItem label={t('animations.label')} description={t('animations.description')} locked={isSettingLocked('animationsEnabled')}>
         <ToggleSwitch
@@ -194,7 +126,10 @@ export function AppearanceSettings() {
       </SettingItem>
       )}
 
-      {/* Restart Tour */}
+      <SettingItem label={tAdvanced('sender_favicons.label')} description={tAdvanced('sender_favicons.description')}>
+        <ToggleSwitch checked={senderFavicons} onChange={(checked) => updateSetting('senderFavicons', checked)} />
+      </SettingItem>
+
       <SettingItem label={tTour('restart_title')} description={tTour('restart_desc')}>
         <Button
           variant="outline"

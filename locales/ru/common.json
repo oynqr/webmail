@@ -129,7 +129,8 @@
     "folders": "Папки",
     "mail": "Почта",
     "nav_label": "Навигация",
-    "add_app": "Приложения"
+    "add_app": "Приложения",
+    "shared": "Общие"
   },
   "sidebar_apps": {
     "modal_title": "Приложения боковой панели",
@@ -670,14 +671,24 @@
       "contacts": "Контакты",
       "encryption": "Шифрование",
       "sidebar_apps": "Приложения боковой панели",
-      "notifications": "Уведомления"
+      "notifications": "Уведомления",
+      "layout": "Макет",
+      "reading": "Чтение",
+      "composing": "Написание",
+      "content_senders": "Содержимое и отправители",
+      "about_data": "О программе и данные",
+      "debug": "Отладка"
     },
     "tab_groups": {
       "general": "Общие",
       "account": "Аккаунт и удостоверение",
       "organization": "Организация почты",
       "apps": "Приложения",
-      "system": "Система"
+      "system": "Система",
+      "appearance": "Внешний вид",
+      "mail": "Почта",
+      "privacy": "Конфиденциальность и безопасность",
+      "advanced": "Дополнительно"
     },
     "appearance": {
       "title": "Внешний вид",
@@ -733,6 +744,10 @@
       "unified_mailbox": {
         "label": "Общий почтовый ящик",
         "description": "Показывать объединённые папки (Входящие, Отправленные и др.) для всех подключённых аккаунтов"
+      },
+      "colorful_sidebar_icons": {
+        "label": "Цветные значки боковой панели",
+        "description": "Окрашивать значки папок и тегов по типу (синий «Входящие», красный «Спам», зелёный «Отправленные» и т. д.). Отключите для монохромной боковой панели."
       }
     },
     "keywords": {
@@ -1075,7 +1090,14 @@
         "disabled": "Двухфакторная аутентификация отключена",
         "enable_error": "Не удалось включить 2FA",
         "disable_error": "Не удалось отключить 2FA",
-        "setup_instructions": "Скопируйте этот URL в приложение-аутентификатор (Google Authenticator, Authy и др.):"
+        "setup_instructions": "Скопируйте этот URL в приложение-аутентификатор (Google Authenticator, Authy и др.):",
+        "verification_code": "Код подтверждения",
+        "confirm": "Подтвердить",
+        "disable": "Отключить",
+        "disable_confirm_prompt": "Введите пароль, чтобы отключить двухфакторную аутентификацию.",
+        "password_required": "Требуется пароль",
+        "code_required": "Требуется код подтверждения",
+        "code_invalid": "Неверный код подтверждения. Проверьте приложение-аутентификатор и попробуйте снова."
       },
       "app_passwords": {
         "title": "Пароли приложений",
@@ -1092,7 +1114,25 @@
         "removed": "Пароль приложения удалён",
         "add_error": "Не удалось создать пароль приложения",
         "remove_error": "Не удалось удалить пароль приложения",
-        "none": "Пароли приложений не настроены"
+        "none": "Пароли приложений не настроены",
+        "done": "Готово",
+        "expires_label": "Срок действия (необязательно)",
+        "copy_now_warning": "Скопируйте этот пароль сейчас - он больше не будет показан.",
+        "allowed_ips_label": "Разрешённые IP (необязательно)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Через запятую или пробел. Оставьте пустым, чтобы разрешить любой IP."
+      },
+      "api_keys": {
+        "title": "API-ключи",
+        "description": "Создавайте API-ключи для скриптов и интеграций, обращающихся к серверу напрямую",
+        "name_label": "Название ключа",
+        "name_placeholder": "напр. Скрипт резервного копирования, CI runner",
+        "copy_now_warning": "Скопируйте этот API-ключ сейчас – он больше не будет показан.",
+        "added": "API-ключ создан",
+        "removed": "API-ключ удалён",
+        "add_error": "Не удалось создать API-ключ",
+        "remove_error": "Не удалось удалить API-ключ",
+        "none": "API-ключи не настроены"
       },
       "encryption": {
         "section_title": "Шифрование хранилища",
@@ -1415,7 +1455,9 @@
       "rule_summary": {
         "conditions_count": "{count, plural, one {# условие} other {# условий}}",
         "actions_count": "{count, plural, one {# действие} other {# действий}}"
-      }
+      },
+      "origin_external": "Внешнее",
+      "managed_by_tooltip": "Управляется {source}. Редактируйте в этом приложении или используйте редактор Sieve."
     },
     "templates": {
       "title": "Шаблоны писем",
@@ -1705,6 +1747,8 @@
     "empty_state_subtitle": "Создайте первый контакт или импортируйте из файла vCard",
     "empty_search": "Нет контактов, соответствующих вашему запросу",
     "empty_search_hint": "Попробуйте другой поисковый запрос",
+    "empty_filtered": "Нет контактов, соответствующих фильтрам",
+    "empty_filtered_hint": "Измените или очистите фильтры",
     "clear_search": "Очистить поиск",
     "import_vcard": "Импорт vCard",
     "delete_confirm_title": "Удалить контакт",
@@ -1782,7 +1826,33 @@
       "calendar": "Календарь",
       "calendar_uri": "URL календаря",
       "scheduling_uri": "URL планирования",
-      "freebusy_uri": "URL доступности"
+      "freebusy_uri": "URL доступности",
+      "section_contact": "Contact details",
+      "section_work": "Work",
+      "section_personal": "Personal",
+      "email_default_label": "Email",
+      "phone_default_label": "Phone",
+      "address_default_label": "Address",
+      "online_service_default_label": "Online",
+      "organization_label": "Organization",
+      "title_label": "Title",
+      "role_label": "Role",
+      "language_label": "Language",
+      "related_default_label": "Related",
+      "more_actions": "Другие действия",
+      "age_years": "{count, plural, one {# год} few {# года} many {# лет} other {# лет}}",
+      "years_since": "{count, plural, one {# год назад} few {# года назад} many {# лет назад} other {# лет назад}}"
+    },
+    "activity": {
+      "recent_emails": "Recent Emails",
+      "upcoming_events": "Upcoming Events",
+      "no_emails": "No recent emails",
+      "no_events": "No upcoming events",
+      "no_subject": "(No subject)",
+      "no_title": "(No title)",
+      "load_failed": "Failed to load",
+      "unknown_sender": "Unknown sender",
+      "all_day": "All day"
     },
     "form": {
       "create_title": "Новый контакт",
@@ -1878,7 +1948,13 @@
       "email_invalid": "Введите корректный адрес электронной почты",
       "email_error_inline": "Неверный формат email",
       "save_failed": "Не удалось сохранить контакт",
-      "delete": "Удалить"
+      "delete": "Удалить",
+      "upload_photo": "Загрузить фото",
+      "remove_photo": "Удалить фото",
+      "photo_hint": "JPG или PNG, до 10 МБ. Будет уменьшено.",
+      "photo_too_large": "Изображение слишком большое (макс. 10 МБ)",
+      "photo_invalid": "Недопустимый файл изображения",
+      "change_photo": "Изменить"
     },
     "groups": {
       "create": "Новая группа",
@@ -1938,6 +2014,37 @@
       "error_create": "Не удалось создать контакт",
       "error_update": "Не удалось обновить контакт",
       "error_delete": "Не удалось удалить контакт"
+    },
+    "context_menu": {
+      "open": "Открыть",
+      "edit": "Изменить",
+      "send_email": "Отправить письмо",
+      "add_to_group": "Добавить в группу",
+      "export_vcard": "Экспортировать как vCard",
+      "delete": "Удалить",
+      "call": "Позвонить",
+      "duplicate": "Дублировать",
+      "print": "Печать"
+    },
+    "filters": {
+      "toggle": "Фильтры",
+      "select": "Выбрать",
+      "clear": "Очистить",
+      "close": "Закрыть",
+      "title": "Расширенные фильтры",
+      "organization": "Компания",
+      "organization_placeholder": "напр. Acme",
+      "job_title": "Должность",
+      "job_title_placeholder": "напр. Дизайнер",
+      "location": "Местоположение",
+      "location_placeholder": "Город или страна",
+      "email_domain": "Домен e-mail",
+      "email_domain_placeholder": "primer.ru",
+      "birthday_month": "День рождения в",
+      "any_month": "Любой месяц",
+      "has_email": "С эл. почтой",
+      "has_phone": "С телефоном",
+      "has_photo": "С фото"
     }
   },
   "calendar": {
@@ -2013,6 +2120,7 @@
       "tentative": "Предварительно",
       "needs_action": "Требует ответа",
       "remove": "Удалить",
+      "edit": "Редактировать",
       "email_placeholder": "Добавьте адрес или найдите контакт",
       "send_invitations": "Отправить приглашения участникам",
       "status_summary": "{accepted} принято, {pending} ожидает",

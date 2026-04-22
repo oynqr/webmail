@@ -69,6 +69,7 @@ export function EmailList({
     batchMarkAsRead,
     batchDelete,
     batchMoveToMailbox,
+    batchArchive,
     batchMarkAsSpam,
     batchUndoSpam,
     loadMoreEmails,
@@ -497,12 +498,12 @@ export function EmailList({
           onBatchMarkAsRead={(read) => client && batchMarkAsRead(client, read)}
           onBatchDelete={() => client && batchDelete(client)}
           onBatchArchive={async () => {
-            if (!onArchive) return;
-            const selected = emails.filter((e) => selectedEmailIds.has(e.id));
-            for (const email of selected) {
-              await onArchive(email);
+            if (!client) return;
+            try {
+              await batchArchive(client);
+            } catch (error) {
+              console.error('Failed to batch archive:', error);
             }
-            clearSelection();
           }}
           onBatchMoveToMailbox={(mailboxId) => client && batchMoveToMailbox(client, mailboxId)}
           onBatchMarkAsSpam={async () => {

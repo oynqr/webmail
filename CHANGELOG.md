@@ -1,5 +1,49 @@
 # Changelog
 
+## 1.5.0 (2026-04-22)
+
+### Breaking Changes
+
+- **Self-service portal now needs Stalwart 0.16+**: Stalwart dropped its self-service HTTP API in 0.16.0 and replaced it with JMAP. Bulwark Webmail only talks to the new JMAP endpoint, so the self-service portal (account settings, app passwords, API keys) requires Stalwart 0.16 or newer. `STALWART_API_URL` is deprecated, these actions go through the normal JMAP session.
+
+### Features
+
+- **Stalwart**: Migrate Stalwart management API to JMAP `x:` methods for Stalwart 0.16
+- **Admin**: Add API Keys management and IP allowlist for App Passwords
+- **Contacts**: Revamp contact detail view with filters, photo, print, and duplicate actions
+- **Contacts**: Add contact activity component showing recent emails and upcoming events
+- **Contacts**: Add right-click context menu
+- **Contacts**: Group contacts by first letter with sticky section headers, toggleable in settings
+- **Calendar**: Support resizing events from the top edge
+- **Calendar**: Add timezone-aware formatting for event start times and update `utcEnd` on duration change
+- **Calendar**: Optimize layout of overlapping events
+- **Calendar**: Add collapsible details to calendar invitation banner
+- **Email**: Implement batch archiving and bulk moving of emails
+- **Email**: Show full folder path in move/drop toast
+- **Settings**: Reorganize settings into 6 groups with clearer tabs
+- **Navigation**: Add account-addition button to the navigation rail
+- **Mobile**: Streamline email viewer header layout
+- **Mobile**: Pass `isMobile` through calendar views and time-grid interactions
+
+### Fixes
+
+- **Mailbox**: Retry mailbox fetch on first login to handle lazy provisioning (#217)
+- **Mailbox**: Use fresh state in archive handling to avoid stale mailbox data
+- **Mailbox**: Improve error message on mailbox creation failure
+- **Auth**: Skip `checkAuth` on route change when already authenticated
+- **Auth**: Clean up unused imports and improve TOTP QR code rendering
+- **UI**: Align hover styles and selection-toggle target with focused item
+- **UI**: Read `matchMedia` synchronously on client to prevent layout flicker
+
+### Refactor
+
+- **Settings**: Remove Stalwart API URL configuration (now derived via JMAP)
+
+### Chore
+
+- **i18n**: Add missing translation keys
+- **Deps**: Bump dependencies to latest compatible versions
+
 ## 1.4.14 (2026-04-16)
 
 Thank you for your donations:

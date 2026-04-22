@@ -1,51 +1,183 @@
 import { create } from 'zustand';
 import { debug } from '@/lib/debug';
-import { getActiveAccountSlotHeaders } from '@/lib/auth/active-account-slot';
-import { apiFetch } from '@/lib/browser-navigation';
+import { useAuthStore } from '@/stores/auth-store';
+import { stalwartJmap, requireResult } from '@/lib/stalwart/jmap-passthrough';
+
+export type EncryptionType = 'Disabled' | 'Aes128' | 'Aes256';
+
+export interface AppPasswordInfo {
+  id: string;
+  description: string;
+  createdAt: string | null;
+  expiresAt: string | null;
+  allowedIps: string[];
+}
+
+export interface ApiKeyInfo {
+  id: string;
+  description: string;
+  createdAt: string | null;
+  expiresAt: string | null;
+  allowedIps: string[];
+}
+
+export interface AppCredentialInput {
+  description: string;
+  expiresAt?: string | null;
+  allowedIps?: string[];
+}
 
 interface AccountSecurityState {
-  // Detection
-  isStalwart: boolean | null; // null = not yet probed
+  isStalwart: boolean | null;
   isProbing: boolean;
 
   // Auth info
   otpEnabled: boolean;
-  appPasswords: string[];
+  appPasswords: AppPasswordInfo[];
+  apiKeys: ApiKeyInfo[];
   isLoadingAuth: boolean;
 
-  // Crypto info
-  encryptionType: string;
+  // Encryption-at-rest
+  encryptionType: EncryptionType;
   isLoadingCrypto: boolean;
 
-  // Principal info
+  // Profile
   displayName: string;
   emails: string[];
   quota: number;
   roles: string[];
   isLoadingPrincipal: boolean;
 
-  // Operation states
   isSaving: boolean;
   error: string | null;
 
-  // Actions
   probe: () => Promise<boolean>;
   fetchAuthInfo: () => Promise<void>;
   fetchCryptoInfo: () => Promise<void>;
   fetchPrincipal: () => Promise<void>;
   fetchAll: () => Promise<void>;
+
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   updateDisplayName: (displayName: string) => Promise<void>;
-  enableTotp: () => Promise<string>;
-  disableTotp: () => Promise<void>;
-  addAppPassword: (name: string, password: string) => Promise<void>;
-  removeAppPassword: (name: string) => Promise<void>;
-  updateEncryption: (settings: { type: string; algo?: string; certs?: string }) => Promise<void>;
+
+  enableTotp: (currentPassword: string, otpUrl: string, otpCode: string) => Promise<void>;
+  disableTotp: (currentPassword: string) => Promise<void>;
+
+  createAppPassword: (input: AppCredentialInput) => Promise<{ id: string; secret: string }>;
+  removeAppPassword: (id: string) => Promise<void>;
+
+  createApiKey: (input: AppCredentialInput) => Promise<{ id: string; secret: string }>;
+  removeApiKey: (id: string) => Promise<void>;
+
   clearState: () => void;
 }
 
-function getApiHeaders(): Record<string, string> {
-  return getActiveAccountSlotHeaders();
+function getPrimaryAccountId(): string {
+  const client = useAuthStore.getState().client;
+  if (!client) throw new Error('Not authenticated');
+  return client.getAccountId();
+}
+
+function credentialFromResult(raw: Record<string, unknown>): AppPasswordInfo {
+  const allowedIps = raw.allowedIps && typeof raw.allowedIps === 'object'
+    ? Object.keys(raw.allowedIps as Record<string, unknown>)
+    : [];
+  return {
+    id: String(raw.id ?? ''),
+    description: typeof raw.description === 'string' ? raw.description : '',
+    createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : null,
+    expiresAt: typeof raw.expiresAt === 'string' ? raw.expiresAt : null,
+    allowedIps,
+  };
+}
+
+function ipsToMap(ips?: string[]): Record<string, true> | undefined {
+  if (!ips || ips.length === 0) return undefined;
+  return Object.fromEntries(ips.map((ip) => [ip, true]));
+}
+
+function buildCreateBody(input: AppCredentialInput): Record<string, unknown> {
+  const body: Record<string, unknown> = { description: input.description };
+  if (input.expiresAt) body.expiresAt = input.expiresAt;
+  const allowed = ipsToMap(input.allowedIps);
+  if (allowed) body.allowedIps = allowed;
+  return body;
+}
+
+type SetMethod = 'x:AppPassword/set' | 'x:ApiKey/set';
+
+type StoreGet = () => AccountSecurityState;
+type StoreSet = (partial: Partial<AccountSecurityState>) => void;
+
+async function createCredential(
+  get: StoreGet,
+  set: StoreSet,
+  method: SetMethod,
+  input: AppCredentialInput,
+  fallbackError: string,
+): Promise<{ id: string; secret: string }> {
+  set({ isSaving: true, error: null });
+  try {
+    const accountId = getPrimaryAccountId();
+    const tmpId = 'new';
+    const responses = await stalwartJmap([
+      [method, { accountId, create: { [tmpId]: buildCreateBody(input) } }, '0'],
+    ]);
+    const result = requireResult<{
+      created?: Record<string, { id: string; secret: string; createdAt?: string }>;
+      notCreated?: Record<string, { type: string; description?: string }>;
+    }>(responses, method);
+
+    const notCreated = result.notCreated?.[tmpId];
+    if (notCreated) {
+      throw new Error(notCreated.description || notCreated.type || fallbackError);
+    }
+    const created = result.created?.[tmpId];
+    if (!created?.id || !created.secret) {
+      throw new Error(`Server did not return created credential`);
+    }
+
+    await get().fetchAuthInfo();
+    set({ isSaving: false });
+    return { id: created.id, secret: created.secret };
+  } catch (error) {
+    set({
+      isSaving: false,
+      error: error instanceof Error ? error.message : fallbackError,
+    });
+    throw error;
+  }
+}
+
+async function removeCredential(
+  get: StoreGet,
+  set: StoreSet,
+  method: SetMethod,
+  id: string,
+  fallbackError: string,
+): Promise<void> {
+  set({ isSaving: true, error: null });
+  try {
+    const accountId = getPrimaryAccountId();
+    await stalwartJmap([
+      [method, { accountId, destroy: [id] }, '0'],
+    ]);
+    await get().fetchAuthInfo();
+    set({ isSaving: false });
+  } catch (error) {
+    set({
+      isSaving: false,
+      error: error instanceof Error ? error.message : fallbackError,
+    });
+    throw error;
+  }
+}
+
+function extractEncryptionType(raw: unknown): EncryptionType {
+  if (!raw || typeof raw !== 'object') return 'Disabled';
+  const type = (raw as { ['@type']?: string })['@type'];
+  if (type === 'Aes128' || type === 'Aes256') return type;
+  return 'Disabled';
 }
 
 export const useAccountSecurityStore = create<AccountSecurityState>()((set, get) => ({
@@ -53,8 +185,9 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
   isProbing: false,
   otpEnabled: false,
   appPasswords: [],
+  apiKeys: [],
   isLoadingAuth: false,
-  encryptionType: 'disabled',
+  encryptionType: 'Disabled',
   isLoadingCrypto: false,
   displayName: '',
   emails: [],
@@ -67,11 +200,8 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
   probe: async () => {
     set({ isProbing: true });
     try {
-      const response = await apiFetch('/api/account/stalwart/probe', {
-        headers: getApiHeaders(),
-      });
-      const data = await response.json();
-      const isStalwart = data.isStalwart === true;
+      const client = useAuthStore.getState().client;
+      const isStalwart = !!client?.hasAccountCapability?.('urn:stalwart:jmap');
       set({ isStalwart, isProbing: false });
       return isStalwart;
     } catch (error) {
@@ -84,16 +214,46 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
   fetchAuthInfo: async () => {
     set({ isLoadingAuth: true, error: null });
     try {
-      const response = await apiFetch('/api/account/stalwart/auth', {
-        headers: getApiHeaders(),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      set({
-        otpEnabled: data.data?.otpEnabled ?? false,
-        appPasswords: data.data?.appPasswords ?? [],
-        isLoadingAuth: false,
-      });
+      const accountId = getPrimaryAccountId();
+      const responses = await stalwartJmap([
+        ['x:AccountPassword/get', { accountId, ids: ['singleton'] }, '0'],
+        ['x:AppPassword/query', { accountId }, '1'],
+        ['x:ApiKey/query', { accountId }, '2'],
+      ]);
+
+      const passwordResult = requireResult<{ list: Array<{ otpAuth?: { otpUrl?: string | null } }> }>(
+        responses,
+        'x:AccountPassword/get',
+      );
+      const appPwQuery = requireResult<{ ids: string[] }>(responses, 'x:AppPassword/query');
+      const apiKeyQuery = requireResult<{ ids: string[] }>(responses, 'x:ApiKey/query');
+
+      const otpAuth = passwordResult.list?.[0]?.otpAuth;
+      const otpEnabled = !!(otpAuth && typeof otpAuth === 'object' && otpAuth.otpUrl);
+
+      const followUps: [string, Record<string, unknown>, string][] = [];
+      if (appPwQuery.ids?.length) {
+        followUps.push(['x:AppPassword/get', { accountId, ids: appPwQuery.ids }, 'app']);
+      }
+      if (apiKeyQuery.ids?.length) {
+        followUps.push(['x:ApiKey/get', { accountId, ids: apiKeyQuery.ids }, 'key']);
+      }
+
+      let appPasswords: AppPasswordInfo[] = [];
+      let apiKeys: ApiKeyInfo[] = [];
+      if (followUps.length) {
+        const followUpResponses = await stalwartJmap(followUps);
+        if (appPwQuery.ids?.length) {
+          const r = requireResult<{ list: Array<Record<string, unknown>> }>(followUpResponses, 'x:AppPassword/get');
+          appPasswords = (r.list ?? []).map(credentialFromResult);
+        }
+        if (apiKeyQuery.ids?.length) {
+          const r = requireResult<{ list: Array<Record<string, unknown>> }>(followUpResponses, 'x:ApiKey/get');
+          apiKeys = (r.list ?? []).map(credentialFromResult);
+        }
+      }
+
+      set({ otpEnabled, appPasswords, apiKeys, isLoadingAuth: false });
     } catch (error) {
       debug.error('Failed to fetch auth info:', error);
       set({
@@ -106,15 +266,16 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
   fetchCryptoInfo: async () => {
     set({ isLoadingCrypto: true, error: null });
     try {
-      const response = await apiFetch('/api/account/stalwart/crypto', {
-        headers: getApiHeaders(),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      set({
-        encryptionType: data.data?.type ?? 'disabled',
-        isLoadingCrypto: false,
-      });
+      const accountId = getPrimaryAccountId();
+      const responses = await stalwartJmap([
+        ['x:AccountSettings/get', { accountId, ids: ['singleton'] }, '0'],
+      ]);
+      const result = requireResult<{ list: Array<{ encryptionAtRest?: unknown }> }>(
+        responses,
+        'x:AccountSettings/get',
+      );
+      const encryptionType = extractEncryptionType(result.list?.[0]?.encryptionAtRest);
+      set({ encryptionType, isLoadingCrypto: false });
     } catch (error) {
       debug.error('Failed to fetch crypto info:', error);
       set({
@@ -127,37 +288,41 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
   fetchPrincipal: async () => {
     set({ isLoadingPrincipal: true, error: null });
     try {
-      const response = await apiFetch('/api/account/stalwart/principal', {
-        headers: getApiHeaders(),
-      });
-      if (!response.ok) {
-        if (response.status === 403) {
-          // User lacks permission to read principal (e.g. non-admin); treat as empty
-          set({
-            displayName: '',
-            emails: [],
-            quota: 0,
-            roles: [],
-            isLoadingPrincipal: false,
-          });
-          return;
-        }
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const data = await response.json();
-      const principal = data.data;
+      const accountId = getPrimaryAccountId();
+      const responses = await stalwartJmap([
+        ['x:Account/get', { accountId, ids: [accountId] }, '0'],
+      ]);
+      const result = requireResult<{
+        list: Array<{
+          description?: string | null;
+          aliases?: Record<string, { name?: string; domainId?: string; enabled?: boolean }>;
+          quotas?: { maxDiskQuota?: number };
+          roles?: { ['@type']?: string };
+          name?: string;
+          domainId?: string;
+        }>;
+      }>(responses, 'x:Account/get');
+
+      const acc = result.list?.[0];
+      const aliasAddresses = acc?.aliases
+        ? Object.values(acc.aliases)
+            .flatMap((a) => (a && a.enabled !== false && a.name ? [a.name] : []))
+        : [];
+      const primaryEmail = acc?.name ? [acc.name] : [];
       set({
-        displayName: principal?.description ?? '',
-        emails: Array.isArray(principal?.emails) ? principal.emails : principal?.emails ? [principal.emails] : [],
-        quota: principal?.quota ?? 0,
-        roles: principal?.roles ?? [],
+        displayName: acc?.description ?? '',
+        emails: [...primaryEmail, ...aliasAddresses],
+        quota: acc?.quotas?.maxDiskQuota ?? 0,
+        roles: acc?.roles?.['@type'] ? [acc.roles['@type']] : [],
         isLoadingPrincipal: false,
       });
     } catch (error) {
       debug.error('Failed to fetch principal:', error);
+      const msg = error instanceof Error ? error.message : 'Failed to fetch principal';
+      const isForbidden = msg.toLowerCase().includes('forbidden');
       set({
         isLoadingPrincipal: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch principal',
+        error: isForbidden ? null : msg,
       });
     }
   },
@@ -170,17 +335,17 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
   changePassword: async (currentPassword, newPassword) => {
     set({ isSaving: true, error: null });
     try {
-      const response = await apiFetch('/api/account/stalwart/password', {
-        method: 'POST',
-        headers: { ...getApiHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || `HTTP ${response.status}`);
-      }
-
+      const accountId = getPrimaryAccountId();
+      await stalwartJmap([
+        [
+          'x:AccountPassword/set',
+          {
+            accountId,
+            update: { singleton: { currentSecret: currentPassword, secret: newPassword } },
+          },
+          '0',
+        ],
+      ]);
       set({ isSaving: false });
     } catch (error) {
       set({
@@ -194,19 +359,14 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
   updateDisplayName: async (displayName) => {
     set({ isSaving: true, error: null });
     try {
-      const response = await apiFetch('/api/account/stalwart/principal', {
-        method: 'PATCH',
-        headers: { ...getApiHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify([
-          { action: 'set', field: 'description', value: displayName },
-        ]),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || `HTTP ${response.status}`);
-      }
-
+      const accountId = getPrimaryAccountId();
+      await stalwartJmap([
+        [
+          'x:AccountSettings/set',
+          { accountId, update: { singleton: { description: displayName } } },
+          '0',
+        ],
+      ]);
       set({ displayName, isSaving: false });
     } catch (error) {
       set({
@@ -217,23 +377,26 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
     }
   },
 
-  enableTotp: async () => {
+  enableTotp: async (currentPassword, otpUrl, otpCode) => {
     set({ isSaving: true, error: null });
     try {
-      const response = await apiFetch('/api/account/stalwart/auth', {
-        method: 'POST',
-        headers: { ...getApiHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify([{ type: 'enableOtpAuth' }]),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || data.details || `HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
+      const accountId = getPrimaryAccountId();
+      await stalwartJmap([
+        [
+          'x:AccountPassword/set',
+          {
+            accountId,
+            update: {
+              singleton: {
+                currentSecret: currentPassword,
+                otpAuth: { otpUrl, otpCode },
+              },
+            },
+          },
+          '0',
+        ],
+      ]);
       set({ otpEnabled: true, isSaving: false });
-      return data.data;
     } catch (error) {
       set({
         isSaving: false,
@@ -243,20 +406,25 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
     }
   },
 
-  disableTotp: async () => {
+  disableTotp: async (currentPassword) => {
     set({ isSaving: true, error: null });
     try {
-      const response = await apiFetch('/api/account/stalwart/auth', {
-        method: 'POST',
-        headers: { ...getApiHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify([{ type: 'disableOtpAuth' }]),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || data.details || `HTTP ${response.status}`);
-      }
-
+      const accountId = getPrimaryAccountId();
+      await stalwartJmap([
+        [
+          'x:AccountPassword/set',
+          {
+            accountId,
+            update: {
+              singleton: {
+                currentSecret: currentPassword,
+                otpAuth: { otpUrl: null },
+              },
+            },
+          },
+          '0',
+        ],
+      ]);
       set({ otpEnabled: false, isSaving: false });
     } catch (error) {
       set({
@@ -267,80 +435,20 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
     }
   },
 
-  addAppPassword: async (name, password) => {
-    set({ isSaving: true, error: null });
-    try {
-      const response = await apiFetch('/api/account/stalwart/auth', {
-        method: 'POST',
-        headers: { ...getApiHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify([{ type: 'addAppPassword', name, password }]),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || data.details || `HTTP ${response.status}`);
-      }
-
-      // Refresh auth info to get updated app passwords list
-      await get().fetchAuthInfo();
-      set({ isSaving: false });
-    } catch (error) {
-      set({
-        isSaving: false,
-        error: error instanceof Error ? error.message : 'Failed to add app password',
-      });
-      throw error;
-    }
+  createAppPassword: async (input) => {
+    return createCredential(get, set, 'x:AppPassword/set', input, 'Failed to create app password');
   },
 
-  removeAppPassword: async (name) => {
-    set({ isSaving: true, error: null });
-    try {
-      const response = await apiFetch('/api/account/stalwart/auth', {
-        method: 'POST',
-        headers: { ...getApiHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify([{ type: 'removeAppPassword', name }]),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || data.details || `HTTP ${response.status}`);
-      }
-
-      // Refresh auth info to get updated app passwords list
-      await get().fetchAuthInfo();
-      set({ isSaving: false });
-    } catch (error) {
-      set({
-        isSaving: false,
-        error: error instanceof Error ? error.message : 'Failed to remove app password',
-      });
-      throw error;
-    }
+  removeAppPassword: async (id) => {
+    return removeCredential(get, set, 'x:AppPassword/set', id, 'Failed to remove app password');
   },
 
-  updateEncryption: async (settings) => {
-    set({ isSaving: true, error: null });
-    try {
-      const response = await apiFetch('/api/account/stalwart/crypto', {
-        method: 'POST',
-        headers: { ...getApiHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
-      });
+  createApiKey: async (input) => {
+    return createCredential(get, set, 'x:ApiKey/set', input, 'Failed to create API key');
+  },
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || data.details || `HTTP ${response.status}`);
-      }
-
-      set({ encryptionType: settings.type, isSaving: false });
-    } catch (error) {
-      set({
-        isSaving: false,
-        error: error instanceof Error ? error.message : 'Failed to update encryption',
-      });
-      throw error;
-    }
+  removeApiKey: async (id) => {
+    return removeCredential(get, set, 'x:ApiKey/set', id, 'Failed to remove API key');
   },
 
   clearState: () => set({
@@ -348,8 +456,9 @@ export const useAccountSecurityStore = create<AccountSecurityState>()((set, get)
     isProbing: false,
     otpEnabled: false,
     appPasswords: [],
+    apiKeys: [],
     isLoadingAuth: false,
-    encryptionType: 'disabled',
+    encryptionType: 'Disabled',
     isLoadingCrypto: false,
     displayName: '',
     emails: [],

@@ -129,7 +129,8 @@
     "folders": "Cartelle",
     "mail": "Posta",
     "nav_label": "Navigazione",
-    "add_app": "App"
+    "add_app": "App",
+    "shared": "Condiviso"
   },
   "sidebar_apps": {
     "modal_title": "App della barra laterale",
@@ -670,14 +671,24 @@
       "files": "File",
       "contacts": "Contatti",
       "sidebar_apps": "App nella barra laterale",
-      "notifications": "Notifiche"
+      "notifications": "Notifiche",
+      "layout": "Layout",
+      "reading": "Lettura",
+      "composing": "Composizione",
+      "content_senders": "Contenuto e mittenti",
+      "about_data": "Informazioni e dati",
+      "debug": "Debug"
     },
     "tab_groups": {
       "general": "Generale",
       "account": "Account e identità",
       "organization": "Organizzazione e-mail",
       "apps": "Applicazioni",
-      "system": "Sistema"
+      "system": "Sistema",
+      "appearance": "Aspetto",
+      "mail": "Posta",
+      "privacy": "Privacy e sicurezza",
+      "advanced": "Avanzate"
     },
     "appearance": {
       "title": "Aspetto",
@@ -733,6 +744,10 @@
       "unified_mailbox": {
         "label": "Casella di posta unificata",
         "description": "Mostra le cartelle combinate (Posta in arrivo, Inviati, ecc.) di tutti gli account collegati"
+      },
+      "colorful_sidebar_icons": {
+        "label": "Icone colorate nella barra laterale",
+        "description": "Colora le icone di cartelle ed etichette per tipo (Posta in arrivo blu, Spam rosso, Inviati verde, ecc.). Disattiva per una barra laterale monocromatica."
       }
     },
     "keywords": {
@@ -1075,7 +1090,14 @@
         "disabled": "Autenticazione a due fattori disabilitata",
         "enable_error": "Impossibile abilitare la 2FA",
         "disable_error": "Impossibile disabilitare la 2FA",
-        "setup_instructions": "Copia questo URL nella tua app di autenticazione (Google Authenticator, Authy, ecc.):"
+        "setup_instructions": "Copia questo URL nella tua app di autenticazione (Google Authenticator, Authy, ecc.):",
+        "verification_code": "Codice di verifica",
+        "confirm": "Conferma",
+        "disable": "Disattiva",
+        "disable_confirm_prompt": "Inserisci la tua password per disattivare l'autenticazione a due fattori.",
+        "password_required": "La password è obbligatoria",
+        "code_required": "Il codice di verifica è obbligatorio",
+        "code_invalid": "Codice di verifica non valido. Controlla la tua app di autenticazione e riprova."
       },
       "app_passwords": {
         "title": "Password per le app",
@@ -1092,7 +1114,25 @@
         "removed": "Password per l'app rimossa",
         "add_error": "Impossibile creare la password per l'app",
         "remove_error": "Impossibile rimuovere la password per l'app",
-        "none": "Nessuna password per le app configurata"
+        "none": "Nessuna password per le app configurata",
+        "done": "Fatto",
+        "expires_label": "Scadenza (facoltativa)",
+        "copy_now_warning": "Copia questa password ora - non verrà più mostrata.",
+        "allowed_ips_label": "IP consentiti (opzionale)",
+        "allowed_ips_placeholder": "10.0.0.5, 192.168.1.0/24",
+        "allowed_ips_hint": "Separati da virgola o spazio. Lasciare vuoto per consentire qualsiasi IP."
+      },
+      "api_keys": {
+        "title": "Chiavi API",
+        "description": "Crea chiavi API per script e integrazioni che comunicano direttamente con il server",
+        "name_label": "Nome chiave",
+        "name_placeholder": "es. Script di backup, CI runner",
+        "copy_now_warning": "Copia subito questa chiave API - non verrà mostrata di nuovo.",
+        "added": "Chiave API creata",
+        "removed": "Chiave API rimossa",
+        "add_error": "Impossibile creare la chiave API",
+        "remove_error": "Impossibile rimuovere la chiave API",
+        "none": "Nessuna chiave API configurata"
       },
       "encryption": {
         "section_title": "Crittografia a riposo",
@@ -1415,7 +1455,9 @@
       "rule_summary": {
         "conditions_count": "{count, plural, one {# condizione} other {# condizioni}}",
         "actions_count": "{count, plural, one {# azione} other {# azioni}}"
-      }
+      },
+      "origin_external": "Esterno",
+      "managed_by_tooltip": "Gestito da {source}. Modificalo in quell'app o usa l'editor Sieve grezzo."
     },
     "templates": {
       "title": "Modelli email",
@@ -1705,6 +1747,8 @@
     "empty_state_subtitle": "Crea il tuo primo contatto o importa da un file vCard",
     "empty_search": "Nessun contatto corrisponde alla ricerca",
     "empty_search_hint": "Prova con un altro termine di ricerca",
+    "empty_filtered": "Nessun contatto corrisponde ai filtri",
+    "empty_filtered_hint": "Modifica o cancella i filtri",
     "clear_search": "Cancella ricerca",
     "import_vcard": "Importa vCard",
     "delete_confirm_title": "Elimina contatto",
@@ -1782,7 +1826,33 @@
       "import_to_smime": "Importa in S/MIME",
       "cert_already_imported": "Certificato già importato",
       "cert_imported": "Certificato importato",
-      "cert_import_failed": "Importazione del certificato non riuscita"
+      "cert_import_failed": "Importazione del certificato non riuscita",
+      "section_contact": "Contact details",
+      "section_work": "Work",
+      "section_personal": "Personal",
+      "email_default_label": "Email",
+      "phone_default_label": "Phone",
+      "address_default_label": "Address",
+      "online_service_default_label": "Online",
+      "organization_label": "Organization",
+      "title_label": "Title",
+      "role_label": "Role",
+      "language_label": "Language",
+      "related_default_label": "Related",
+      "more_actions": "Altre azioni",
+      "age_years": "{count, plural, one {1 anno} other {# anni}}",
+      "years_since": "{count, plural, one {1 anno fa} other {# anni fa}}"
+    },
+    "activity": {
+      "recent_emails": "Recent Emails",
+      "upcoming_events": "Upcoming Events",
+      "no_emails": "No recent emails",
+      "no_events": "No upcoming events",
+      "no_subject": "(No subject)",
+      "no_title": "(No title)",
+      "load_failed": "Failed to load",
+      "unknown_sender": "Unknown sender",
+      "all_day": "All day"
     },
     "form": {
       "create_title": "Nuovo contatto",
@@ -1878,7 +1948,13 @@
       "email_invalid": "Inserisci un indirizzo email valido",
       "email_error_inline": "Formato email non valido",
       "save_failed": "Impossibile salvare il contatto",
-      "delete": "Elimina"
+      "delete": "Elimina",
+      "upload_photo": "Carica foto",
+      "remove_photo": "Rimuovi foto",
+      "photo_hint": "JPG o PNG, fino a 10 MB. Verrà ridimensionata.",
+      "photo_too_large": "L'immagine è troppo grande (max 10 MB)",
+      "photo_invalid": "File immagine non valido",
+      "change_photo": "Cambia"
     },
     "groups": {
       "create": "Nuovo gruppo",
@@ -1938,6 +2014,37 @@
       "error_create": "Impossibile creare il contatto",
       "error_update": "Impossibile aggiornare il contatto",
       "error_delete": "Impossibile eliminare il contatto"
+    },
+    "context_menu": {
+      "open": "Apri",
+      "edit": "Modifica",
+      "send_email": "Invia email",
+      "add_to_group": "Aggiungi al gruppo",
+      "export_vcard": "Esporta come vCard",
+      "delete": "Elimina",
+      "call": "Chiama",
+      "duplicate": "Duplica",
+      "print": "Stampa"
+    },
+    "filters": {
+      "toggle": "Filtri",
+      "select": "Seleziona",
+      "clear": "Azzera",
+      "close": "Chiudi",
+      "title": "Filtri avanzati",
+      "organization": "Azienda",
+      "organization_placeholder": "es. Acme",
+      "job_title": "Ruolo",
+      "job_title_placeholder": "es. Designer",
+      "location": "Luogo",
+      "location_placeholder": "Città o paese",
+      "email_domain": "Dominio email",
+      "email_domain_placeholder": "esempio.com",
+      "birthday_month": "Compleanno in",
+      "any_month": "Qualsiasi mese",
+      "has_email": "Con email",
+      "has_phone": "Con telefono",
+      "has_photo": "Con foto"
     }
   },
   "calendar": {
@@ -2013,6 +2120,7 @@
       "tentative": "Provvisorio",
       "needs_action": "In attesa di risposta",
       "remove": "Rimuovi",
+      "edit": "Modifica",
       "email_placeholder": "Aggiungi indirizzo email o cerca contatti",
       "send_invitations": "Invia inviti ai partecipanti",
       "status_summary": "{accepted} accettato/i, {pending} in attesa",
