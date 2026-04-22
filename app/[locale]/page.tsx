@@ -455,7 +455,7 @@ export default function Home() {
     document.title = title;
   }, [showComposer, composerMode, selectedEmail, selectedMailbox, mailboxes, t, appName]);
 
-  // Check auth on mount — skip when already authenticated so that navigating
+  // Check auth on mount – skip when already authenticated so that navigating
   // between routes doesn't retrigger checkAuth's transient `{ client: null,
   // isLoading: true }` reset, which was flashing the spinner on every nav.
   useEffect(() => {
@@ -838,7 +838,7 @@ export default function Home() {
   const handleArchive = async (emailToArchive: Email | null = selectedEmail) => {
     if (!client || !emailToArchive) return;
 
-    // Read fresh mailboxes from the store — batch archive calls this in a loop,
+    // Read fresh mailboxes from the store – batch archive calls this in a loop,
     // and each iteration needs to see folders created by prior iterations.
     const currentMailboxes = useEmailStore.getState().mailboxes;
 

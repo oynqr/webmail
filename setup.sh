@@ -53,6 +53,7 @@ ENV_FILE="${SCRIPT_DIR}/.env.local"
 # Config values (defaults)
 CFG_APP_NAME="Bulwark Webmail"
 CFG_JMAP_SERVER_URL=""
+CFG_ALLOW_CUSTOM_JMAP_ENDPOINT="false"
 CFG_STALWART_FEATURES="true"
 CFG_OAUTH_ENABLED="false"
 CFG_OAUTH_ONLY="false"
@@ -64,16 +65,23 @@ CFG_SETTINGS_SYNC_ENABLED="false"
 CFG_SETTINGS_DATA_DIR="./data/settings"
 CFG_LOG_FORMAT="text"
 CFG_LOG_LEVEL="info"
+CFG_APP_SHORT_NAME=""
+CFG_APP_DESCRIPTION=""
 CFG_LOGIN_COMPANY_NAME=""
 CFG_LOGIN_LOGO_LIGHT_URL=""
 CFG_LOGIN_LOGO_DARK_URL=""
 CFG_FAVICON_URL=""
+CFG_PWA_ICON_URL=""
+CFG_PWA_THEME_COLOR=""
+CFG_PWA_BACKGROUND_COLOR=""
 CFG_APP_LOGO_LIGHT_URL=""
 CFG_APP_LOGO_DARK_URL=""
 CFG_LOGIN_IMPRINT_URL=""
 CFG_LOGIN_PRIVACY_POLICY_URL=""
 CFG_LOGIN_WEBSITE_URL=""
+CFG_EXTENSION_DIRECTORY_URL=""
 CFG_DEPLOY_METHOD=""
+CFG_HOSTNAME="0.0.0.0"
 CFG_PORT="3000"
 
 CURRENT_STEP=0
@@ -593,9 +601,19 @@ screen_server_config() {
     prompt_yesno "Enable Stalwart-specific features?" "$CFG_STALWART_FEATURES" "CFG_STALWART_FEATURES"
     echo ""
 
-    echo -e "  ${BOLD}Network${RESET}"
-    echo -e "    ${DIM}The port the web UI will listen on. Default is 3000.${RESET}"
+    echo -e "    ${DIM}Adds a \"JMAP Server\" field to the login form so users can${RESET}"
+    echo -e "    ${DIM}connect to any JMAP-compatible server (not just the one above).${RESET}"
+    echo -e "    ${DIM}The external server must allow this domain in its CORS headers.${RESET}"
+    prompt_yesno "Allow users to override the JMAP server at login?" "$CFG_ALLOW_CUSTOM_JMAP_ENDPOINT" "CFG_ALLOW_CUSTOM_JMAP_ENDPOINT"
     echo ""
+
+    echo -e "  ${BOLD}Network${RESET}"
+    echo -e "    ${DIM}The address the server binds to. Use \"0.0.0.0\" for all IPv4${RESET}"
+    echo -e "    ${DIM}interfaces or \"::\" for dual-stack IPv4+IPv6.${RESET}"
+    echo ""
+    prompt_value "Hostname" "$CFG_HOSTNAME" "CFG_HOSTNAME"
+    echo ""
+    echo -e "    ${DIM}The port the web UI will listen on. Default is 3000.${RESET}"
     prompt_value "Port" "$CFG_PORT" "CFG_PORT"
 
     draw_footer
@@ -770,18 +788,39 @@ screen_login_customization() {
     echo -e "  All fields are ${BOLD}optional${RESET}. Press Enter to skip any field."
     echo ""
 
+    echo -e "  ${BOLD}App Identity${RESET}"
+    echo -e "    ${DIM}Short name used where space is limited (e.g. mobile home screen).${RESET}"
+    echo -e "    ${DIM}Defaults to the application name set in step 1.${RESET}"
+    prompt_value "Short app name" "$CFG_APP_SHORT_NAME" "CFG_APP_SHORT_NAME"
+    echo ""
+    echo -e "    ${DIM}Description shown by the OS when installing as a PWA.${RESET}"
+    prompt_value "App description" "$CFG_APP_DESCRIPTION" "CFG_APP_DESCRIPTION"
+    echo ""
+
+    echo -e "  ${BOLD}Icons${RESET}"
     echo -e "    ${DIM}Custom favicon for the browser tab (SVG recommended, 32×32 to 512×512px)${RESET}"
     echo -e "    ${DIM}Leave blank to use the default Bulwark favicon.${RESET}"
     prompt_value "Favicon URL" "$CFG_FAVICON_URL" "CFG_FAVICON_URL"
     echo ""
+    echo -e "    ${DIM}Source image for PWA icons (192×192 and 512×512 are auto-generated).${RESET}"
+    echo -e "    ${DIM}Falls back to FAVICON_URL if blank.${RESET}"
+    prompt_value "PWA icon URL" "$CFG_PWA_ICON_URL" "CFG_PWA_ICON_URL"
+    echo ""
+
+    echo -e "  ${BOLD}PWA Colors${RESET}"
+    echo -e "    ${DIM}Hex color (e.g. #3b82f6) used for the browser UI chrome when installed.${RESET}"
+    prompt_value "PWA theme color" "$CFG_PWA_THEME_COLOR" "CFG_PWA_THEME_COLOR"
+    echo ""
+    echo -e "    ${DIM}Hex color shown on the PWA splash screen while loading.${RESET}"
+    prompt_value "PWA background color" "$CFG_PWA_BACKGROUND_COLOR" "CFG_PWA_BACKGROUND_COLOR"
+    echo ""
+
+    echo -e "  ${BOLD}Logos${RESET}"
     echo -e "    ${DIM}App logo shown in the sidebar (SVG recommended, 24×24 to 128×128px)${RESET}"
     echo -e "    ${DIM}Leave blank for no sidebar logo.${RESET}"
     prompt_value "App logo URL (light mode)" "$CFG_APP_LOGO_LIGHT_URL" "CFG_APP_LOGO_LIGHT_URL"
     echo ""
     prompt_value "App logo URL (dark mode)" "$CFG_APP_LOGO_DARK_URL" "CFG_APP_LOGO_DARK_URL"
-    echo ""
-    echo -e "    ${DIM}Shown on the login page footer. Example: Acme Corp${RESET}"
-    prompt_value "Company / organization name" "$CFG_LOGIN_COMPANY_NAME" "CFG_LOGIN_COMPANY_NAME"
     echo ""
     echo -e "    ${DIM}Custom logo URLs for the login page (SVG recommended, 32×32 to 512×512px)${RESET}"
     echo -e "    ${DIM}Leave blank to use the default Bulwark logo.${RESET}"
@@ -789,13 +828,25 @@ screen_login_customization() {
     echo ""
     prompt_value "Login logo URL (dark mode)" "$CFG_LOGIN_LOGO_DARK_URL" "CFG_LOGIN_LOGO_DARK_URL"
     echo ""
+
+    echo -e "  ${BOLD}Login Page Links${RESET}"
+    echo -e "    ${DIM}Shown on the login page footer. Example: Acme Corp${RESET}"
+    prompt_value "Company / organization name" "$CFG_LOGIN_COMPANY_NAME" "CFG_LOGIN_COMPANY_NAME"
+    echo ""
     prompt_value "Website URL" "$CFG_LOGIN_WEBSITE_URL" "CFG_LOGIN_WEBSITE_URL"
     echo ""
     prompt_value "Imprint / legal notice URL" "$CFG_LOGIN_IMPRINT_URL" "CFG_LOGIN_IMPRINT_URL"
     echo ""
     prompt_value "Privacy policy URL" "$CFG_LOGIN_PRIVACY_POLICY_URL" "CFG_LOGIN_PRIVACY_POLICY_URL"
+    echo ""
 
-    if [[ -z "$CFG_LOGIN_COMPANY_NAME" && -z "$CFG_LOGIN_LOGO_LIGHT_URL" && -z "$CFG_LOGIN_LOGO_DARK_URL" && -z "$CFG_FAVICON_URL" && -z "$CFG_APP_LOGO_LIGHT_URL" && -z "$CFG_APP_LOGO_DARK_URL" && -z "$CFG_LOGIN_WEBSITE_URL" && -z "$CFG_LOGIN_IMPRINT_URL" && -z "$CFG_LOGIN_PRIVACY_POLICY_URL" ]]; then
+    echo -e "  ${BOLD}Extension Directory${RESET}"
+    echo -e "    ${DIM}URL of the BulwarkMail extension directory for the admin marketplace.${RESET}"
+    echo -e "    ${DIM}Set this to enable browsing and installing plugins/themes.${RESET}"
+    echo -e "    ${DIM}Leave blank to disable the marketplace.${RESET}"
+    prompt_value "Extension directory URL" "$CFG_EXTENSION_DIRECTORY_URL" "CFG_EXTENSION_DIRECTORY_URL"
+
+    if [[ -z "$CFG_APP_SHORT_NAME" && -z "$CFG_APP_DESCRIPTION" && -z "$CFG_LOGIN_COMPANY_NAME" && -z "$CFG_LOGIN_LOGO_LIGHT_URL" && -z "$CFG_LOGIN_LOGO_DARK_URL" && -z "$CFG_FAVICON_URL" && -z "$CFG_PWA_ICON_URL" && -z "$CFG_PWA_THEME_COLOR" && -z "$CFG_PWA_BACKGROUND_COLOR" && -z "$CFG_APP_LOGO_LIGHT_URL" && -z "$CFG_APP_LOGO_DARK_URL" && -z "$CFG_LOGIN_WEBSITE_URL" && -z "$CFG_LOGIN_IMPRINT_URL" && -z "$CFG_LOGIN_PRIVACY_POLICY_URL" && -z "$CFG_EXTENSION_DIRECTORY_URL" ]]; then
         echo ""
         note "No branding configured. The app will use defaults."
     fi
@@ -866,7 +917,9 @@ screen_summary() {
     echo -e "  ${CYAN}${BOLD}SERVER${RESET}"
     echo -e "    App Name .............. ${BOLD}${CFG_APP_NAME}${RESET}"
     echo -e "    JMAP Server URL ....... ${BOLD}${CFG_JMAP_SERVER_URL}${RESET}"
+    echo -e "    Allow Custom JMAP ..... ${BOLD}${CFG_ALLOW_CUSTOM_JMAP_ENDPOINT}${RESET}"
     echo -e "    Stalwart Features ..... ${BOLD}${CFG_STALWART_FEATURES}${RESET}"
+    echo -e "    Hostname .............. ${BOLD}${CFG_HOSTNAME}${RESET}"
     echo -e "    Port .................. ${BOLD}${CFG_PORT}${RESET}"
     echo ""
 
@@ -905,9 +958,19 @@ screen_summary() {
 
     # Login page
     echo -e "  ${CYAN}${BOLD}BRANDING${RESET}"
-    if [[ -n "$CFG_LOGIN_COMPANY_NAME" || -n "$CFG_LOGIN_LOGO_LIGHT_URL" || -n "$CFG_LOGIN_LOGO_DARK_URL" || -n "$CFG_FAVICON_URL" || -n "$CFG_APP_LOGO_LIGHT_URL" || -n "$CFG_APP_LOGO_DARK_URL" || -n "$CFG_LOGIN_WEBSITE_URL" || -n "$CFG_LOGIN_IMPRINT_URL" || -n "$CFG_LOGIN_PRIVACY_POLICY_URL" ]]; then
+    if [[ -n "$CFG_APP_SHORT_NAME" || -n "$CFG_APP_DESCRIPTION" || -n "$CFG_LOGIN_COMPANY_NAME" || -n "$CFG_LOGIN_LOGO_LIGHT_URL" || -n "$CFG_LOGIN_LOGO_DARK_URL" || -n "$CFG_FAVICON_URL" || -n "$CFG_PWA_ICON_URL" || -n "$CFG_PWA_THEME_COLOR" || -n "$CFG_PWA_BACKGROUND_COLOR" || -n "$CFG_APP_LOGO_LIGHT_URL" || -n "$CFG_APP_LOGO_DARK_URL" || -n "$CFG_LOGIN_WEBSITE_URL" || -n "$CFG_LOGIN_IMPRINT_URL" || -n "$CFG_LOGIN_PRIVACY_POLICY_URL" ]]; then
+        [[ -n "$CFG_APP_SHORT_NAME" ]] && \
+        echo -e "    Short Name ............ ${BOLD}${CFG_APP_SHORT_NAME}${RESET}"
+        [[ -n "$CFG_APP_DESCRIPTION" ]] && \
+        echo -e "    Description ........... ${BOLD}${CFG_APP_DESCRIPTION}${RESET}"
         [[ -n "$CFG_FAVICON_URL" ]] && \
         echo -e "    Favicon URL ........... ${BOLD}${CFG_FAVICON_URL}${RESET}"
+        [[ -n "$CFG_PWA_ICON_URL" ]] && \
+        echo -e "    PWA Icon URL .......... ${BOLD}${CFG_PWA_ICON_URL}${RESET}"
+        [[ -n "$CFG_PWA_THEME_COLOR" ]] && \
+        echo -e "    PWA Theme Color ....... ${BOLD}${CFG_PWA_THEME_COLOR}${RESET}"
+        [[ -n "$CFG_PWA_BACKGROUND_COLOR" ]] && \
+        echo -e "    PWA Background Color .. ${BOLD}${CFG_PWA_BACKGROUND_COLOR}${RESET}"
         [[ -n "$CFG_APP_LOGO_LIGHT_URL" ]] && \
         echo -e "    App Logo (light) ...... ${BOLD}${CFG_APP_LOGO_LIGHT_URL}${RESET}"
         [[ -n "$CFG_APP_LOGO_DARK_URL" ]] && \
@@ -928,6 +991,13 @@ screen_summary() {
         echo -e "    ${DIM}(using defaults)${RESET}"
     fi
     echo ""
+
+    # Extensions
+    if [[ -n "$CFG_EXTENSION_DIRECTORY_URL" ]]; then
+        echo -e "  ${CYAN}${BOLD}EXTENSIONS${RESET}"
+        echo -e "    Directory URL ......... ${BOLD}${CFG_EXTENSION_DIRECTORY_URL}${RESET}"
+        echo ""
+    fi
 
     # Deployment
     echo -e "  ${CYAN}${BOLD}DEPLOYMENT${RESET}"
@@ -978,9 +1048,14 @@ write_env_file() {
 # -- JMAP Server (required) ---------------------------------------------------
 APP_NAME=${CFG_APP_NAME}
 JMAP_SERVER_URL=${CFG_JMAP_SERVER_URL}
+ALLOW_CUSTOM_JMAP_ENDPOINT=${CFG_ALLOW_CUSTOM_JMAP_ENDPOINT}
 
 # -- Stalwart Mail Server Integration -----------------------------------------
 STALWART_FEATURES=${CFG_STALWART_FEATURES}
+
+# -- Server Listen Address ----------------------------------------------------
+HOSTNAME=${CFG_HOSTNAME}
+PORT=${CFG_PORT}
 
 # -- OAuth / OpenID Connect ---------------------------------------------------
 OAUTH_ENABLED=${CFG_OAUTH_ENABLED}
@@ -1025,7 +1100,12 @@ LOG_LEVEL=${CFG_LOG_LEVEL}
 # -- Branding ------------------------------------------------------------------
 ENVEOF
 
+    [[ -n "$CFG_APP_SHORT_NAME" ]] && echo "APP_SHORT_NAME=${CFG_APP_SHORT_NAME}" >> "$ENV_FILE"
+    [[ -n "$CFG_APP_DESCRIPTION" ]] && echo "APP_DESCRIPTION=${CFG_APP_DESCRIPTION}" >> "$ENV_FILE"
     [[ -n "$CFG_FAVICON_URL" ]] && echo "FAVICON_URL=${CFG_FAVICON_URL}" >> "$ENV_FILE"
+    [[ -n "$CFG_PWA_ICON_URL" ]] && echo "PWA_ICON_URL=${CFG_PWA_ICON_URL}" >> "$ENV_FILE"
+    [[ -n "$CFG_PWA_THEME_COLOR" ]] && echo "PWA_THEME_COLOR=${CFG_PWA_THEME_COLOR}" >> "$ENV_FILE"
+    [[ -n "$CFG_PWA_BACKGROUND_COLOR" ]] && echo "PWA_BACKGROUND_COLOR=${CFG_PWA_BACKGROUND_COLOR}" >> "$ENV_FILE"
     [[ -n "$CFG_APP_LOGO_LIGHT_URL" ]] && echo "APP_LOGO_LIGHT_URL=${CFG_APP_LOGO_LIGHT_URL}" >> "$ENV_FILE"
     [[ -n "$CFG_APP_LOGO_DARK_URL" ]] && echo "APP_LOGO_DARK_URL=${CFG_APP_LOGO_DARK_URL}" >> "$ENV_FILE"
     [[ -n "$CFG_LOGIN_COMPANY_NAME" ]] && echo "LOGIN_COMPANY_NAME=${CFG_LOGIN_COMPANY_NAME}" >> "$ENV_FILE"
@@ -1034,6 +1114,29 @@ ENVEOF
     [[ -n "$CFG_LOGIN_IMPRINT_URL" ]] && echo "LOGIN_IMPRINT_URL=${CFG_LOGIN_IMPRINT_URL}" >> "$ENV_FILE"
     [[ -n "$CFG_LOGIN_PRIVACY_POLICY_URL" ]] && echo "LOGIN_PRIVACY_POLICY_URL=${CFG_LOGIN_PRIVACY_POLICY_URL}" >> "$ENV_FILE"
     [[ -n "$CFG_LOGIN_WEBSITE_URL" ]] && echo "LOGIN_WEBSITE_URL=${CFG_LOGIN_WEBSITE_URL}" >> "$ENV_FILE"
+
+    if [[ -n "$CFG_EXTENSION_DIRECTORY_URL" ]]; then
+        cat >> "$ENV_FILE" << ENVEOF
+
+# -- Extension Directory / Marketplace ----------------------------------------
+EXTENSION_DIRECTORY_URL=${CFG_EXTENSION_DIRECTORY_URL}
+ENVEOF
+    fi
+
+    cat >> "$ENV_FILE" << ENVEOF
+
+# -- Advanced (uncomment and set if needed) -----------------------------------
+# SESSION_SECRET_FILE=/run/secrets/session_secret
+# OAUTH_CLIENT_SECRET_FILE=/run/secrets/oauth_client_secret
+# OAUTH_SCOPES=openid profile email
+# OAUTH_EXTRA_SCOPES=
+# COOKIE_SAME_SITE=lax
+# COOKIE_SECURE=true
+# TRUSTED_PROXY_DEPTH=1
+# ALLOWED_FRAME_ANCESTORS='none'
+# ADMIN_DATA_DIR=./data/admin
+# ADMIN_SESSION_TTL=3600
+ENVEOF
 
     echo -e "    ${OK} Written ${BOLD}.env.local${RESET}"
 }

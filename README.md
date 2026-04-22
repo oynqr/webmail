@@ -32,35 +32,35 @@ A modern, self-hosted webmail client for [Stalwart Mail Server](https://stalw.ar
 <td width="50%"><img src="screenshots/contacts.png" alt="Contacts" /></td>
 </tr>
 <tr>
-<td><sub><b>Calendar</b> — month, week, day, and agenda views with drag-to-reschedule, iMIP invitations, and CalDAV subscriptions.</sub></td>
-<td><sub><b>Contacts</b> — multiple address books, groups, vCard import/export, and autocomplete in the composer.</sub></td>
+<td><sub><b>Calendar</b> – month, week, day, and agenda views with drag-to-reschedule, iMIP invitations, and CalDAV subscriptions.</sub></td>
+<td><sub><b>Contacts</b> – multiple address books, groups, vCard import/export, and autocomplete in the composer.</sub></td>
 </tr>
 <tr>
 <td><img src="screenshots/theme.png" alt="Themes" /></td>
 <td><img src="screenshots/plugins.png" alt="Plugins" /></td>
 </tr>
 <tr>
-<td><sub><b>Themes</b> — bundled color themes or upload your own as ZIP bundles; admins can enforce presets.</sub></td>
-<td><sub><b>Plugins</b> — extend the client with bundled or third-party plugins installed from a .zip file.</sub></td>
+<td><sub><b>Themes</b> – bundled color themes or upload your own as ZIP bundles; admins can enforce presets.</sub></td>
+<td><sub><b>Plugins</b> – extend the client with bundled or third-party plugins installed from a .zip file.</sub></td>
 </tr>
 <tr>
 <td><img src="screenshots/mail-white.png" alt="Light mode" /></td>
 <td><img src="screenshots/settings.png" alt="Settings" /></td>
 </tr>
 <tr>
-<td><sub><b>Light mode</b> — full theme support with intelligent color transformation for HTML emails.</sub></td>
-<td><sub><b>Settings</b> — appearance, identities, filters, templates, security, and more.</sub></td>
+<td><sub><b>Light mode</b> – full theme support with intelligent color transformation for HTML emails.</sub></td>
+<td><sub><b>Settings</b> – appearance, identities, filters, templates, security, and more.</sub></td>
 </tr>
 </table>
 
 ## Overview
 
-Bulwark is a full webmail suite — not just an inbox. It bundles the four apps most self-hosters end up wanting on the same login:
+Bulwark is a full webmail suite – not just an inbox. It bundles the four apps most self-hosters end up wanting on the same login:
 
-- **Mail** — threading, unified inbox, full-text search, Sieve filters, S/MIME, templates
-- **Calendar** — month/week/day/agenda, recurring events, iMIP invitations, CalDAV subscriptions
-- **Contacts** — multiple address books, groups, vCard import/export
-- **Files** — Stalwart's JMAP FileNode storage with previews and folder upload
+- **Mail** – threading, unified inbox, full-text search, Sieve filters, S/MIME, templates
+- **Calendar** – month/week/day/agenda, recurring events, iMIP invitations, CalDAV subscriptions
+- **Contacts** – multiple address books, groups, vCard import/export
+- **Files** – Stalwart's JMAP FileNode storage with previews and folder upload
 
 Plus the infrastructure around them: OAuth2 / OIDC SSO, TOTP 2FA, multi-account (up to 5 at once), 14 languages, PWA install, dark/light themes, a plugin system with an extension marketplace, and a Stalwart admin dashboard.
 
@@ -82,7 +82,7 @@ Or with Docker Compose:
 
 ```bash
 cp .env.example .env.local
-# Edit .env.local — set JMAP_SERVER_URL
+# Edit .env.local – set JMAP_SERVER_URL
 docker compose up -d
 ```
 
@@ -93,7 +93,7 @@ git clone https://github.com/bulwarkmail/webmail.git
 cd webmail
 npm install
 cp .env.example .env.local
-# Edit .env.local — set JMAP_SERVER_URL
+# Edit .env.local – set JMAP_SERVER_URL
 npm run build && npm start
 ```
 
@@ -247,7 +247,7 @@ LOG_LEVEL=info                       # error | warn | info | debug
 
 ## Why Stalwart?
 
-[Stalwart](https://github.com/stalwartlabs/mail-server) is a Rust mail server with native JMAP support — not IMAP/SMTP with JMAP bolted on. It handles JMAP, IMAP, SMTP, and ManageSieve in a single self-hosted binary with no third-party dependencies.
+[Stalwart](https://github.com/stalwartlabs/mail-server) is a Rust mail server with native JMAP support – not IMAP/SMTP with JMAP bolted on. It handles JMAP, IMAP, SMTP, and ManageSieve in a single self-hosted binary with no third-party dependencies.
 
 ## Contributing
 

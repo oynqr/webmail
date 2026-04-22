@@ -179,7 +179,7 @@ export default function SettingsPage() {
   const [isResizing, setIsResizing] = useState(false);
   const dragStartWidth = useRef(256);
 
-  // Check auth on mount — skip when already authenticated so that navigating
+  // Check auth on mount – skip when already authenticated so that navigating
   // between routes doesn't retrigger checkAuth's transient `{ client: null,
   // isLoading: true }` reset, which was flashing the spinner on every nav.
   useEffect(() => {

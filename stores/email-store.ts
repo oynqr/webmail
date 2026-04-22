@@ -819,7 +819,7 @@ export const useEmailStore = create<EmailStore>((set, get) => ({
       const affected = emails.filter(e => idSet.has(e.id));
 
       if (isUnifiedView) {
-        // In unified view, emails may span accounts — group and dispatch per-account.
+        // In unified view, emails may span accounts – group and dispatch per-account.
         const byAccount = new Map<string, string[]>();
         for (const e of affected) {
           const acct = e.accountId || '__default__';

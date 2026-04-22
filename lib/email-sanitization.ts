@@ -40,7 +40,7 @@ export function sanitizeEmailHtml(html: string): string {
  * Sanitize config for emails rendered inside a sandboxed iframe.
  * Allows <style> tags because CSS is scoped to the iframe document and
  * cannot leak into the host app. Scripts are still blocked by the sandbox
- * attribute (no allow-scripts). Use ONLY for iframe-rendered content —
+ * attribute (no allow-scripts). Use ONLY for iframe-rendered content –
  * never for content rendered into the main DOM.
  */
 export const EMAIL_IFRAME_SANITIZE_CONFIG = {

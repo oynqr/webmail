@@ -8,8 +8,8 @@
 - Draft auto-save with identity preservation
 - Attachment upload, download, and inline preview; forgotten-attachment warning
 - Full-text search with JMAP filter panel, search chips, wildcards, OR conditions, and cross-mailbox queries
-- Batch operations — multi-select, archive, delete, move, tag
-- Archive modes — direct, by year, or by month
+- Batch operations – multi-select, archive, delete, move, tag
+- Archive modes – direct, by year, or by month
 - Multi-tag support with color labels, reordering, and drag-and-drop assignment
 - Star/unstar with configurable mark-as-read delay
 - Virtual scrolling for large mailboxes
@@ -26,7 +26,7 @@
 - Drag-to-reschedule, click-drag creation, and edge-resize with 15-minute snap
 - Recurring events with scoped edit/delete (this / this and following / all)
 - iMIP invitations on create and update (RFC 5545 / 6047), organizer/attendee UI, and RSVP with trust assessment
-- Inline calendar invitations in the email viewer — auto-detect `.ics`, RSVP, import
+- Inline calendar invitations in the email viewer – auto-detect `.ics`, RSVP, import
 - iCalendar import with preview, bulk create, and UID deduplication
 - iCal / webcal subscriptions with editing and batch import
 - Auto-generated birthday calendar from contacts
@@ -67,7 +67,7 @@
 
 - External content blocked by default, with a trusted senders list
 - HTML sanitization via DOMPurify
-- S/MIME — manage certificates, sign, encrypt, decrypt, and verify; legacy 3DES / PBE support; per-account key isolation
+- S/MIME – manage certificates, sign, encrypt, decrypt, and verify; legacy 3DES / PBE support; per-account key isolation
 - SPF / DKIM / DMARC status indicators
 - OAuth2 / OIDC with PKCE (Keycloak, Authentik, or built-in), OAuth-only mode, OAuth app passwords, and non-interactive SSO for embedded deployments
 - TOTP two-factor authentication
@@ -110,9 +110,9 @@ Automatic browser detection with persistent preference. Configurable locale URL 
 ## Admin & Extensibility
 
 - Stalwart admin dashboard with dedicated policy sections
-- Plugin system — schema-driven config UI, render and intercept hooks, `onAvatarResolve` and i18n APIs, calendar event slots, and managed policy enforcement
-- Themes — upload, enforce, and manage admin-controlled themes as ZIP bundles
-- Extension marketplace — browse and install plugins and themes from a configurable directory (`EXTENSION_DIRECTORY_URL`)
+- Plugin system – schema-driven config UI, render and intercept hooks, `onAvatarResolve` and i18n APIs, calendar event slots, and managed policy enforcement
+- Themes – upload, enforce, and manage admin-controlled themes as ZIP bundles
+- Extension marketplace – browse and install plugins and themes from a configurable directory (`EXTENSION_DIRECTORY_URL`)
 - Bundled plugins including Jitsi Meet calendar integration
 
 ## Operations
@@ -121,4 +121,4 @@ Automatic browser detection with persistent preference. Configurable locale URL 
 - Automatic update check with server-side logging of new releases
 - Structured logging (`text` or `json`) with category-based levels
 - Release (`main`) and development (`dev`) Docker images on GHCR
-- Demo mode with fixture data — no mail server required
+- Demo mode with fixture data – no mail server required

@@ -1300,7 +1300,7 @@ export class JMAPClient implements IJMAPClient {
         const parts = [err.type || 'unknown'];
         if (err.properties?.length) parts.push(`properties=[${err.properties.join(', ')}]`);
         if (err.description) parts.push(err.description);
-        throw new Error(`Failed to create archive folder '${cid}': ${parts.join(' — ')}`);
+        throw new Error(`Failed to create archive folder '${cid}': ${parts.join(' – ')}`);
       }
     }
 
@@ -1310,7 +1310,7 @@ export class JMAPClient implements IJMAPClient {
     const emailFailures = notUpdated ? Object.entries(notUpdated) : [];
     if (emailFailures.length > 0) {
       const [id, err] = emailFailures[0];
-      throw new Error(`Failed to move ${emailFailures.length} email(s), first: ${id} — ${err.type || 'unknown'}${err.description ? ` (${err.description})` : ''}`);
+      throw new Error(`Failed to move ${emailFailures.length} email(s), first: ${id} – ${err.type || 'unknown'}${err.description ? ` (${err.description})` : ''}`);
     }
   }
 
@@ -1429,7 +1429,7 @@ export class JMAPClient implements IJMAPClient {
         details.push(`properties=[${err.properties.join(', ')}]`);
       }
       if (err.description) details.push(err.description);
-      throw new Error(`Failed to create mailbox: ${details.join(' — ')}`);
+      throw new Error(`Failed to create mailbox: ${details.join(' – ')}`);
     }
 
     const created = result?.created?.[createId];
