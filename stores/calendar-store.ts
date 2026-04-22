@@ -4,6 +4,7 @@ import type { IJMAPClient } from '@/lib/jmap/client-interface';
 import type { Calendar, CalendarEvent, CalendarParticipant } from '@/lib/jmap/types';
 import { debug } from '@/lib/debug';
 import { normalizeAllDayDuration } from '@/lib/calendar-utils';
+import { parseDuration } from '@/components/calendar/event-card';
 import { sanitizeOutgoingCalendarEventData } from '@/lib/calendar-event-normalization';
 import { expandRecurringEvents } from '@/lib/recurrence-expansion';
 import { generateUUID } from '@/lib/utils';
@@ -346,6 +347,14 @@ export const useCalendarStore = create<CalendarStore>()(
                     merged.utcEnd = new Date(new Date(e.utcEnd).getTime() + delta).toISOString();
                   }
                 }
+              }
+              // When duration changes (e.g. resize), recompute utcEnd so the event
+              // renders with the new length immediately without waiting for refresh.
+              if (cleanUpdates.duration !== undefined && merged.utcStart) {
+                const durationMinutes = parseDuration(cleanUpdates.duration);
+                merged.utcEnd = new Date(
+                  new Date(merged.utcStart).getTime() + durationMinutes * 60000,
+                ).toISOString();
               }
               return merged;
             }),

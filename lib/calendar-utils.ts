@@ -272,3 +272,22 @@ export function formatSnapTime(minutes: number, timeFormat: "12h" | "24h"): stri
 export function getPrimaryCalendarId(event: Pick<CalendarEvent, 'calendarIds'>): string | undefined {
   return Object.keys(event.calendarIds || {})[0];
 }
+
+export function formatIsoInTimeZone(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+  const map: Record<string, string> = {};
+  for (const part of parts) {
+    if (part.type !== "literal") map[part.type] = part.value;
+  }
+  const hour = map.hour === "24" ? "00" : map.hour;
+  return `${map.year}-${map.month}-${map.day}T${hour}:${map.minute}:${map.second}`;
+}

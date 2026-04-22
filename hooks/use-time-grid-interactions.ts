@@ -4,6 +4,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { toast } from "@/stores/toast-store";
 import { debug } from "@/lib/debug";
+import { formatIsoInTimeZone } from "@/lib/calendar-utils";
 import type { Calendar } from "@/lib/jmap/types";
 
 interface DragCreateState {
@@ -320,14 +321,18 @@ export function useTimeGridInteractions({
       const minutes = snapDragMinutes(e);
       const newStart = new Date(day);
       newStart.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
-      const newStartISO = format(newStart, "yyyy-MM-dd'T'HH:mm:ss");
+      const event = useCalendarStore.getState().events.find(ev => ev.id === data.eventId);
+      // Emit `start` as a floating wall-clock in the event's own timeZone.
+      // If we used browser-local, the server would reinterpret it in event.timeZone
+      // and shift the event by the offset between the two zones.
+      const eventTimeZone = event?.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const newStartISO = formatIsoInTimeZone(newStart, eventTimeZone);
       if (newStartISO === data.originalStart) return;
       const client = useAuthStore.getState().client;
       if (!client) {
         toast.error(errorMessages.move);
         return;
       }
-      const event = useCalendarStore.getState().events.find(ev => ev.id === data.eventId);
       const hasParticipants = event?.participants && Object.keys(event.participants).length > 0;
       await useCalendarStore.getState().updateEvent(client, data.eventId, { start: newStartISO }, hasParticipants || undefined);
     } catch {
