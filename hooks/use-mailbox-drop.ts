@@ -31,7 +31,7 @@ interface UseMailboxDropReturn {
 export function useMailboxDrop({ mailbox, onDropComplete, onSuccess, onError }: UseMailboxDropOptions): UseMailboxDropReturn {
   const [isOver, setIsOver] = useState(false);
   const { client } = useAuthStore();
-  const { moveEmailsToMailbox, selectedEmailIds, clearSelection, fetchEmails, selectedMailbox, mailboxes } = useEmailStore();
+  const { moveEmailsToMailbox, selectedEmailIds, clearSelection, refreshCurrentMailbox, mailboxes } = useEmailStore();
   const { isDragging, sourceMailboxId, draggedEmails, endDrag } = useDragDropContext();
 
   // Determine if this is a valid drop target
@@ -115,8 +115,8 @@ export function useMailboxDrop({ mailbox, onDropComplete, onSuccess, onError }: 
         clearSelection();
       }
 
-      // Refresh the current mailbox view
-      await fetchEmails(client, selectedMailbox);
+      // Refresh the current mailbox view (honors active search/filters)
+      await refreshCurrentMailbox(client);
 
       const mailboxPath = getMailboxPath(mailbox, mailboxes);
 
@@ -144,7 +144,7 @@ export function useMailboxDrop({ mailbox, onDropComplete, onSuccess, onError }: 
     } finally {
       endDrag();
     }
-  }, [client, mailbox, mailboxes, isValidTarget, moveEmailsToMailbox, selectedEmailIds, clearSelection, fetchEmails, selectedMailbox, endDrag, onDropComplete, onSuccess, onError]);
+  }, [client, mailbox, mailboxes, isValidTarget, moveEmailsToMailbox, selectedEmailIds, clearSelection, refreshCurrentMailbox, endDrag, onDropComplete, onSuccess, onError]);
 
   const valid = isValidTarget();
 
