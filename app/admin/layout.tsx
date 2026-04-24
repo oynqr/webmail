@@ -65,6 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [isStalwartAdmin, setIsStalwartAdmin] = useState(false);
   const { appLogoLightUrl, appLogoDarkUrl, loginLogoLightUrl, loginLogoDarkUrl } = useConfig();
   const resolvedTheme = useThemeStore((s) => s.resolvedTheme);
@@ -73,54 +74,59 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     : (appLogoLightUrl || appLogoDarkUrl || loginLogoLightUrl);
 
   useEffect(() => {
-    if (pathname !== '/admin/login') {
-      checkAuth();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+    if (pathname === '/admin/login') return;
+    let cancelled = false;
 
-  function getJmapHeaders(): Record<string, string> {
-    return getActiveAccountSlotHeaders();
-  }
+    async function checkAuth() {
+      try {
+        const jmapHeaders = getActiveAccountSlotHeaders();
+        const res = await apiFetch('/api/admin/auth', { headers: jmapHeaders });
+        const data = await res.json();
+        if (cancelled) return;
 
-  async function checkAuth() {
-    try {
-      const jmapHeaders = getJmapHeaders();
-      const res = await apiFetch('/api/admin/auth', { headers: jmapHeaders });
-      const data = await res.json();
+        const stalwartAdmin = data.stalwartAdmin === true;
+        setIsStalwartAdmin(stalwartAdmin);
 
-      const stalwartAdmin = data.stalwartAdmin === true;
-      setIsStalwartAdmin(stalwartAdmin);
+        // If neither password-based admin nor Stalwart admin, redirect away
+        if (!data.enabled && !stalwartAdmin) {
+          router.replace('/');
+          return;
+        }
 
-      // If neither password-based admin nor Stalwart admin, redirect away
-      if (!data.enabled && !stalwartAdmin) {
-        router.replace('/');
-        return;
-      }
-
-      if (data.authenticated) {
-        setAuthenticated(true);
-        return;
-      }
-
-      // If Stalwart admin but not yet authenticated, auto-login
-      if (stalwartAdmin) {
-        const loginRes = await apiFetch('/api/admin/auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...jmapHeaders },
-          body: JSON.stringify({ stalwartAuth: true }),
-        });
-        if (loginRes.ok) {
+        if (data.authenticated) {
           setAuthenticated(true);
           return;
         }
-      }
 
-      router.replace('/admin/login');
-    } catch {
-      router.replace('/admin/login');
+        // If Stalwart admin but not yet authenticated, auto-login
+        if (stalwartAdmin) {
+          const loginRes = await apiFetch('/api/admin/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...jmapHeaders },
+            body: JSON.stringify({ stalwartAuth: true }),
+          });
+          if (cancelled) return;
+          if (loginRes.ok) {
+            setAuthenticated(true);
+            return;
+          }
+          const body = await loginRes.json().catch(() => ({}));
+          setAuthError(body?.error || `Admin auto-login failed (HTTP ${loginRes.status})`);
+          setAuthenticated(false);
+          return;
+        }
+
+        router.replace('/admin/login');
+      } catch (err) {
+        if (cancelled) return;
+        setAuthError(err instanceof Error ? err.message : 'Network error during admin check');
+        setAuthenticated(false);
+      }
     }
-  }
+
+    checkAuth();
+    return () => { cancelled = true; };
+  }, [pathname, router]);
 
   async function handleLogout() {
     await apiFetch('/api/admin/auth', { method: 'DELETE' });
@@ -130,14 +136,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Don't gate the login page
   if (pathname === '/admin/login') {
     return <>{children}</>;
-  }
-
-  if (authenticated === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground text-sm">Loading...</div>
-      </div>
-    );
   }
 
   return (
@@ -269,7 +267,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main content */}
       <main className="flex-1 overflow-auto">
         <div className="max-w-4xl mx-auto p-6">
-          {children}
+          {authError ? (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+              <p className="font-medium">Admin authentication failed</p>
+              <p className="mt-1 text-destructive/80">{authError}</p>
+            </div>
+          ) : authenticated === null ? (
+            <div className="py-12 text-center text-sm text-muted-foreground animate-pulse">
+              Loading admin panel…
+            </div>
+          ) : authenticated ? (
+            children
+          ) : null}
         </div>
       </main>
     </div>

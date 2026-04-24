@@ -8,7 +8,6 @@ import { icons as lucideIcons, type LucideIcon } from "lucide-react";
 import { useConfig } from "@/hooks/use-config";
 import { useThemeStore } from "@/stores/theme-store";
 import { usePathname, Link, useRouter } from "@/i18n/navigation";
-import NextLink from "next/link";
 import { useTranslations } from "next-intl";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { useEmailStore } from "@/stores/email-store";
@@ -336,9 +335,9 @@ export function NavigationRail({
           );
         })}
 
-        {/* Admin (Stalwart admins) */}
+        {/* Admin (Stalwart admins) — hard nav because /admin lives outside the [locale] tree */}
         {isStalwartAdmin && (
-          <NextLink
+          <a
             href="/admin"
             className={cn(
               "flex flex-col items-center justify-center gap-1 py-2 px-1 min-h-[44px] grow shrink-0 basis-[64px]",
@@ -348,7 +347,7 @@ export function NavigationRail({
           >
             <Shield className="w-5 h-5" />
             <span className="text-[10px] font-medium leading-tight truncate max-w-full">{t("admin") || "Admin"}</span>
-          </NextLink>
+          </a>
         )}
 
         {/* Settings */}
@@ -514,13 +513,13 @@ export function NavigationRail({
       {/* Footer: Admin + Settings + Help + Storage Quota + Sign Out + Push Status */}
       <div className="mt-auto flex flex-col items-center gap-2 pb-3 px-1">
         {isStalwartAdmin && (
-          <NextLink
+          <a
             href="/admin"
             className="flex items-center justify-center w-10 h-10 rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
             title={t("admin") || "Admin"}
           >
             <Shield className="w-[18px] h-[18px]" />
-          </NextLink>
+          </a>
         )}
 
         <Link
