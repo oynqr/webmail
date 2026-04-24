@@ -3436,70 +3436,172 @@ export function EmailViewer({
         moreMenuOpen ? "translate-x-0" : "translate-x-full"
       )}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <span className="text-sm font-semibold text-foreground">{t('more_actions')}</span>
-          <Button variant="ghost" size="icon" onClick={() => setMoreMenuOpen(false)} className="h-9 w-9">
+          {moreMenuSub ? (
+            <button
+              onClick={() => setMoreMenuSub(null)}
+              className="flex items-center gap-1 -ml-2 px-2 py-1 rounded hover:bg-muted text-sm font-semibold text-foreground"
+            >
+              <ChevronLeft className="w-5 h-5" />
+              {moreMenuSub === 'move' ? t('move_to') : t('tag')}
+            </button>
+          ) : (
+            <span className="text-sm font-semibold text-foreground">{t('more_actions')}</span>
+          )}
+          <Button variant="ghost" size="icon" onClick={() => { setMoreMenuOpen(false); setMoreMenuSub(null); }} className="h-9 w-9">
             <X className="w-5 h-5" />
           </Button>
         </div>
         <div className="flex-1 overflow-y-auto py-2">
-          <button
-            onClick={() => { onArchive?.(); setMoreMenuOpen(false); }}
-            className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
-          >
-            <Archive className="w-5 h-5" />
-            {t('archive')}
-          </button>
-          {/* Move to folder */}
-          {moveTree.length > 0 && onMoveToMailbox && (
+          {moreMenuSub === null && (
             <>
+              <button
+                onClick={() => { onArchive?.(); setMoreMenuOpen(false); }}
+                className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
+              >
+                <Archive className="w-5 h-5" />
+                {t('archive')}
+              </button>
+              {/* Move to folder (opens sub-view) */}
+              {moveTree.length > 0 && onMoveToMailbox && (
+                <button
+                  onClick={() => setMoreMenuSub('move')}
+                  className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
+                >
+                  <FolderInput className="w-5 h-5" />
+                  <span className="flex-1">{t('move_to')}</span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </button>
+              )}
+              {/* Tag (opens sub-view) */}
+              {colorOptions.length > 0 && (
+                <button
+                  onClick={() => setMoreMenuSub('tag')}
+                  className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
+                >
+                  <Tag className="w-5 h-5" />
+                  <span className="flex-1">{t('tag')}</span>
+                  {currentColors.length > 0 && (
+                    <div className="flex -space-x-1 mr-1">
+                      {currentColors.slice(0, 3).map((c) => {
+                        const opt = colorOptions.find((o) => o.value === c);
+                        return opt ? <span key={c} className={cn("w-3 h-3 rounded-full border border-background", opt.color)} /> : null;
+                      })}
+                    </div>
+                  )}
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </button>
+              )}
+              {/* Spam */}
+              {(onMarkAsSpam || onUndoSpam) && (
+                <button
+                  onClick={() => { (isInJunkFolder ? onUndoSpam : onMarkAsSpam)?.(); setMoreMenuOpen(false); }}
+                  className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
+                >
+                  {isInJunkFolder ? (
+                    <ShieldCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  ) : (
+                    <ShieldAlert className="h-5 w-5 text-red-600 dark:text-red-400" />
+                  )}
+                  {isInJunkFolder ? t('spam.not_spam_title') : t('spam.button_title')}
+                </button>
+              )}
+              {/* Toggle read state */}
+              <button
+                onClick={() => { onMarkAsRead?.(email.id, isUnread); setMoreMenuOpen(false); }}
+                className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
+              >
+                {isUnread ? <MailOpen className="w-5 h-5" /> : <Mail className="w-5 h-5" />}
+                {isUnread ? t('mark_read') : t('mark_unread')}
+              </button>
+              <button
+                onClick={() => { handlePrint(); setMoreMenuOpen(false); }}
+                className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
+              >
+                <Printer className="w-5 h-5" />
+                {t('print')}
+              </button>
+              <button
+                onClick={() => { setShowSourceModal(true); setMoreMenuOpen(false); }}
+                className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
+              >
+                <Code className="w-5 h-5" />
+                {t('view_source')}
+              </button>
+              {effectiveEmailContent.isHtml && (
+                <button
+                  onClick={() => { setEmailViewDarkOverride(prev => prev === null ? !(resolvedTheme === 'dark') : !prev); setMoreMenuOpen(false); }}
+                  className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
+                >
+                  {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                  {isDark ? 'View in light mode' : 'View in dark mode'}
+                </button>
+              )}
               <div className="h-px bg-border my-1" />
-              <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('move_to')}</div>
-              {(() => {
-                const renderMobileNodes = (nodes: MailboxNode[], depth = 0) => {
-                  return nodes.map((node) => {
-                    const Icon = getMoveMailboxIcon(node.role);
-                    const isTarget = moveTargetIds.has(node.id);
-                    return (
-                      <div key={node.id}>
-                        {isTarget ? (
-                          <button
-                            onClick={() => { onMoveToMailbox(node.id); setMoreMenuOpen(false); }}
-                            className="w-full px-4 py-2.5 min-h-[44px] text-sm text-left hover:bg-muted flex items-center gap-3"
-                            style={{ paddingLeft: `${1 + depth * 1}rem` }}
-                          >
-                            <Icon className="w-5 h-5 flex-shrink-0" />
-                            <span className="truncate">{node.name}</span>
-                          </button>
-                        ) : (
-                          <div
-                            className="px-4 py-2.5 min-h-[44px] text-sm flex items-center gap-3 text-muted-foreground"
-                            style={{ paddingLeft: `${1 + depth * 1}rem` }}
-                          >
-                            <Icon className="w-5 h-5 flex-shrink-0" />
-                            <span>{node.name}</span>
-                          </div>
-                        )}
-                        {node.children.length > 0 && renderMobileNodes(node.children, depth + 1)}
-                      </div>
-                    );
-                  });
-                };
-                return renderMobileNodes(moveTree);
-              })()}
-              <div className="h-px bg-border my-1" />
+              <button
+                onClick={() => { handleExportEmail(); setMoreMenuOpen(false); }}
+                className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
+              >
+                <Download className="w-5 h-5" />
+                {t('export_email')}
+              </button>
+              <button
+                onClick={() => { handleImportEmail(); setMoreMenuOpen(false); }}
+                className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
+              >
+                <Upload className="w-5 h-5" />
+                {t('import_email')}
+              </button>
+              {onShowShortcuts && (
+                <button
+                  onClick={() => { onShowShortcuts(); setMoreMenuOpen(false); }}
+                  className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
+                >
+                  <Keyboard className="w-5 h-5" />
+                  {t('keyboard_shortcuts')}
+                </button>
+              )}
             </>
           )}
-          {/* Tags */}
-          {colorOptions.length > 0 && (
+          {moreMenuSub === 'move' && moveTree.length > 0 && onMoveToMailbox && (() => {
+            const renderMobileNodes = (nodes: MailboxNode[], depth = 0) => {
+              return nodes.map((node) => {
+                const Icon = getMoveMailboxIcon(node.role);
+                const isTarget = moveTargetIds.has(node.id);
+                return (
+                  <div key={node.id}>
+                    {isTarget ? (
+                      <button
+                        onClick={() => { onMoveToMailbox(node.id); setMoreMenuOpen(false); setMoreMenuSub(null); }}
+                        className="w-full px-4 py-2.5 min-h-[44px] text-sm text-left hover:bg-muted flex items-center gap-3"
+                        style={{ paddingLeft: `${1 + depth * 1}rem` }}
+                      >
+                        <Icon className="w-5 h-5 flex-shrink-0" />
+                        <span className="truncate">{node.name}</span>
+                      </button>
+                    ) : (
+                      <div
+                        className="px-4 py-2.5 min-h-[44px] text-sm flex items-center gap-3 text-muted-foreground"
+                        style={{ paddingLeft: `${1 + depth * 1}rem` }}
+                      >
+                        <Icon className="w-5 h-5 flex-shrink-0" />
+                        <span>{node.name}</span>
+                      </div>
+                    )}
+                    {node.children.length > 0 && renderMobileNodes(node.children, depth + 1)}
+                  </div>
+                );
+              });
+            };
+            return renderMobileNodes(moveTree);
+          })()}
+          {moreMenuSub === 'tag' && colorOptions.length > 0 && (
             <>
-              <div className="h-px bg-border my-1" />
-              <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('tag')}</div>
               {colorOptions.map((option) => {
                 const isActive = currentColors.includes(option.value);
                 return (
                   <button
                     key={option.value}
-                    onClick={() => { if (email) onSetColorTag?.(email.id, option.value); setMoreMenuOpen(false); }}
+                    onClick={() => { if (email) onSetColorTag?.(email.id, option.value); setMoreMenuOpen(false); setMoreMenuSub(null); }}
                     className={cn(
                       "w-full px-4 py-2.5 min-h-[44px] text-sm text-left hover:bg-muted flex items-center gap-3",
                       isActive && "bg-accent font-medium"
@@ -3513,84 +3615,14 @@ export function EmailViewer({
               })}
               {currentColors.length > 0 && (
                 <button
-                  onClick={() => { if (email) onSetColorTag?.(email.id, null); setMoreMenuOpen(false); }}
+                  onClick={() => { if (email) onSetColorTag?.(email.id, null); setMoreMenuOpen(false); setMoreMenuSub(null); }}
                   className="w-full px-4 py-2.5 min-h-[44px] text-sm text-left hover:bg-muted flex items-center gap-3 text-muted-foreground"
                 >
                   <X className="w-4 h-4 flex-shrink-0" />
                   <span>{t('remove_color')}</span>
                 </button>
               )}
-              <div className="h-px bg-border my-1" />
             </>
-          )}
-          {/* Spam */}
-          {(onMarkAsSpam || onUndoSpam) && (
-            <button
-              onClick={() => { (isInJunkFolder ? onUndoSpam : onMarkAsSpam)?.(); setMoreMenuOpen(false); }}
-              className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
-            >
-              {isInJunkFolder ? (
-                <ShieldCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
-              ) : (
-                <ShieldAlert className="h-5 w-5 text-red-600 dark:text-red-400" />
-              )}
-              {isInJunkFolder ? t('spam.not_spam_title') : t('spam.button_title')}
-            </button>
-          )}
-          {/* Toggle read state */}
-          <button
-            onClick={() => { onMarkAsRead?.(email.id, isUnread); setMoreMenuOpen(false); }}
-            className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
-          >
-            {isUnread ? <MailOpen className="w-5 h-5" /> : <Mail className="w-5 h-5" />}
-            {isUnread ? t('mark_read') : t('mark_unread')}
-          </button>
-          <button
-            onClick={() => { handlePrint(); setMoreMenuOpen(false); }}
-            className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
-          >
-            <Printer className="w-5 h-5" />
-            {t('print')}
-          </button>
-          <button
-            onClick={() => { setShowSourceModal(true); setMoreMenuOpen(false); }}
-            className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
-          >
-            <Code className="w-5 h-5" />
-            {t('view_source')}
-          </button>
-          {effectiveEmailContent.isHtml && (
-            <button
-              onClick={() => { setEmailViewDarkOverride(prev => prev === null ? !(resolvedTheme === 'dark') : !prev); setMoreMenuOpen(false); }}
-              className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
-            >
-              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              {isDark ? 'View in light mode' : 'View in dark mode'}
-            </button>
-          )}
-          <div className="h-px bg-border my-1" />
-          <button
-            onClick={() => { handleExportEmail(); setMoreMenuOpen(false); }}
-            className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
-          >
-            <Download className="w-5 h-5" />
-            {t('export_email')}
-          </button>
-          <button
-            onClick={() => { handleImportEmail(); setMoreMenuOpen(false); }}
-            className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
-          >
-            <Upload className="w-5 h-5" />
-            {t('import_email')}
-          </button>
-          {onShowShortcuts && (
-            <button
-              onClick={() => { onShowShortcuts(); setMoreMenuOpen(false); }}
-              className="w-full px-4 py-3 min-h-[44px] text-sm text-left hover:bg-muted text-foreground flex items-center gap-3"
-            >
-              <Keyboard className="w-5 h-5" />
-              {t('keyboard_shortcuts')}
-            </button>
           )}
         </div>
       </div>

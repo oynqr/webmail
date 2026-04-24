@@ -1295,15 +1295,11 @@ export default function Home() {
   };
 
   // Handle back navigation from viewer on mobile.
-  // Delegate to the browser history stack so this button is equivalent to
-  // the OS back button / mouse back button - popstate then restores the
-  // previous snapshot via handleNavRestore. The viewer is only reachable
-  // from a state that pushed history, so back() always lands on an app entry.
+  // Reset to list state directly. We can't just call window.history.back()
+  // because the nav hook pushes a new entry for every email the user opens,
+  // so history.back() would pop to the previous email rather than the list.
+  // The OS / hardware back button is still wired through popstate → handleNavRestore.
   const handleMobileBack = () => {
-    if (typeof window !== 'undefined') {
-      window.history.back();
-      return;
-    }
     if (conversationThread) {
       setConversationThread(null);
       setConversationEmails([]);
@@ -1934,12 +1930,12 @@ export default function Home() {
                     onReply={handleReply}
                     onReplyAll={handleReplyAll}
                     onForward={handleForward}
-                    onDelete={handleDelete}
+                    onDelete={() => handleDelete()}
                     onArchive={() => handleArchive()}
                     onToggleStar={handleToggleStar}
                     onSetColorTag={handleSetColorTag}
-                    onMarkAsSpam={handleMarkAsSpam}
-                    onUndoSpam={handleUndoSpam}
+                    onMarkAsSpam={() => handleMarkAsSpam()}
+                    onUndoSpam={() => handleUndoSpam()}
                     onMarkAsRead={async (emailId, read) => {
                       if (client) {
                         await markAsRead(client, emailId, read);
