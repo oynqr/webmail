@@ -41,6 +41,14 @@ export interface PluginManifest {
    * so plugins can use api.i18n.t() without calling addTranslations() first.
    */
   locales?: Record<string, Record<string, string>>;
+  /**
+   * External origins this plugin may embed in iframes (e.g. for YouTube,
+   * Vimeo, Jitsi). Each entry is a single CSP origin like
+   *   "https://www.youtube-nocookie.com"
+   *   "https://*.example.com:8443"
+   * Validated at install time and merged into the host CSP `frame-src`.
+   */
+  frameOrigins?: string[];
 }
 
 export interface SettingFieldSchema {
@@ -101,6 +109,7 @@ export type SlotName =
   | 'email-banner'
   | 'email-footer'
   | 'composer-toolbar'
+  | 'composer-sidebar'
   | 'sidebar-widget'
   | 'email-detail-sidebar'
   | 'settings-section'
@@ -495,7 +504,8 @@ export const ALL_PERMISSIONS = [
   'auth:observe',
   'http:post',
   'ui:observe', 'ui:toolbar', 'ui:email-banner', 'ui:email-footer',
-  'ui:composer-toolbar', 'ui:sidebar-widget', 'ui:settings-section',
+  'ui:composer-toolbar', 'ui:composer-sidebar',
+  'ui:sidebar-widget', 'ui:settings-section',
   'ui:context-menu', 'ui:navigation-rail', 'ui:keyboard',
   'ui:calendar-action', 'ui:admin-page',
   'admin:config',

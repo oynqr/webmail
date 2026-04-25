@@ -1,10 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
+import { getEnabledPluginFrameOrigins } from "./lib/admin/csp-frame-origins";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const nonce = crypto.randomUUID();
   const isDev = process.env.NODE_ENV === "development";
 
@@ -16,6 +17,14 @@ export function proxy(request: NextRequest) {
 
   const frameAncestors = process.env.ALLOWED_FRAME_ANCESTORS?.trim() || "'none'";
 
+  // Plugins may declare iframe origins they need (e.g. for embedded video).
+  // Each origin is validated at install time and re-validated here.
+  const pluginFrameOrigins = await getEnabledPluginFrameOrigins();
+  const frameSrc =
+    pluginFrameOrigins.length > 0
+      ? `frame-src 'self' blob: ${pluginFrameOrigins.join(" ")}`
+      : `frame-src 'self' blob:`;
+
   const csp = [
     `default-src 'self'`,
     `script-src ${scriptSrc}`,
@@ -23,7 +32,7 @@ export function proxy(request: NextRequest) {
     `img-src 'self' data: blob: https:`,
     `font-src 'self'`,
     `connect-src ${connectSrc}`,
-    `frame-src 'self' blob:`,
+    frameSrc,
     `object-src 'none'`,
     `base-uri 'self'`,
     `form-action 'self'`,
@@ -81,4 +90,7 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: ["/((?!api|_next|.*\\..*).*)"],
+  // Read the plugin registry from disk to compute the dynamic frame-src
+  // allowlist. Edge runtime can't access the filesystem.
+  runtime: "nodejs",
 };

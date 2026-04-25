@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.2 (2026-04-25)
+
+### Features
+
+- **Plugins**: New `composer-sidebar` slot and `ui:composer-sidebar` permission — plugins can now render a panel on the left side of the New Message dialog. See `repos/subway-surfers` for an example
+- **Plugins**: Manifests can declare `frameOrigins` — a strictly-validated list of `https://host` origins the plugin needs to embed. The proxy reads the union from enabled plugins and merges it into the host CSP `frame-src`, so the host CSP no longer needs to know about specific embed providers
+
 ## 1.5.1 (2026-04-25)
 
 ### Features
