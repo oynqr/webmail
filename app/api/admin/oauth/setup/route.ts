@@ -73,8 +73,13 @@ function buildRedirectUris(origin: string, localeList: readonly string[]): Recor
 
 interface SetupRequestBody {
   origin?: string;
+  issuerUrl?: string;
   locales?: string[];
   oauthOnly?: boolean;
+}
+
+function isValidOriginUrl(value: string): boolean {
+  return /^https?:\/\/[^/]+$/.test(value);
 }
 
 export async function POST(request: NextRequest) {
@@ -93,9 +98,16 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json() as SetupRequestBody;
     const origin = (body.origin ?? '').trim().replace(/\/+$/, '');
-    if (!/^https?:\/\/[^/]+$/.test(origin)) {
+    if (!isValidOriginUrl(origin)) {
       return NextResponse.json(
-        { error: 'Origin must be a URL like "https://mail.example.com" with no path.' },
+        { error: 'Webmail origin must be a URL like "https://webmail.example.com" with no path.' },
+        { status: 400 },
+      );
+    }
+    const issuerUrl = (body.issuerUrl ?? origin).trim().replace(/\/+$/, '');
+    if (!isValidOriginUrl(issuerUrl)) {
+      return NextResponse.json(
+        { error: 'Stalwart issuer URL must be a URL like "https://mail.example.com" with no path.' },
         { status: 400 },
       );
     }
@@ -201,7 +213,7 @@ export async function POST(request: NextRequest) {
       oauthEnabled: true,
       oauthClientId: CLIENT_ID,
       oauthClientSecret: secret,
-      oauthIssuerUrl: origin,
+      oauthIssuerUrl: issuerUrl,
     };
     if (oauthOnly) updates.oauthOnly = true;
     await configManager.setAdminConfig(updates);
@@ -209,7 +221,8 @@ export async function POST(request: NextRequest) {
     await auditLog('admin.oauth_setup', {
       action,
       clientId: CLIENT_ID,
-      issuer: origin,
+      origin,
+      issuer: issuerUrl,
       redirectUriCount: localeList.length,
       oauthOnly,
     }, ip);
@@ -217,7 +230,8 @@ export async function POST(request: NextRequest) {
     logger.info('Admin OAuth setup', {
       action,
       clientId: CLIENT_ID,
-      issuer: origin,
+      origin,
+      issuer: issuerUrl,
       locales: localeList.length,
     });
 
@@ -225,7 +239,8 @@ export async function POST(request: NextRequest) {
       ok: true,
       action,
       clientId: CLIENT_ID,
-      issuerUrl: origin,
+      origin,
+      issuerUrl,
       redirectUriCount: localeList.length,
     });
   } catch (error) {
