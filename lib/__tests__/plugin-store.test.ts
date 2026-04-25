@@ -48,6 +48,7 @@ function resetStore() {
       'email-footer': [],
       'composer-toolbar': [],
       'composer-sidebar': [],
+      'composer-sidebar-right': [],
       'sidebar-widget': [],
       'email-detail-sidebar': [],
       'settings-section': [],

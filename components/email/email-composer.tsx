@@ -1105,6 +1105,7 @@ export function EmailComposer({
         name="composer-sidebar"
         className="hidden md:flex shrink-0 h-full overflow-hidden border-r border-border"
       />
+      {/* Right-side composer sidebar slot is rendered after the main content div below. */}
     <div
       className="flex flex-col h-full bg-background relative flex-1 min-w-0"
       data-tour="composer"
@@ -1679,6 +1680,10 @@ export function EmailComposer({
         </div>
       )}
     </div>
+      <PluginSlot
+        name="composer-sidebar-right"
+        className="hidden md:flex shrink-0 h-full overflow-hidden border-l border-border"
+      />
     </div>
   );
 }

@@ -612,7 +612,8 @@ export function createPluginAPI(plugin: InstalledPlugin): PluginAPI {
 
       registerComposerSidebar: (widget: SidebarWidget) => {
         requirePermission(plugin, 'ui:composer-sidebar');
-        return registerSlot(plugin.id, 'composer-sidebar', widget.render as React.ComponentType<Record<string, unknown>>, widget.order ?? 100);
+        const slot = widget.side === 'right' ? 'composer-sidebar-right' : 'composer-sidebar';
+        return registerSlot(plugin.id, slot, widget.render as React.ComponentType<Record<string, unknown>>, widget.order ?? 100);
       },
 
       registerDetailSidebar: (widget: SidebarWidget) => {

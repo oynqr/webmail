@@ -110,6 +110,7 @@ export type SlotName =
   | 'email-footer'
   | 'composer-toolbar'
   | 'composer-sidebar'
+  | 'composer-sidebar-right'
   | 'sidebar-widget'
   | 'email-detail-sidebar'
   | 'settings-section'
@@ -159,6 +160,12 @@ export interface SidebarWidget {
   label: string;
   render: React.ComponentType;
   order?: number;
+  /**
+   * For composer sidebars, choose which side of the New Message dialog the
+   * panel renders on. Defaults to `'left'` for backwards compatibility.
+   * Ignored by other sidebar slots.
+   */
+  side?: 'left' | 'right';
 }
 
 export interface ContextMenuItem {
