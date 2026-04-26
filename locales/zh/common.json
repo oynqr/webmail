@@ -1815,7 +1815,13 @@
       "renamed": "地址簿已重命名",
       "rename_failed": "重命名地址簿失败",
       "default": "默认",
-      "manage": "管理地址簿"
+      "manage": "管理地址簿",
+      "share": "共享通讯录",
+      "new_contact_in_book": "在此通讯录中新建联系人",
+      "delete": "删除通讯录",
+      "confirm_delete": "删除「{name}」？此通讯录中的所有联系人将被移除。",
+      "deleted": "通讯录已删除",
+      "delete_failed": "删除通讯录失败"
     },
     "detail": {
       "emails": "邮箱地址",
@@ -2340,7 +2346,9 @@
       "error_delete": "删除日历失败",
       "caldav_url": "CalDAV URL",
       "copy_url": "复制 CalDAV URL",
-      "url_copied": "CalDAV URL 已复制到剪贴板"
+      "url_copied": "CalDAV URL 已复制到剪贴板",
+      "share": "共享日历",
+      "new_event_in_calendar": "在此日历中新建事件"
     },
     "subscription": {
       "title": "iCal 订阅",
@@ -2706,5 +2714,28 @@
   },
   "unified_mailbox": {
     "search_unavailable": "统一视图中无法使用搜索"
+  },
+  "sharing": {
+    "title": "共享「{name}」",
+    "description": "向此服务器上的其他用户或群组授予访问权限。更改会立即生效。",
+    "no_shares": "尚未共享。",
+    "add_person": "添加用户或群组",
+    "search_placeholder": "按姓名或邮箱搜索…",
+    "loading_principals": "正在加载用户…",
+    "no_principals": "未找到其他用户或群组。",
+    "no_match": "无匹配项。",
+    "remove": "取消访问",
+    "group": "群组",
+    "share_added": "已授予访问权限",
+    "share_updated": "已更新访问权限",
+    "share_removed": "已取消访问权限",
+    "share_failed": "更新共享失败",
+    "preset": {
+      "freeBusy": "仅显示忙/闲",
+      "read": "只读",
+      "readWrite": "读写",
+      "manager": "管理员",
+      "custom": "自定义"
+    }
   }
 }

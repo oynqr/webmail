@@ -368,6 +368,7 @@ export interface AddressBook {
   isDefault?: boolean;
   isSubscribed?: boolean;
   myRights?: AddressBookRights;
+  shareWith?: Record<string, AddressBookRights> | null;
   accountId?: string;
   accountName?: string;
   isShared?: boolean;
@@ -376,8 +377,20 @@ export interface AddressBook {
 export interface AddressBookRights {
   mayRead: boolean;
   mayWrite: boolean;
-  mayShare: boolean;
+  mayShare?: boolean;
   mayDelete: boolean;
+}
+
+// JMAP Principals (RFC 9670)
+export interface Principal {
+  id: string;
+  type: 'individual' | 'group' | 'resource' | 'location' | 'other';
+  name: string;
+  description?: string | null;
+  email?: string | null;
+  timeZone?: string | null;
+  capabilities?: Record<string, unknown>;
+  accountId?: string;
 }
 
 export interface VacationResponse {
@@ -442,7 +455,7 @@ export interface CalendarRights {
   mayWriteOwn: boolean;
   mayUpdatePrivate: boolean;
   mayRSVP: boolean;
-  mayAdmin: boolean;
+  mayShare: boolean;
   mayDelete: boolean;
 }
 

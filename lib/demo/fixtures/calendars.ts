@@ -17,7 +17,7 @@ export function createDemoCalendars(): Calendar[] {
       defaultAlertsWithoutTime: null,
       timeZone: null,
       shareWith: null,
-      myRights: { mayReadFreeBusy: true, mayReadItems: true, mayWriteAll: true, mayWriteOwn: true, mayUpdatePrivate: true, mayRSVP: true, mayAdmin: true, mayDelete: false },
+      myRights: { mayReadFreeBusy: true, mayReadItems: true, mayWriteAll: true, mayWriteOwn: true, mayUpdatePrivate: true, mayRSVP: true, mayShare: true, mayDelete: false },
     },
     {
       id: 'demo-calendar-work',
@@ -33,7 +33,7 @@ export function createDemoCalendars(): Calendar[] {
       defaultAlertsWithoutTime: null,
       timeZone: null,
       shareWith: null,
-      myRights: { mayReadFreeBusy: true, mayReadItems: true, mayWriteAll: true, mayWriteOwn: true, mayUpdatePrivate: true, mayRSVP: true, mayAdmin: true, mayDelete: true },
+      myRights: { mayReadFreeBusy: true, mayReadItems: true, mayWriteAll: true, mayWriteOwn: true, mayUpdatePrivate: true, mayRSVP: true, mayShare: true, mayDelete: true },
     },
     {
       id: 'demo-calendar-birthdays',
@@ -49,7 +49,7 @@ export function createDemoCalendars(): Calendar[] {
       defaultAlertsWithoutTime: null,
       timeZone: null,
       shareWith: null,
-      myRights: { mayReadFreeBusy: true, mayReadItems: true, mayWriteAll: true, mayWriteOwn: true, mayUpdatePrivate: true, mayRSVP: true, mayAdmin: true, mayDelete: true },
+      myRights: { mayReadFreeBusy: true, mayReadItems: true, mayWriteAll: true, mayWriteOwn: true, mayUpdatePrivate: true, mayRSVP: true, mayShare: true, mayDelete: true },
     },
   ];
 }

@@ -47,7 +47,11 @@ import { getEventStartDate } from "@/lib/calendar-utils";
 import { useTaskStore } from "@/stores/task-store";
 import { useContactStore } from "@/stores/contact-store";
 import { cn } from "@/lib/utils";
-import type { CalendarEvent, CalendarParticipant } from "@/lib/jmap/types";
+import type { Calendar, CalendarEvent, CalendarParticipant, CalendarRights } from "@/lib/jmap/types";
+import { ShareCollectionDialog } from "@/components/settings/share-collection-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
+import { CreateCalendarModal } from "@/components/calendar/create-calendar-modal";
 import { getUserParticipantId } from "@/lib/calendar-participants";
 import { generateBirthdayEvents, createBirthdayCalendar, BIRTHDAY_CALENDAR_ID } from "@/lib/birthday-calendar";
 import { debug } from "@/lib/debug";
@@ -72,7 +76,8 @@ export default function CalendarPage() {
     calendars, events, selectedDate, viewMode, selectedCalendarIds,
     isLoading, isLoadingEvents, supportsCalendar, error,
     fetchCalendars, fetchEvents, createEvent, updateEvent, deleteEvent, rsvpEvent,
-    setSelectedDate, setViewMode, toggleCalendarVisibility, updateCalendar,
+    setSelectedDate, setViewMode, toggleCalendarVisibility, updateCalendar, shareCalendar,
+    removeCalendar, clearCalendarEvents,
     refreshAllSubscriptions, icalSubscriptions,
   } = useCalendarStore();
   const { firstDayOfWeek, timeFormat, showWeekNumbers, enableCalendarTasks, showTasksOnCalendar, calendarHoverPreview, showBirthdayCalendar, birthdayCalendarColor, updateSetting } = useSettingsStore();
@@ -91,6 +96,11 @@ export default function CalendarPage() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [editingSubscription, setEditingSubscription] = useState<string | null>(null);
+  const [sharingCalendarId, setSharingCalendarId] = useState<string | null>(null);
+  const [defaultCalendarIdForCreate, setDefaultCalendarIdForCreate] = useState<string | undefined>(undefined);
+  const [showCreateCalendar, setShowCreateCalendar] = useState(false);
+  const { dialogProps: confirmDialogProps, confirm: confirmAction } = useConfirmDialog();
+  const tMgmt = useTranslations("calendar.management");
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null);
   const [defaultModalDate, setDefaultModalDate] = useState<Date | undefined>();
   const [defaultModalEndDate, setDefaultModalEndDate] = useState<Date | undefined>();
@@ -1102,6 +1112,42 @@ export default function CalendarPage() {
                 }
                 updateCalendar(client, calendarId, { color });
               } : undefined}
+              onShareCalendar={client ? (cal) => setSharingCalendarId(cal.id) : undefined}
+              onCreateEvent={(cal: Calendar) => {
+                setDefaultCalendarIdForCreate(cal.id);
+                openCreateModal();
+              }}
+              onClearCalendar={client ? async (cal: Calendar) => {
+                const ok = await confirmAction({
+                  title: tMgmt("clear_events"),
+                  message: tMgmt("confirm_clear", { name: cal.name }),
+                  variant: "destructive",
+                  confirmText: tMgmt("clear_events"),
+                });
+                if (!ok) return;
+                try {
+                  const count = await clearCalendarEvents(client, cal.id);
+                  toast.success(tMgmt("events_cleared", { count }));
+                } catch {
+                  toast.error(tMgmt("error_clear"));
+                }
+              } : undefined}
+              onDeleteCalendar={client ? async (cal: Calendar) => {
+                const ok = await confirmAction({
+                  title: tMgmt("delete"),
+                  message: tMgmt("confirm_delete", { name: cal.name }),
+                  variant: "destructive",
+                  confirmText: tMgmt("delete"),
+                });
+                if (!ok) return;
+                try {
+                  await removeCalendar(client, cal.id);
+                  toast.success(tMgmt("calendar_deleted"));
+                } catch {
+                  toast.error(tMgmt("error_delete"));
+                }
+              } : undefined}
+              onCreateCalendar={client ? () => setShowCreateCalendar(true) : undefined}
               onSubscribe={() => setShowSubscriptionModal(true)}
               onEditSubscription={(subId) => setEditingSubscription(subId)}
               client={client}
@@ -1165,11 +1211,12 @@ export default function CalendarPage() {
                 calendars={calendars}
                 defaultDate={defaultModalDate}
                 defaultEndDate={defaultModalEndDate}
+                defaultCalendarId={defaultCalendarIdForCreate}
                 onSave={handleSaveEvent}
                 onDelete={handleDeleteEvent}
                 onDuplicate={handleDuplicateEvent}
                 onRsvp={handleRsvp}
-                onClose={() => { setShowEventModal(false); setEditEvent(null); setPendingPreview(null); }}
+                onClose={() => { setShowEventModal(false); setEditEvent(null); setPendingPreview(null); setDefaultCalendarIdForCreate(undefined); }}
                 onPreviewChange={setPendingPreview}
                 currentUserEmails={currentUserEmails}
                 isMobile={false}
@@ -1261,11 +1308,12 @@ export default function CalendarPage() {
           calendars={calendars}
           defaultDate={defaultModalDate}
           defaultEndDate={defaultModalEndDate}
+          defaultCalendarId={defaultCalendarIdForCreate}
           onSave={handleSaveEvent}
           onDelete={handleDeleteEvent}
           onDuplicate={handleDuplicateEvent}
           onRsvp={handleRsvp}
-          onClose={() => { setShowEventModal(false); setEditEvent(null); }}
+          onClose={() => { setShowEventModal(false); setEditEvent(null); setDefaultCalendarIdForCreate(undefined); }}
           currentUserEmails={currentUserEmails}
           isMobile={true}
         />
@@ -1305,6 +1353,33 @@ export default function CalendarPage() {
         onSelect={handleScopeSelect}
         onClose={() => setPendingScopeAction(null)}
       />
+
+      <ConfirmDialog {...confirmDialogProps} />
+
+      {showCreateCalendar && client && (
+        <CreateCalendarModal
+          client={client}
+          onClose={() => setShowCreateCalendar(false)}
+        />
+      )}
+
+      {sharingCalendarId && client && (() => {
+        const cal = allCalendars.find((c) => c.id === sharingCalendarId);
+        if (!cal) return null;
+        return (
+          <ShareCollectionDialog
+            client={client}
+            kind="calendar"
+            collectionName={cal.name}
+            shareWith={cal.shareWith}
+            ownAccountId={client.getAccountId()}
+            onShare={async (principalId, rights) => {
+              await shareCalendar(client, cal.id, principalId, rights as CalendarRights | null);
+            }}
+            onClose={() => setSharingCalendarId(null)}
+          />
+        );
+      })()}
     </div>
   );
 }

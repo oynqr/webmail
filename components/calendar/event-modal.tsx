@@ -35,6 +35,7 @@ interface EventModalProps {
   calendars: Calendar[];
   defaultDate?: Date;
   defaultEndDate?: Date;
+  defaultCalendarId?: string;
   onSave: (data: Partial<CalendarEvent>, sendSchedulingMessages?: boolean) => void | Promise<void>;
   onDelete?: (id: string, sendSchedulingMessages?: boolean) => void;
   onDuplicate?: (data: Partial<CalendarEvent>) => void;
@@ -113,6 +114,7 @@ export function EventModal({
   calendars,
   defaultDate,
   defaultEndDate,
+  defaultCalendarId,
   onSave,
   onDelete,
   onDuplicate,
@@ -200,6 +202,7 @@ export function EventModal({
   const [allDay, setAllDay] = useState(event?.showWithoutTime || false);
   const [calendarId, setCalendarId] = useState<string>(() => {
     if (event?.calendarIds) return getPrimaryCalendarId(event) || calendars[0]?.id || "";
+    if (defaultCalendarId && calendars.some(c => c.id === defaultCalendarId)) return defaultCalendarId;
     const defaultCal = calendars.find(c => c.isDefault);
     return defaultCal?.id || calendars[0]?.id || "";
   });

@@ -1815,7 +1815,13 @@
       "renamed": "주소록 이름이 변경되었습니다",
       "rename_failed": "주소록 이름 변경 실패",
       "default": "기본",
-      "manage": "주소록 관리"
+      "manage": "주소록 관리",
+      "share": "주소록 공유",
+      "new_contact_in_book": "이 주소록에 새 연락처",
+      "delete": "주소록 삭제",
+      "confirm_delete": "\"{name}\"을(를) 삭제하시겠습니까? 이 주소록의 모든 연락처가 삭제됩니다.",
+      "deleted": "주소록이 삭제되었습니다",
+      "delete_failed": "주소록 삭제에 실패했습니다"
     },
     "detail": {
       "emails": "이메일",
@@ -2340,7 +2346,9 @@
       "error_delete": "캘린더를 삭제하지 못했어요",
       "caldav_url": "CalDAV URL",
       "copy_url": "CalDAV URL 복사",
-      "url_copied": "CalDAV URL이 클립보드에 복사되었어요"
+      "url_copied": "CalDAV URL이 클립보드에 복사되었어요",
+      "share": "캘린더 공유",
+      "new_event_in_calendar": "이 캘린더에 새 일정"
     },
     "subscription": {
       "title": "iCal 구독",
@@ -2706,5 +2714,28 @@
   },
   "unified_mailbox": {
     "search_unavailable": "통합 보기에서는 검색을 사용할 수 없습니다"
+  },
+  "sharing": {
+    "title": "\"{name}\" 공유",
+    "description": "이 서버의 다른 사용자나 그룹에 액세스 권한을 부여합니다. 변경 사항은 즉시 적용됩니다.",
+    "no_shares": "아직 공유되지 않았습니다.",
+    "add_person": "사용자 또는 그룹 추가",
+    "search_placeholder": "이름 또는 이메일로 검색…",
+    "loading_principals": "사용자 불러오는 중…",
+    "no_principals": "다른 사용자나 그룹을 찾을 수 없습니다.",
+    "no_match": "일치하는 항목이 없습니다.",
+    "remove": "액세스 권한 제거",
+    "group": "그룹",
+    "share_added": "액세스 권한이 부여되었습니다",
+    "share_updated": "액세스 권한이 업데이트되었습니다",
+    "share_removed": "액세스 권한이 제거되었습니다",
+    "share_failed": "공유 업데이트에 실패했습니다",
+    "preset": {
+      "freeBusy": "한가함/바쁨만",
+      "read": "읽기 전용",
+      "readWrite": "읽기 및 쓰기",
+      "manager": "관리자",
+      "custom": "사용자 지정"
+    }
   }
 }

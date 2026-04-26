@@ -1815,7 +1815,13 @@
       "renamed": "Zmieniono nazwę książki adresowej",
       "rename_failed": "Nie udało się zmienić nazwy książki adresowej",
       "default": "Domyślna",
-      "manage": "Zarządzaj książkami adresowymi"
+      "manage": "Zarządzaj książkami adresowymi",
+      "share": "Udostępnij książkę adresową",
+      "new_contact_in_book": "Nowy kontakt w tej książce adresowej",
+      "delete": "Usuń książkę adresową",
+      "confirm_delete": "Usunąć „{name}\"? Wszystkie kontakty w tej książce adresowej zostaną usunięte.",
+      "deleted": "Książka adresowa usunięta",
+      "delete_failed": "Nie udało się usunąć książki adresowej"
     },
     "detail": {
       "emails": "Adresy e-mail",
@@ -2340,7 +2346,9 @@
       "error_delete": "Nie udało się usunąć kalendarza",
       "caldav_url": "Adres URL CalDAV",
       "copy_url": "Kopiuj adres URL CalDAV",
-      "url_copied": "Adres URL CalDAV skopiowano do schowka"
+      "url_copied": "Adres URL CalDAV skopiowano do schowka",
+      "share": "Udostępnij kalendarz",
+      "new_event_in_calendar": "Nowe wydarzenie w tym kalendarzu"
     },
     "subscription": {
       "title": "Subskrypcja iCal",
@@ -2706,5 +2714,28 @@
   },
   "unified_mailbox": {
     "search_unavailable": "Wyszukiwanie jest niedostępne w widoku ujednoliconym"
+  },
+  "sharing": {
+    "title": "Udostępnij „{name}\"",
+    "description": "Udziel dostępu innym użytkownikom lub grupom na tym serwerze. Zmiany są natychmiastowe.",
+    "no_shares": "Jeszcze nie udostępniono.",
+    "add_person": "Dodaj osobę lub grupę",
+    "search_placeholder": "Szukaj po imieniu lub e-mailu…",
+    "loading_principals": "Ładowanie użytkowników…",
+    "no_principals": "Nie znaleziono innych użytkowników ani grup.",
+    "no_match": "Brak wyników.",
+    "remove": "Usuń dostęp",
+    "group": "Grupa",
+    "share_added": "Dostęp przyznany",
+    "share_updated": "Dostęp zaktualizowany",
+    "share_removed": "Dostęp usunięty",
+    "share_failed": "Nie udało się zaktualizować udostępniania",
+    "preset": {
+      "freeBusy": "Tylko dostępność",
+      "read": "Tylko do odczytu",
+      "readWrite": "Odczyt i zapis",
+      "manager": "Menedżer",
+      "custom": "Niestandardowe"
+    }
   }
 }

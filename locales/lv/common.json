@@ -1811,7 +1811,13 @@
       "renamed": "Adrešu grāmata pārdēvēta",
       "rename_failed": "Neizdevās pārdēvēt adrešu grāmatu",
       "default": "Noklusējuma",
-      "manage": "Pārvaldīt adrešu grāmatas"
+      "manage": "Pārvaldīt adrešu grāmatas",
+      "share": "Kopīgot adrešu grāmatu",
+      "new_contact_in_book": "Jauns kontakts šajā adrešu grāmatā",
+      "delete": "Dzēst adrešu grāmatu",
+      "confirm_delete": "Dzēst \"{name}\"? Visi kontakti šajā adrešu grāmatā tiks noņemti.",
+      "deleted": "Adrešu grāmata dzēsta",
+      "delete_failed": "Neizdevās dzēst adrešu grāmatu"
     },
     "detail": {
       "emails": "E-pasta adreses",
@@ -2339,7 +2345,9 @@
       "error_delete": "Neizdevās izdzēst kalendāru",
       "caldav_url": "CalDAV URL",
       "copy_url": "Kopēt CalDAV URL",
-      "url_copied": "CalDAV URL nokopēts starpliktuvē"
+      "url_copied": "CalDAV URL nokopēts starpliktuvē",
+      "share": "Kopīgot kalendāru",
+      "new_event_in_calendar": "Jauns notikums šajā kalendārā"
     },
     "subscription": {
       "title": "iCal abonements",
@@ -2706,5 +2714,28 @@
   },
   "unified_mailbox": {
     "search_unavailable": "Meklēšana nav pieejama apvienotajā skatā"
+  },
+  "sharing": {
+    "title": "Kopīgot \"{name}\"",
+    "description": "Piešķiriet piekļuvi citiem lietotājiem vai grupām šajā serverī. Izmaiņas stājas spēkā nekavējoties.",
+    "no_shares": "Vēl nav kopīgots.",
+    "add_person": "Pievienot personu vai grupu",
+    "search_placeholder": "Meklēt pēc vārda vai e-pasta…",
+    "loading_principals": "Ielādē lietotājus…",
+    "no_principals": "Citi lietotāji vai grupas nav atrastas.",
+    "no_match": "Nav atbilstību.",
+    "remove": "Noņemt piekļuvi",
+    "group": "Grupa",
+    "share_added": "Piekļuve piešķirta",
+    "share_updated": "Piekļuve atjaunināta",
+    "share_removed": "Piekļuve noņemta",
+    "share_failed": "Neizdevās atjaunināt kopīgošanu",
+    "preset": {
+      "freeBusy": "Tikai brīvs/aizņemts",
+      "read": "Tikai lasīšana",
+      "readWrite": "Lasīšana un rakstīšana",
+      "manager": "Pārvaldnieks",
+      "custom": "Pielāgots"
+    }
   }
 }

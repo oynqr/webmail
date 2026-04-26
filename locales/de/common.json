@@ -1815,7 +1815,13 @@
       "renamed": "Adressbuch umbenannt",
       "rename_failed": "Adressbuch konnte nicht umbenannt werden",
       "default": "Standard",
-      "manage": "Adressbücher verwalten"
+      "manage": "Adressbücher verwalten",
+      "share": "Adressbuch freigeben",
+      "new_contact_in_book": "Neuer Kontakt in diesem Adressbuch",
+      "delete": "Adressbuch löschen",
+      "confirm_delete": "„{name}\" löschen? Alle Kontakte in diesem Adressbuch werden entfernt.",
+      "deleted": "Adressbuch gelöscht",
+      "delete_failed": "Adressbuch konnte nicht gelöscht werden"
     },
     "detail": {
       "emails": "E-Mail-Adressen",
@@ -2340,7 +2346,9 @@
       "confirm_clear": "Alle Ereignisse aus \"{name}\" löschen? Dies kann nicht rückgängig gemacht werden.",
       "clear_events": "Ereignisse löschen",
       "events_cleared": "{count} Ereignisse gelöscht",
-      "error_clear": "Kalenderereignisse konnten nicht gelöscht werden"
+      "error_clear": "Kalenderereignisse konnten nicht gelöscht werden",
+      "share": "Kalender freigeben",
+      "new_event_in_calendar": "Neuer Termin in diesem Kalender"
     },
     "subscription": {
       "title": "iCal-Abonnement",
@@ -2706,5 +2714,28 @@
   },
   "unified_mailbox": {
     "search_unavailable": "Die Suche ist in der vereinheitlichten Ansicht nicht verfügbar"
+  },
+  "sharing": {
+    "title": "„{name}\" freigeben",
+    "description": "Anderen Benutzern oder Gruppen auf diesem Server Zugriff gewähren. Änderungen werden sofort wirksam.",
+    "no_shares": "Noch nicht freigegeben.",
+    "add_person": "Person oder Gruppe hinzufügen",
+    "search_placeholder": "Nach Name oder E-Mail suchen…",
+    "loading_principals": "Benutzer werden geladen…",
+    "no_principals": "Keine weiteren Benutzer oder Gruppen gefunden.",
+    "no_match": "Keine Treffer.",
+    "remove": "Zugriff entfernen",
+    "group": "Gruppe",
+    "share_added": "Zugriff erteilt",
+    "share_updated": "Zugriff aktualisiert",
+    "share_removed": "Zugriff entfernt",
+    "share_failed": "Freigabe konnte nicht aktualisiert werden",
+    "preset": {
+      "freeBusy": "Nur Frei/Belegt",
+      "read": "Nur lesen",
+      "readWrite": "Lesen & schreiben",
+      "manager": "Verwalten",
+      "custom": "Benutzerdefiniert"
+    }
   }
 }

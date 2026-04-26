@@ -426,7 +426,7 @@
       "event_updated": "Aktualizace #{sequence}",
       "event_status_tentative": "Nezávazně",
       "event_status_cancelled": "Zrušeno",
-			"expand": "Zobrazit detaily",
+      "expand": "Zobrazit detaily",
       "collapse": "Skrýt detaily"
     },
     "send": "Odeslat",
@@ -675,7 +675,7 @@
       "encryption": "Šifrování",
       "sidebar_apps": "Aplikace postranního panelu",
       "notifications": "Oznámení",
-			"layout": "Vzhled",
+      "layout": "Vzhled",
       "reading": "Čtení",
       "composing": "Psaní",
       "content_senders": "Obsah a odesílatelé",
@@ -688,7 +688,7 @@
       "organization": "Organizace pošty",
       "apps": "Aplikace",
       "system": "Systém",
-			"appearance": "Vzhled",
+      "appearance": "Vzhled",
       "mail": "Pošta",
       "privacy": "Soukromí a zabezpečení",
       "advanced": "Pokročilé"
@@ -1094,7 +1094,7 @@
         "enable_error": "Nepodařilo se zapnout 2FA",
         "disable_error": "Nepodařilo se vypnout 2FA",
         "setup_instructions": "Zkopírujte tuto URL adresu do své ověřovací aplikace (Google Authenticator, Authy atd.):",
-				"verification_code": "Ověřovací kód",
+        "verification_code": "Ověřovací kód",
         "confirm": "Potvrdit",
         "disable": "Vypnout",
         "disable_confirm_prompt": "Pro vypnutí dvoufázového ověření zadejte heslo.",
@@ -1327,7 +1327,7 @@
     "contacts": {
       "title": "Kontakty",
       "description": "Import a export kontaktů",
-			"group_by_letter_label": "Seskupit podle prvního písmene",
+      "group_by_letter_label": "Seskupit podle prvního písmene",
       "group_by_letter_description": "Zobrazovat abecední nadpisy v seznamu kontaktů",
       "import_label": "Importovat kontakty",
       "import_description": "Importovat kontakty ze souboru vCard (.vcf)",
@@ -1595,7 +1595,7 @@
     "items_selected": "{count} vybraných zpráv",
     "edit_draft": "Upravit koncept"
   },
-	"mailbox_context_menu": {
+  "mailbox_context_menu": {
     "mark_folder_read": "Označit složku jako přečtenou",
     "mark_folder_tree_read": "Označit složku a podsložky jako přečtené",
     "mark_all_folders_read": "Označit všechny složky jako přečtené",
@@ -1613,10 +1613,10 @@
     "prompt_new_subfolder": "Zadejte název nové podsložky.",
     "prompt_new_folder": "Zadejte název nové složky.",
     "prompt_rename": "Zadejte nový název této složky.",
-		"placeholder_folder_name": "Název složky",
+    "placeholder_folder_name": "Název složky",
     "create": "Vytvořit",
-		"rename_confirm": "Přejmenovat",
-		"toast_marked_read": "Složka označena jako přečtená",
+    "rename_confirm": "Přejmenovat",
+    "toast_marked_read": "Složka označena jako přečtená",
     "toast_marked_read_count": "{count, plural, one {1 zpráva označena jako přečtená} few {# zprávy označeny jako přečtené} other {# zpráv označeno jako přečtených}}",
     "toast_already_read": "Žádné nepřečtené zprávy",
     "toast_marked_all_read": "Všechny složky označeny jako přečtené",
@@ -1820,7 +1820,13 @@
       "renamed": "Adresář byl přejmenován",
       "rename_failed": "Přejmenování adresáře selhalo",
       "default": "Výchozí",
-      "manage": "Spravovat adresáře"
+      "manage": "Spravovat adresáře",
+      "share": "Sdílet adresář",
+      "new_contact_in_book": "Nový kontakt v tomto adresáři",
+      "delete": "Smazat adresář",
+      "confirm_delete": "Smazat „{name}\"? Všechny kontakty v tomto adresáři budou odstraněny.",
+      "deleted": "Adresář smazán",
+      "delete_failed": "Adresář se nepodařilo smazat"
     },
     "detail": {
       "emails": "E-mailové adresy",
@@ -1995,7 +2001,7 @@
       "email_error_inline": "Neplatný formát e-mailové adresy",
       "save_failed": "Uložení kontaktu selhalo",
       "delete": "Odstranit",
-			"upload_photo": "Nahrát fotku",
+      "upload_photo": "Nahrát fotku",
       "remove_photo": "Odebrat fotku",
       "photo_hint": "JPG nebo PNG, max. 10 MB. Velikost se upraví.",
       "photo_too_large": "Obrázek je moc velký (max. 10 MB)",
@@ -2091,7 +2097,7 @@
       "has_email": "Má e-mail",
       "has_phone": "Má telefon",
       "has_photo": "Má fotku"
-		}
+    }
   },
   "calendar": {
     "title": "Kalendář",
@@ -2345,7 +2351,9 @@
       "error_delete": "Odstranění kalendáře selhalo",
       "caldav_url": "URL CalDAV",
       "copy_url": "Kopírovat URL CalDAV",
-      "url_copied": "URL CalDAV zkopírováno do schránky"
+      "url_copied": "URL CalDAV zkopírováno do schránky",
+      "share": "Sdílet kalendář",
+      "new_event_in_calendar": "Nová událost v tomto kalendáři"
     },
     "subscription": {
       "title": "Odběr iCal",
@@ -2711,5 +2719,28 @@
   },
   "unified_mailbox": {
     "search_unavailable": "Vyhledávání není ve sjednoceném zobrazení k dispozici"
+  },
+  "sharing": {
+    "title": "Sdílet „{name}\"",
+    "description": "Udělte přístup dalším uživatelům nebo skupinám na tomto serveru. Změny se projeví okamžitě.",
+    "no_shares": "Zatím nikomu nesdíleno.",
+    "add_person": "Přidat osobu nebo skupinu",
+    "search_placeholder": "Hledat podle jména nebo e-mailu…",
+    "loading_principals": "Načítání uživatelů…",
+    "no_principals": "Nenalezeni žádní další uživatelé ani skupiny.",
+    "no_match": "Žádné výsledky.",
+    "remove": "Odebrat přístup",
+    "group": "Skupina",
+    "share_added": "Přístup udělen",
+    "share_updated": "Přístup aktualizován",
+    "share_removed": "Přístup odebrán",
+    "share_failed": "Aktualizace sdílení selhala",
+    "preset": {
+      "freeBusy": "Pouze volno/zaneprázdněno",
+      "read": "Pouze čtení",
+      "readWrite": "Čtení a zápis",
+      "manager": "Správce",
+      "custom": "Vlastní"
+    }
   }
 }

@@ -1815,7 +1815,13 @@
       "renamed": "Carnet d'adresses renommé",
       "rename_failed": "Échec du renommage du carnet d'adresses",
       "default": "Par défaut",
-      "manage": "Gérer les carnets d'adresses"
+      "manage": "Gérer les carnets d'adresses",
+      "share": "Partager le carnet d'adresses",
+      "new_contact_in_book": "Nouveau contact dans ce carnet d'adresses",
+      "delete": "Supprimer le carnet d'adresses",
+      "confirm_delete": "Supprimer « {name} » ? Tous les contacts de ce carnet d'adresses seront supprimés.",
+      "deleted": "Carnet d'adresses supprimé",
+      "delete_failed": "Échec de la suppression du carnet d'adresses"
     },
     "detail": {
       "emails": "Adresses e-mail",
@@ -2340,7 +2346,9 @@
       "confirm_clear": "Supprimer tous les événements de \"{name}\" ? Cette action est irréversible.",
       "clear_events": "Supprimer les événements",
       "events_cleared": "{count} événements supprimés",
-      "error_clear": "Impossible de supprimer les événements du calendrier"
+      "error_clear": "Impossible de supprimer les événements du calendrier",
+      "share": "Partager le calendrier",
+      "new_event_in_calendar": "Nouvel événement dans ce calendrier"
     },
     "subscription": {
       "title": "Abonnement iCal",
@@ -2706,5 +2714,28 @@
   },
   "unified_mailbox": {
     "search_unavailable": "La recherche n'est pas disponible dans la vue unifiée"
+  },
+  "sharing": {
+    "title": "Partager « {name} »",
+    "description": "Accordez l'accès à d'autres utilisateurs ou groupes de ce serveur. Les modifications sont immédiates.",
+    "no_shares": "Pas encore partagé.",
+    "add_person": "Ajouter une personne ou un groupe",
+    "search_placeholder": "Rechercher par nom ou e-mail…",
+    "loading_principals": "Chargement des utilisateurs…",
+    "no_principals": "Aucun autre utilisateur ou groupe trouvé.",
+    "no_match": "Aucun résultat.",
+    "remove": "Révoquer l'accès",
+    "group": "Groupe",
+    "share_added": "Accès accordé",
+    "share_updated": "Accès mis à jour",
+    "share_removed": "Accès révoqué",
+    "share_failed": "Échec de la mise à jour du partage",
+    "preset": {
+      "freeBusy": "Disponibilité uniquement",
+      "read": "Lecture seule",
+      "readWrite": "Lecture & écriture",
+      "manager": "Gestionnaire",
+      "custom": "Personnalisé"
+    }
   }
 }

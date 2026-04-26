@@ -1,4 +1,4 @@
-import type { Email, Mailbox, StateChange, AccountStates, Thread, Identity, EmailAddress, ContactCard, AddressBook, VacationResponse, Calendar, CalendarEvent, CalendarEventFilter, CalendarTask, FileNode, FileNodeFilter } from "./types";
+import type { Email, Mailbox, StateChange, AccountStates, Thread, Identity, EmailAddress, ContactCard, AddressBook, AddressBookRights, VacationResponse, Calendar, CalendarRights, CalendarEvent, CalendarEventFilter, CalendarTask, FileNode, FileNodeFilter, Principal } from "./types";
 import type { SieveScript, SieveCapabilities } from "./sieve-types";
 import type { IJMAPClient } from "./client-interface";
 import { toWildcardQuery } from "./search-utils";
@@ -2826,6 +2826,10 @@ export class JMAPClient implements IJMAPClient {
     return this.hasCapability("urn:ietf:params:jmap:sieve");
   }
 
+  supportsPrincipals(): boolean {
+    return this.hasCapability("urn:ietf:params:jmap:principals");
+  }
+
   getSieveAccountId(): string {
     const sieveAccount = this.session?.primaryAccounts?.["urn:ietf:params:jmap:sieve"];
     return sieveAccount || this.accountId;
@@ -3196,6 +3200,102 @@ export class JMAPClient implements IJMAPClient {
       return;
     }
     throw new Error("Failed to update address book");
+  }
+
+  async deleteAddressBook(addressBookId: string, targetAccountId?: string): Promise<void> {
+    const accountId = targetAccountId || this.getContactsAccountId();
+    const response = await this.request([
+      ["AddressBook/set", { accountId, destroy: [addressBookId] }, "0"],
+    ], this.contactUsing());
+
+    const result = response.methodResponses?.[0]?.[1];
+    if (result?.notDestroyed?.[addressBookId]) {
+      const err = result.notDestroyed[addressBookId];
+      throw new Error(err.description || "Failed to delete address book");
+    }
+  }
+
+  // ── Sharing (RFC 9670) ──────────────────────────────────────────────────────
+
+  private principalsUsing(): string[] {
+    return ["urn:ietf:params:jmap:core", "urn:ietf:params:jmap:principals"];
+  }
+
+  /**
+   * List all principals visible to the user (RFC 9670). Stalwart returns the
+   * full directory regardless of `filter`, so we fetch the whole list and let
+   * callers filter client-side.
+   */
+  async getPrincipals(targetAccountId?: string): Promise<Principal[]> {
+    if (!this.supportsPrincipals()) return [];
+    const accountId = targetAccountId || this.accountId;
+    try {
+      const response = await this.request([
+        ["Principal/query", { accountId }, "0"],
+        ["Principal/get", {
+          accountId,
+          "#ids": { resultOf: "0", name: "Principal/query", path: "/ids" },
+        }, "1"],
+      ], this.principalsUsing());
+
+      const getResp = response.methodResponses?.find((r) => r[0] === "Principal/get");
+      if (!getResp) return [];
+      const list = (getResp[1].list || []) as Principal[];
+      return list.map((p) => ({ ...p, accountId }));
+    } catch (error) {
+      console.error("Failed to fetch principals:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Add, update, or remove a principal's rights on a calendar.
+   * Pass `rights: null` to revoke access.
+   */
+  async setCalendarShare(
+    calendarId: string,
+    principalId: string,
+    rights: CalendarRights | null,
+    targetAccountId?: string,
+  ): Promise<void> {
+    const accountId = targetAccountId || this.getCalendarsAccountId();
+    const response = await this.request([
+      ["Calendar/set", {
+        accountId,
+        update: { [calendarId]: { [`shareWith/${principalId}`]: rights } },
+      }, "0"],
+    ], this.calendarUsing());
+
+    const result = response.methodResponses?.[0]?.[1];
+    if (result?.notUpdated?.[calendarId]) {
+      const err = result.notUpdated[calendarId];
+      throw new Error(err.description || "Failed to update calendar share");
+    }
+  }
+
+  /**
+   * Add, update, or remove a principal's rights on an address book.
+   * Pass `rights: null` to revoke access.
+   */
+  async setAddressBookShare(
+    addressBookId: string,
+    principalId: string,
+    rights: AddressBookRights | null,
+    targetAccountId?: string,
+  ): Promise<void> {
+    const accountId = targetAccountId || this.getContactsAccountId();
+    const response = await this.request([
+      ["AddressBook/set", {
+        accountId,
+        update: { [addressBookId]: { [`shareWith/${principalId}`]: rights } },
+      }, "0"],
+    ], this.contactUsing());
+
+    const result = response.methodResponses?.[0]?.[1];
+    if (result?.notUpdated?.[addressBookId]) {
+      const err = result.notUpdated[addressBookId];
+      throw new Error(err.description || "Failed to update address book share");
+    }
   }
 
   private async fetchPaginatedContacts(

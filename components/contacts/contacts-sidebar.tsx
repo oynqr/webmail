@@ -27,6 +27,9 @@ interface ContactsSidebarProps {
   onDropContacts?: (contactIds: string[], addressBook: AddressBook) => void;
   onDropContactsToCategory?: (contactIds: string[], keyword: string) => void;
   onRenameAddressBook?: (addressBook: AddressBook) => void;
+  onShareAddressBook?: (addressBook: AddressBook) => void;
+  onCreateContactInBook?: (addressBook: AddressBook) => void;
+  onDeleteAddressBook?: (addressBook: AddressBook) => void;
   onRenameKeyword?: (keyword: string) => void;
   className?: string;
 }
@@ -62,6 +65,9 @@ export function ContactsSidebar({
   onDropContacts,
   onDropContactsToCategory,
   onRenameAddressBook,
+  onShareAddressBook,
+  onCreateContactInBook,
+  onDeleteAddressBook,
   onRenameKeyword,
   className,
 }: ContactsSidebarProps) {
@@ -288,7 +294,7 @@ export function ContactsSidebar({
                 contactCount={contactCountByBook[book.id] || 0}
                 onSelect={() => onSelectCategory({ addressBookId: book.id })}
                 onDropContacts={onDropContacts}
-                onContextMenu={onRenameAddressBook ? (e) => openBookContextMenu(e, book) : undefined}
+                onContextMenu={(onRenameAddressBook || onShareAddressBook || onCreateContactInBook || onDeleteAddressBook) ? (e) => openBookContextMenu(e, book) : undefined}
               />
             ))}
           </div>
@@ -430,7 +436,7 @@ export function ContactsSidebar({
                 contactCount={contactCountByBook[book.id] || 0}
                 onSelect={() => onSelectCategory({ addressBookId: book.id })}
                 onDropContacts={onDropContacts}
-                onContextMenu={onRenameAddressBook ? (e) => openBookContextMenu(e, book) : undefined}
+                onContextMenu={(onRenameAddressBook || onShareAddressBook || onCreateContactInBook || onDeleteAddressBook) ? (e) => openBookContextMenu(e, book) : undefined}
               />
             ))}
           </div>
@@ -438,24 +444,65 @@ export function ContactsSidebar({
       </div>
 
       {/* Address book context menu */}
-      {bookContextMenu.data && onRenameAddressBook && (
-        <ContextMenu
-          ref={bookMenuRef}
-          isOpen={bookContextMenu.isOpen}
-          position={bookContextMenu.position}
-          onClose={closeBookContextMenu}
-        >
-          <ContextMenuItem
-            icon={Pencil}
-            label={t("address_books.rename")}
-            onClick={() => {
-              const book = bookContextMenu.data!;
-              closeBookContextMenu();
-              onRenameAddressBook(book);
-            }}
-          />
-        </ContextMenu>
-      )}
+      {bookContextMenu.data && (onRenameAddressBook || onShareAddressBook || onCreateContactInBook || onDeleteAddressBook) && (() => {
+        const book = bookContextMenu.data;
+        const canCreate = onCreateContactInBook && book.myRights?.mayWrite !== false;
+        const canRename = onRenameAddressBook && book.myRights?.mayWrite !== false;
+        const canShare = onShareAddressBook && book.myRights?.mayShare && !book.isShared;
+        const canDelete = onDeleteAddressBook && !book.isDefault && !book.isShared && book.myRights?.mayDelete !== false;
+        const showSeparator = (canCreate || canRename || canShare) && canDelete;
+        return (
+          <ContextMenu
+            ref={bookMenuRef}
+            isOpen={bookContextMenu.isOpen}
+            position={bookContextMenu.position}
+            onClose={closeBookContextMenu}
+          >
+            {canCreate && (
+              <ContextMenuItem
+                icon={UserPlus}
+                label={t("address_books.new_contact_in_book")}
+                onClick={() => {
+                  closeBookContextMenu();
+                  onCreateContactInBook(book);
+                }}
+              />
+            )}
+            {canRename && (
+              <ContextMenuItem
+                icon={Pencil}
+                label={t("address_books.rename")}
+                onClick={() => {
+                  closeBookContextMenu();
+                  onRenameAddressBook(book);
+                }}
+              />
+            )}
+            {canShare && (
+              <ContextMenuItem
+                icon={Users}
+                label={t("address_books.share")}
+                onClick={() => {
+                  closeBookContextMenu();
+                  onShareAddressBook(book);
+                }}
+              />
+            )}
+            {showSeparator && <ContextMenuSeparator />}
+            {canDelete && (
+              <ContextMenuItem
+                icon={Trash2}
+                label={t("address_books.delete")}
+                onClick={() => {
+                  closeBookContextMenu();
+                  onDeleteAddressBook(book);
+                }}
+                destructive
+              />
+            )}
+          </ContextMenu>
+        );
+      })()}
 
       {/* Keyword (category) context menu */}
       {keywordContextMenu.data && onRenameKeyword && (

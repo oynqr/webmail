@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Globe, ListTodo, Pencil, RefreshCw, Share2, Trash2, Cake } from "lucide-react";
+import { Globe, ListTodo, Pencil, RefreshCw, Share2, Trash2, Cake, Users, Plus, Eraser, Palette } from "lucide-react";
 import { cn, formatDateTime } from "@/lib/utils";
 import type { Calendar } from "@/lib/jmap/types";
 import { CalendarColorPicker } from "@/components/settings/calendar-management-settings";
@@ -11,6 +11,8 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { useTaskStore } from "@/stores/task-store";
 import { BIRTHDAY_CALENDAR_ID } from "@/lib/birthday-calendar";
 import { toast } from "@/stores/toast-store";
+import { ContextMenu, ContextMenuItem, ContextMenuSeparator, ContextMenuSubMenu } from "@/components/ui/context-menu";
+import { useContextMenu } from "@/hooks/use-context-menu";
 import type { IJMAPClient } from '@/lib/jmap/client-interface';
 
 interface CalendarSidebarPanelProps {
@@ -18,6 +20,11 @@ interface CalendarSidebarPanelProps {
   selectedCalendarIds: string[];
   onToggleVisibility: (id: string) => void;
   onColorChange?: (calendarId: string, color: string) => void;
+  onShareCalendar?: (calendar: Calendar) => void;
+  onCreateEvent?: (calendar: Calendar) => void;
+  onClearCalendar?: (calendar: Calendar) => void;
+  onDeleteCalendar?: (calendar: Calendar) => void;
+  onCreateCalendar?: () => void;
   onSubscribe?: () => void;
   onEditSubscription?: (subscriptionId: string) => void;
   client?: IJMAPClient | null;
@@ -28,12 +35,18 @@ export function CalendarSidebarPanel({
   selectedCalendarIds,
   onToggleVisibility,
   onColorChange,
+  onShareCalendar,
+  onCreateEvent,
+  onClearCalendar,
+  onDeleteCalendar,
+  onCreateCalendar,
   onSubscribe,
   onEditSubscription,
   client,
 }: CalendarSidebarPanelProps) {
   const t = useTranslations("calendar");
   const tSub = useTranslations("calendar.subscription");
+  const tMgmt = useTranslations("calendar.management");
   const isSubscriptionCalendar = useCalendarStore((s) => s.isSubscriptionCalendar);
   const icalSubscriptions = useCalendarStore((s) => s.icalSubscriptions);
   const refreshICalSubscription = useCalendarStore((s) => s.refreshICalSubscription);
@@ -49,11 +62,8 @@ export function CalendarSidebarPanel({
     return tasks.filter(t => t.progress !== 'completed' && t.progress !== 'cancelled' && t.due && new Date(t.due) < now).length;
   }, [tasks]);
 
-  const [colorPickerId, setColorPickerId] = useState<string | null>(null);
-  const [contextMenuCalId, setContextMenuCalId] = useState<string | null>(null);
+  const { contextMenu, openContextMenu, closeContextMenu, menuRef } = useContextMenu<Calendar>();
   const [refreshingSubId, setRefreshingSubId] = useState<string | null>(null);
-  const colorPickerRef = useRef<HTMLDivElement>(null);
-  const contextMenuRef = useRef<HTMLDivElement>(null);
 
   const personalCalendars = useMemo(() => calendars.filter(c => !c.isShared), [calendars]);
   const sharedAccountGroups = useMemo(() => {
@@ -69,30 +79,6 @@ export function CalendarSidebarPanel({
     return Array.from(groups.values());
   }, [calendars]);
 
-  useEffect(() => {
-    if (!colorPickerId && !contextMenuCalId) return;
-    const handleClick = (e: MouseEvent) => {
-      if (colorPickerRef.current && !colorPickerRef.current.contains(e.target as Node)) {
-        setColorPickerId(null);
-      }
-      if (contextMenuRef.current && !contextMenuRef.current.contains(e.target as Node)) {
-        setContextMenuCalId(null);
-      }
-    };
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setColorPickerId(null);
-        setContextMenuCalId(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    document.addEventListener('keydown', handleKey);
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-      document.removeEventListener('keydown', handleKey);
-    };
-  }, [colorPickerId, contextMenuCalId]);
-
   const getSubscriptionForCalendar = (calendarId: string) => {
     return icalSubscriptions.find(s => s.calendarId === calendarId);
   };
@@ -100,7 +86,6 @@ export function CalendarSidebarPanel({
   const handleRefreshSubscription = async (subId: string) => {
     if (!client) return;
     setRefreshingSubId(subId);
-    setContextMenuCalId(null);
     try {
       await refreshICalSubscription(client, subId);
       toast.success(tSub('refresh_success'));
@@ -113,7 +98,6 @@ export function CalendarSidebarPanel({
 
   const handleUnsubscribe = async (subId: string) => {
     if (!client) return;
-    setContextMenuCalId(null);
     try {
       await removeICalSubscription(client, subId);
       toast.success(tSub('deleted'));
@@ -127,21 +111,13 @@ export function CalendarSidebarPanel({
   const renderCalendarItem = (cal: Calendar) => {
     const isVisible = selectedCalendarIds.includes(cal.id);
     const color = cal.color || "#3b82f6";
+    const hasMenu = isSubscriptionCalendar(cal.id) ? !!client : true;
 
     return (
       <div key={cal.id} className="relative">
         <button
           onClick={() => onToggleVisibility(cal.id)}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            if (isSubscriptionCalendar(cal.id) && client) {
-              setContextMenuCalId(contextMenuCalId === cal.id ? null : cal.id);
-              setColorPickerId(null);
-            } else if (onColorChange) {
-              setColorPickerId(colorPickerId === cal.id ? null : cal.id);
-              setContextMenuCalId(null);
-            }
-          }}
+          onContextMenu={hasMenu ? (e) => openContextMenu(e, cal) : undefined}
           className={cn(
             "flex items-center gap-2 w-full px-1.5 py-1 rounded-md text-sm transition-colors duration-150",
             "hover:bg-muted"
@@ -169,67 +145,98 @@ export function CalendarSidebarPanel({
             <Cake className="w-3 h-3 text-muted-foreground flex-shrink-0" />
           )}
         </button>
-
-        {/* Subscription context menu on right-click */}
-        {contextMenuCalId === cal.id && isSubscriptionCalendar(cal.id) && client && (() => {
-          const sub = getSubscriptionForCalendar(cal.id);
-          if (!sub) return null;
-          return (
-            <div
-              ref={contextMenuRef}
-              className="absolute left-6 top-full mt-1 z-50 bg-background border border-border rounded-lg shadow-lg py-1 w-48"
-            >
-              <button
-                onClick={() => {
-                  setContextMenuCalId(null);
-                  onEditSubscription?.(sub.id);
-                }}
-                className="flex items-center gap-2 w-full px-3 py-1.5 text-sm hover:bg-muted transition-colors"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-                {tSub('edit')}
-              </button>
-              <button
-                onClick={() => handleRefreshSubscription(sub.id)}
-                className="flex items-center gap-2 w-full px-3 py-1.5 text-sm hover:bg-muted transition-colors"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                {tSub('refresh')}
-              </button>
-              <button
-                onClick={() => handleUnsubscribe(sub.id)}
-                className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                {tSub('unsubscribe')}
-              </button>
-              {sub.lastRefreshed && (
-                <div className="px-3 py-1.5 text-xs text-muted-foreground border-t border-border mt-1 pt-1">
-                  {tSub('last_refreshed', { time: formatDateTime(sub.lastRefreshed, timeFormat, { month: 'short', day: 'numeric', year: 'numeric' }) })}
-                </div>
-              )}
-            </div>
-          );
-        })()}
-
-        {/* Color picker popover on right-click */}
-        {colorPickerId === cal.id && onColorChange && (
-          <div
-            ref={colorPickerRef}
-            className="absolute left-6 top-full mt-1 z-50 bg-background border border-border rounded-lg shadow-lg p-3 w-56"
-          >
-            <p className="text-xs font-medium text-muted-foreground mb-2">{t("management.change_color")}</p>
-            <CalendarColorPicker
-              value={color}
-              onChange={(c) => {
-                onColorChange(cal.id, c);
-                setColorPickerId(null);
-              }}
-              allowCustom
-            />
-          </div>
-        )}
       </div>
+    );
+  };
+
+  const renderCalendarMenu = () => {
+    const cal = contextMenu.data;
+    if (!cal) return null;
+
+    if (isSubscriptionCalendar(cal.id)) {
+      const sub = getSubscriptionForCalendar(cal.id);
+      if (!sub || !client) return null;
+      return (
+        <ContextMenu ref={menuRef} isOpen={contextMenu.isOpen} position={contextMenu.position} onClose={closeContextMenu}>
+          <ContextMenuItem
+            icon={Pencil}
+            label={tSub('edit')}
+            onClick={() => { closeContextMenu(); onEditSubscription?.(sub.id); }}
+          />
+          <ContextMenuItem
+            icon={RefreshCw}
+            label={tSub('refresh')}
+            onClick={() => { closeContextMenu(); handleRefreshSubscription(sub.id); }}
+          />
+          <ContextMenuSeparator />
+          <ContextMenuItem
+            icon={Trash2}
+            label={tSub('unsubscribe')}
+            onClick={() => { closeContextMenu(); handleUnsubscribe(sub.id); }}
+            destructive
+          />
+          {sub.lastRefreshed && (
+            <div className="px-3 py-1.5 text-xs text-muted-foreground border-t border-border mt-1 pt-1">
+              {tSub('last_refreshed', { time: formatDateTime(sub.lastRefreshed, timeFormat, { month: 'short', day: 'numeric', year: 'numeric' }) })}
+            </div>
+          )}
+        </ContextMenu>
+      );
+    }
+
+    const isBirthday = cal.id === BIRTHDAY_CALENDAR_ID;
+    const canCreate = onCreateEvent && !isBirthday && cal.myRights?.mayWriteOwn !== false;
+    const canShare = onShareCalendar && cal.myRights?.mayShare && !cal.isShared;
+    const canChangeColor = !!onColorChange;
+    const canClear = onClearCalendar && !isBirthday && cal.myRights?.mayDelete !== false;
+    const canDelete = onDeleteCalendar && !isBirthday && !cal.isDefault && !cal.isShared;
+    const showSeparator = (canCreate || canShare || canChangeColor) && (canClear || canDelete);
+    const color = cal.color || "#3b82f6";
+
+    return (
+      <ContextMenu ref={menuRef} isOpen={contextMenu.isOpen} position={contextMenu.position} onClose={closeContextMenu}>
+        {canCreate && (
+          <ContextMenuItem
+            icon={Plus}
+            label={tMgmt('new_event_in_calendar')}
+            onClick={() => { closeContextMenu(); onCreateEvent(cal); }}
+          />
+        )}
+        {canShare && (
+          <ContextMenuItem
+            icon={Users}
+            label={tMgmt('share')}
+            onClick={() => { closeContextMenu(); onShareCalendar(cal); }}
+          />
+        )}
+        {canChangeColor && (
+          <ContextMenuSubMenu icon={Palette} label={tMgmt('change_color')}>
+            <div className="px-2 py-1.5 w-[200px]">
+              <CalendarColorPicker
+                value={color}
+                onChange={(c) => { onColorChange(cal.id, c); closeContextMenu(); }}
+                allowCustom
+              />
+            </div>
+          </ContextMenuSubMenu>
+        )}
+        {showSeparator && <ContextMenuSeparator />}
+        {canClear && (
+          <ContextMenuItem
+            icon={Eraser}
+            label={tMgmt('clear_events')}
+            onClick={() => { closeContextMenu(); onClearCalendar(cal); }}
+          />
+        )}
+        {canDelete && (
+          <ContextMenuItem
+            icon={Trash2}
+            label={tMgmt('delete')}
+            onClick={() => { closeContextMenu(); onDeleteCalendar(cal); }}
+            destructive
+          />
+        )}
+      </ContextMenu>
     );
   };
 
@@ -250,9 +257,22 @@ export function CalendarSidebarPanel({
           )}
         </button>
       )}
-      <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 px-1">
-        {t("my_calendars")}
-      </h3>
+      <div className="flex items-center justify-between mb-2 px-1 group">
+        {onCreateCalendar ? (
+          <button
+            onClick={onCreateCalendar}
+            className="text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors flex items-center gap-1.5"
+            title={tMgmt('add_calendar')}
+          >
+            {t('my_calendars')}
+            <Plus className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </button>
+        ) : (
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            {t('my_calendars')}
+          </h3>
+        )}
+      </div>
       <div className="space-y-0.5">
         {personalCalendars.map(renderCalendarItem)}
       </div>
@@ -268,6 +288,8 @@ export function CalendarSidebarPanel({
           </div>
         </div>
       ))}
+
+      {renderCalendarMenu()}
     </div>
   );
 }

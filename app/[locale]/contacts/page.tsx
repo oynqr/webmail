@@ -27,7 +27,8 @@ import { useSidebarApps } from "@/hooks/use-sidebar-apps";
 import { ResizeHandle } from "@/components/layout/resize-handle";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { useRefreshGesture } from "@/hooks/use-refresh-gesture";
-import type { ContactCard, AddressBook } from "@/lib/jmap/types";
+import type { ContactCard, AddressBook, AddressBookRights } from "@/lib/jmap/types";
+import { ShareCollectionDialog } from "@/components/settings/share-collection-dialog";
 
 type View =
   | "list"
@@ -75,6 +76,8 @@ export default function ContactsPage() {
     bulkAddToGroup,
     moveContactToAddressBook,
     renameAddressBook,
+    removeAddressBook,
+    shareAddressBook,
     renameKeyword,
     importContacts,
   } = useContactStore();
@@ -83,6 +86,8 @@ export default function ContactsPage() {
   const [activeCategory, setActiveCategory] = useState<ContactCategory>("all");
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [renamingAddressBook, setRenamingAddressBook] = useState<AddressBook | null>(null);
+  const [sharingAddressBookId, setSharingAddressBookId] = useState<string | null>(null);
+  const [defaultBookIdForCreate, setDefaultBookIdForCreate] = useState<string | undefined>(undefined);
   const [renamingKeyword, setRenamingKeyword] = useState<string | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const hasFetched = useRef(false);
@@ -329,6 +334,7 @@ export default function ContactsPage() {
       addLocalContact(localContact);
       toast.success(t("toast.created"));
     }
+    setDefaultBookIdForCreate(undefined);
     setView("list");
   }, [supportsSync, client, createContact, addLocalContact, t]);
 
@@ -346,6 +352,7 @@ export default function ContactsPage() {
   }, [supportsSync, client, selectedContact, updateContact, updateLocalContact, t]);
 
   const handleCancel = () => {
+    setDefaultBookIdForCreate(undefined);
     if (view === "group-create" || view === "group-edit") {
       setView(selectedGroup ? "group-detail" : "list");
     } else if (view === "bulk-add-to-group") {
@@ -517,7 +524,7 @@ export default function ContactsPage() {
   const renderRightPanel = () => {
     switch (view) {
       case "create":
-        return <ContactForm addressBooks={addressBooks} allKeywords={allKeywords} onSave={handleSaveNew} onCancel={handleCancel} />;
+        return <ContactForm addressBooks={addressBooks} allKeywords={allKeywords} defaultAddressBookId={defaultBookIdForCreate} onSave={handleSaveNew} onCancel={handleCancel} />;
 
       case "edit":
         if (!selectedContact) return null;
@@ -690,6 +697,26 @@ export default function ContactsPage() {
                       onDropContacts={handleDropContacts}
                       onDropContactsToCategory={handleDropContactsToCategory}
                       onRenameAddressBook={client ? (book) => setRenamingAddressBook(book) : undefined}
+                      onShareAddressBook={client ? (book) => setSharingAddressBookId(book.id) : undefined}
+                      onCreateContactInBook={(book) => {
+                        setDefaultBookIdForCreate(book.id);
+                        handleCreateNew();
+                      }}
+                      onDeleteAddressBook={client ? async (book) => {
+                        const ok = await confirmDialog({
+                          title: t("address_books.delete"),
+                          message: t("address_books.confirm_delete", { name: book.name }),
+                          variant: "destructive",
+                          confirmText: t("address_books.delete"),
+                        });
+                        if (!ok) return;
+                        try {
+                          await removeAddressBook(client, book);
+                          toast.success(t("address_books.deleted"));
+                        } catch {
+                          toast.error(t("address_books.delete_failed"));
+                        }
+                      } : undefined}
                       onRenameKeyword={(kw) => setRenamingKeyword(kw)}
                     />
                   </div>
@@ -838,6 +865,23 @@ export default function ContactsPage() {
           </div>
         </div>
       )}
+      {sharingAddressBookId && client && (() => {
+        const book = addressBooks.find((b) => b.id === sharingAddressBookId);
+        if (!book) return null;
+        return (
+          <ShareCollectionDialog
+            client={client}
+            kind="addressBook"
+            collectionName={book.name}
+            shareWith={book.shareWith}
+            ownAccountId={client.getAccountId()}
+            onShare={async (principalId, rights) => {
+              await shareAddressBook(client, book, principalId, rights as AddressBookRights | null);
+            }}
+            onClose={() => setSharingAddressBookId(null)}
+          />
+        );
+      })()}
     </div>
   );
 }

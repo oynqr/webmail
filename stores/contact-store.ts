@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { ContactCard, AddressBook, ContactName } from '@/lib/jmap/types';
+import type { ContactCard, AddressBook, AddressBookRights, ContactName } from '@/lib/jmap/types';
 import type { IJMAPClient } from '@/lib/jmap/client-interface';
 import { generateUUID } from '@/lib/utils';
 import { debug } from '@/lib/debug';
@@ -101,6 +101,8 @@ interface ContactStore {
   bulkAddToGroup: (client: IJMAPClient | null, groupId: string, contactIds: string[]) => Promise<void>;
   moveContactToAddressBook: (client: IJMAPClient, contactIds: string[], addressBook: AddressBook) => Promise<void>;
   renameAddressBook: (client: IJMAPClient, addressBook: AddressBook, newName: string) => Promise<void>;
+  removeAddressBook: (client: IJMAPClient, addressBook: AddressBook) => Promise<void>;
+  shareAddressBook: (client: IJMAPClient, addressBook: AddressBook, principalId: string, rights: AddressBookRights | null) => Promise<void>;
   renameKeyword: (client: IJMAPClient | null, oldKeyword: string, newKeyword: string) => Promise<void>;
 
   importContacts: (client: IJMAPClient | null, contacts: ContactCard[]) => Promise<number>;
@@ -650,6 +652,45 @@ export const useContactStore = create<ContactStore>()(
           }));
         } catch (error) {
           const msg = error instanceof Error ? error.message : 'Failed to rename address book';
+          set({ error: msg });
+          throw error;
+        }
+      },
+
+      removeAddressBook: async (client, addressBook) => {
+        set({ error: null });
+        try {
+          const originalId = addressBook.originalId || addressBook.id;
+          const accountId = addressBook.isShared ? addressBook.accountId : undefined;
+          await client.deleteAddressBook(originalId, accountId);
+          set((state) => ({
+            addressBooks: state.addressBooks.filter(b => b.id !== addressBook.id),
+            contacts: state.contacts.filter(c => !c.addressBookIds?.[addressBook.id]),
+          }));
+        } catch (error) {
+          const msg = error instanceof Error ? error.message : 'Failed to delete address book';
+          set({ error: msg });
+          throw error;
+        }
+      },
+
+      shareAddressBook: async (client, addressBook, principalId, rights) => {
+        set({ error: null });
+        try {
+          const originalId = addressBook.originalId || addressBook.id;
+          const accountId = addressBook.isShared ? addressBook.accountId : undefined;
+          await client.setAddressBookShare(originalId, principalId, rights, accountId);
+          set((state) => ({
+            addressBooks: state.addressBooks.map(b => {
+              if (b.id !== addressBook.id) return b;
+              const next = { ...(b.shareWith ?? {}) };
+              if (rights === null) delete next[principalId];
+              else next[principalId] = rights;
+              return { ...b, shareWith: next };
+            }),
+          }));
+        } catch (error) {
+          const msg = error instanceof Error ? error.message : 'Failed to share address book';
           set({ error: msg });
           throw error;
         }

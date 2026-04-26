@@ -1819,7 +1819,13 @@
       "renamed": "Address book renamed",
       "rename_failed": "Failed to rename address book",
       "default": "Default",
-      "manage": "Manage address books"
+      "manage": "Manage address books",
+      "share": "Share address book",
+      "new_contact_in_book": "New contact in this address book",
+      "delete": "Delete address book",
+      "confirm_delete": "Delete \"{name}\"? All contacts in this address book will be removed.",
+      "deleted": "Address book deleted",
+      "delete_failed": "Failed to delete address book"
     },
     "detail": {
       "emails": "Email Addresses",
@@ -2344,7 +2350,9 @@
       "error_delete": "Failed to delete calendar",
       "caldav_url": "CalDAV URL",
       "copy_url": "Copy CalDAV URL",
-      "url_copied": "CalDAV URL copied to clipboard"
+      "url_copied": "CalDAV URL copied to clipboard",
+      "share": "Share calendar",
+      "new_event_in_calendar": "New event in this calendar"
     },
     "subscription": {
       "title": "iCal Subscription",
@@ -2424,6 +2432,29 @@
       "due_today": "Today",
       "due_tomorrow": "Tomorrow",
       "overdue": "Overdue"
+    }
+  },
+  "sharing": {
+    "title": "Share \"{name}\"",
+    "description": "Grant access to other users or groups on this server. Changes take effect immediately.",
+    "no_shares": "Not shared with anyone yet.",
+    "add_person": "Add person or group",
+    "search_placeholder": "Search by name or email…",
+    "loading_principals": "Loading users…",
+    "no_principals": "No other users or groups found.",
+    "no_match": "No matches.",
+    "remove": "Remove access",
+    "group": "Group",
+    "share_added": "Access granted",
+    "share_updated": "Access updated",
+    "share_removed": "Access removed",
+    "share_failed": "Failed to update sharing",
+    "preset": {
+      "freeBusy": "Free/busy only",
+      "read": "Read only",
+      "readWrite": "Read & write",
+      "manager": "Manager",
+      "custom": "Custom"
     }
   },
   "advanced_search": {

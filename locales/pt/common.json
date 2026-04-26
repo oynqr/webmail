@@ -1815,7 +1815,13 @@
       "renamed": "Catálogo de endereços renomeado",
       "rename_failed": "Falha ao renomear o catálogo de endereços",
       "default": "Padrão",
-      "manage": "Gerenciar catálogos de endereços"
+      "manage": "Gerenciar catálogos de endereços",
+      "share": "Compartilhar lista de contatos",
+      "new_contact_in_book": "Novo contato nesta lista",
+      "delete": "Excluir lista de contatos",
+      "confirm_delete": "Excluir \"{name}\"? Todos os contatos desta lista serão removidos.",
+      "deleted": "Lista de contatos excluída",
+      "delete_failed": "Falha ao excluir a lista de contatos"
     },
     "detail": {
       "emails": "Endereços de e-mail",
@@ -2340,7 +2346,9 @@
       "confirm_clear": "Limpar todos os eventos de \"{name}\"? Esta ação não pode ser desfeita.",
       "clear_events": "Limpar eventos",
       "events_cleared": "{count} eventos removidos",
-      "error_clear": "Falha ao limpar os eventos do calendário"
+      "error_clear": "Falha ao limpar os eventos do calendário",
+      "share": "Compartilhar calendário",
+      "new_event_in_calendar": "Novo evento neste calendário"
     },
     "subscription": {
       "title": "Assinatura iCal",
@@ -2706,5 +2714,28 @@
   },
   "unified_mailbox": {
     "search_unavailable": "A pesquisa não está disponível na vista unificada"
+  },
+  "sharing": {
+    "title": "Compartilhar \"{name}\"",
+    "description": "Conceda acesso a outros usuários ou grupos neste servidor. As alterações têm efeito imediato.",
+    "no_shares": "Ainda não compartilhado.",
+    "add_person": "Adicionar pessoa ou grupo",
+    "search_placeholder": "Buscar por nome ou e-mail…",
+    "loading_principals": "Carregando usuários…",
+    "no_principals": "Nenhum outro usuário ou grupo encontrado.",
+    "no_match": "Sem resultados.",
+    "remove": "Remover acesso",
+    "group": "Grupo",
+    "share_added": "Acesso concedido",
+    "share_updated": "Acesso atualizado",
+    "share_removed": "Acesso removido",
+    "share_failed": "Falha ao atualizar o compartilhamento",
+    "preset": {
+      "freeBusy": "Apenas disponibilidade",
+      "read": "Somente leitura",
+      "readWrite": "Leitura e escrita",
+      "manager": "Gerente",
+      "custom": "Personalizado"
+    }
   }
 }

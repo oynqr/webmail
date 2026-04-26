@@ -1815,7 +1815,13 @@
       "renamed": "Rubrica rinominata",
       "rename_failed": "Impossibile rinominare la rubrica",
       "default": "Predefinita",
-      "manage": "Gestisci rubriche"
+      "manage": "Gestisci rubriche",
+      "share": "Condividi rubrica",
+      "new_contact_in_book": "Nuovo contatto in questa rubrica",
+      "delete": "Elimina rubrica",
+      "confirm_delete": "Eliminare \"{name}\"? Tutti i contatti in questa rubrica verranno rimossi.",
+      "deleted": "Rubrica eliminata",
+      "delete_failed": "Impossibile eliminare la rubrica"
     },
     "detail": {
       "emails": "Indirizzi email",
@@ -2340,7 +2346,9 @@
       "confirm_clear": "Cancellare tutti gli eventi da \"{name}\"? Questa azione non può essere annullata.",
       "clear_events": "Cancella eventi",
       "events_cleared": "{count} eventi cancellati",
-      "error_clear": "Impossibile cancellare gli eventi del calendario"
+      "error_clear": "Impossibile cancellare gli eventi del calendario",
+      "share": "Condividi calendario",
+      "new_event_in_calendar": "Nuovo evento in questo calendario"
     },
     "subscription": {
       "title": "Abbonamento iCal",
@@ -2706,5 +2714,28 @@
   },
   "unified_mailbox": {
     "search_unavailable": "La ricerca non è disponibile nella vista unificata"
+  },
+  "sharing": {
+    "title": "Condividi \"{name}\"",
+    "description": "Concedi l'accesso ad altri utenti o gruppi su questo server. Le modifiche hanno effetto immediato.",
+    "no_shares": "Non ancora condiviso.",
+    "add_person": "Aggiungi persona o gruppo",
+    "search_placeholder": "Cerca per nome o email…",
+    "loading_principals": "Caricamento utenti…",
+    "no_principals": "Nessun altro utente o gruppo trovato.",
+    "no_match": "Nessun risultato.",
+    "remove": "Rimuovi accesso",
+    "group": "Gruppo",
+    "share_added": "Accesso concesso",
+    "share_updated": "Accesso aggiornato",
+    "share_removed": "Accesso rimosso",
+    "share_failed": "Impossibile aggiornare la condivisione",
+    "preset": {
+      "freeBusy": "Solo libero/occupato",
+      "read": "Sola lettura",
+      "readWrite": "Lettura e scrittura",
+      "manager": "Gestore",
+      "custom": "Personalizzato"
+    }
   }
 }

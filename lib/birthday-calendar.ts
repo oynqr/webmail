@@ -30,7 +30,7 @@ export function createBirthdayCalendar(name?: string, color?: string): Calendar 
       mayWriteOwn: false,
       mayUpdatePrivate: false,
       mayRSVP: false,
-      mayAdmin: false,
+      mayShare: false,
       mayDelete: false,
     },
   };

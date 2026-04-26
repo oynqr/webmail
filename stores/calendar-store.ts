@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { IJMAPClient } from '@/lib/jmap/client-interface';
-import type { Calendar, CalendarEvent, CalendarParticipant } from '@/lib/jmap/types';
+import type { Calendar, CalendarEvent, CalendarParticipant, CalendarRights } from '@/lib/jmap/types';
 import { debug } from '@/lib/debug';
 import { normalizeAllDayDuration } from '@/lib/calendar-utils';
 import { parseDuration } from '@/components/calendar/event-card';
@@ -125,6 +125,7 @@ interface CalendarStore {
   rsvpEvent: (client: IJMAPClient, eventId: string, participantId: string, status: string, replyTo?: Record<string, string> | null) => Promise<void>;
   importEvents: (client: IJMAPClient, events: Partial<CalendarEvent>[], calendarId: string) => Promise<number>;
   updateCalendar: (client: IJMAPClient, calendarId: string, updates: Partial<Calendar>) => Promise<void>;
+  shareCalendar: (client: IJMAPClient, calendarId: string, principalId: string, rights: CalendarRights | null) => Promise<void>;
   createCalendar: (client: IJMAPClient, calendar: Partial<Calendar>) => Promise<Calendar | null>;
   removeCalendar: (client: IJMAPClient, calendarId: string) => Promise<void>;
   clearCalendarEvents: (client: IJMAPClient, calendarId: string) => Promise<number>;
@@ -649,6 +650,29 @@ export const useCalendarStore = create<CalendarStore>()(
         } catch (error) {
           debug.error('Failed to update calendar:', error);
           set({ error: 'Failed to update calendar' });
+          throw error;
+        }
+      },
+
+      shareCalendar: async (client, calendarId, principalId, rights) => {
+        set({ error: null });
+        try {
+          const cal = get().calendars.find(c => c.id === calendarId);
+          const realId = cal?.originalId || calendarId;
+          const targetAccountId = cal?.accountId;
+          await client.setCalendarShare(realId, principalId, rights, targetAccountId);
+          set((state) => ({
+            calendars: state.calendars.map(c => {
+              if (c.id !== calendarId) return c;
+              const next = { ...(c.shareWith ?? {}) };
+              if (rights === null) delete next[principalId];
+              else next[principalId] = rights;
+              return { ...c, shareWith: next };
+            }),
+          }));
+        } catch (error) {
+          debug.error('Failed to share calendar:', error);
+          set({ error: 'Failed to share calendar' });
           throw error;
         }
       },

@@ -82,7 +82,7 @@ function makeCalendar(overrides: Partial<Calendar> = {}): Calendar {
       mayWriteOwn: true,
       mayUpdatePrivate: true,
       mayRSVP: true,
-      mayAdmin: false,
+      mayShare: false,
       mayDelete: false,
     },
     ...overrides,

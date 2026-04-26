@@ -1815,7 +1815,13 @@
       "renamed": "Adresboek hernoemd",
       "rename_failed": "Adresboek hernoemen mislukt",
       "default": "Standaard",
-      "manage": "Adresboeken beheren"
+      "manage": "Adresboeken beheren",
+      "share": "Adresboek delen",
+      "new_contact_in_book": "Nieuw contact in dit adresboek",
+      "delete": "Adresboek verwijderen",
+      "confirm_delete": "\"{name}\" verwijderen? Alle contacten in dit adresboek worden verwijderd.",
+      "deleted": "Adresboek verwijderd",
+      "delete_failed": "Adresboek kon niet worden verwijderd"
     },
     "detail": {
       "emails": "E-mailadressen",
@@ -2340,7 +2346,9 @@
       "confirm_clear": "Alle afspraken uit \"{name}\" verwijderen? Dit kan niet ongedaan worden gemaakt.",
       "clear_events": "Afspraken verwijderen",
       "events_cleared": "{count} afspraken verwijderd",
-      "error_clear": "Kan agendagebeurtenissen niet verwijderen"
+      "error_clear": "Kan agendagebeurtenissen niet verwijderen",
+      "share": "Agenda delen",
+      "new_event_in_calendar": "Nieuwe afspraak in deze agenda"
     },
     "subscription": {
       "title": "iCal-abonnement",
@@ -2706,5 +2714,28 @@
   },
   "unified_mailbox": {
     "search_unavailable": "Zoeken is niet beschikbaar in de gecombineerde weergave"
+  },
+  "sharing": {
+    "title": "\"{name}\" delen",
+    "description": "Geef andere gebruikers of groepen op deze server toegang. Wijzigingen zijn direct van kracht.",
+    "no_shares": "Nog niet gedeeld.",
+    "add_person": "Persoon of groep toevoegen",
+    "search_placeholder": "Zoeken op naam of e-mail…",
+    "loading_principals": "Gebruikers laden…",
+    "no_principals": "Geen andere gebruikers of groepen gevonden.",
+    "no_match": "Geen overeenkomsten.",
+    "remove": "Toegang intrekken",
+    "group": "Groep",
+    "share_added": "Toegang verleend",
+    "share_updated": "Toegang bijgewerkt",
+    "share_removed": "Toegang ingetrokken",
+    "share_failed": "Delen kon niet worden bijgewerkt",
+    "preset": {
+      "freeBusy": "Alleen vrij/bezet",
+      "read": "Alleen lezen",
+      "readWrite": "Lezen en schrijven",
+      "manager": "Beheerder",
+      "custom": "Aangepast"
+    }
   }
 }

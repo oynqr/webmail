@@ -1815,7 +1815,13 @@
       "renamed": "Libreta de direcciones renombrada",
       "rename_failed": "Error al renombrar la libreta de direcciones",
       "default": "Predeterminada",
-      "manage": "Administrar libretas de direcciones"
+      "manage": "Administrar libretas de direcciones",
+      "share": "Compartir libreta de direcciones",
+      "new_contact_in_book": "Nuevo contacto en esta libreta",
+      "delete": "Eliminar libreta de direcciones",
+      "confirm_delete": "¿Eliminar «{name}»? Todos los contactos de esta libreta se eliminarán.",
+      "deleted": "Libreta de direcciones eliminada",
+      "delete_failed": "No se pudo eliminar la libreta de direcciones"
     },
     "detail": {
       "emails": "Direcciones de correo",
@@ -2340,7 +2346,9 @@
       "confirm_clear": "¿Borrar todos los eventos de \"{name}\"? Esta acción no se puede deshacer.",
       "clear_events": "Borrar eventos",
       "events_cleared": "{count} eventos borrados",
-      "error_clear": "No se pudieron borrar los eventos del calendario"
+      "error_clear": "No se pudieron borrar los eventos del calendario",
+      "share": "Compartir calendario",
+      "new_event_in_calendar": "Nuevo evento en este calendario"
     },
     "subscription": {
       "title": "Suscripción iCal",
@@ -2706,5 +2714,28 @@
   },
   "unified_mailbox": {
     "search_unavailable": "La búsqueda no está disponible en la vista unificada"
+  },
+  "sharing": {
+    "title": "Compartir «{name}»",
+    "description": "Concede acceso a otros usuarios o grupos de este servidor. Los cambios surten efecto inmediatamente.",
+    "no_shares": "Aún no se ha compartido con nadie.",
+    "add_person": "Añadir persona o grupo",
+    "search_placeholder": "Buscar por nombre o correo…",
+    "loading_principals": "Cargando usuarios…",
+    "no_principals": "No se han encontrado otros usuarios ni grupos.",
+    "no_match": "Sin resultados.",
+    "remove": "Quitar acceso",
+    "group": "Grupo",
+    "share_added": "Acceso concedido",
+    "share_updated": "Acceso actualizado",
+    "share_removed": "Acceso retirado",
+    "share_failed": "No se pudo actualizar el uso compartido",
+    "preset": {
+      "freeBusy": "Solo disponibilidad",
+      "read": "Solo lectura",
+      "readWrite": "Lectura y escritura",
+      "manager": "Administrador",
+      "custom": "Personalizado"
+    }
   }
 }

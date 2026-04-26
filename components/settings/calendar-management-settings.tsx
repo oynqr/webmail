@@ -7,7 +7,9 @@ import { useAuthStore } from '@/stores/auth-store';
 import { getActiveAccountSlotHeaders } from '@/lib/auth/active-account-slot';
 import { toast } from '@/stores/toast-store';
 import { SettingsSection } from './settings-section';
-import { Plus, Pencil, Trash2, Calendar as CalendarIcon, Copy, Link, Upload, Globe, RefreshCw, Eraser } from 'lucide-react';
+import { Plus, Pencil, Trash2, Calendar as CalendarIcon, Copy, Link, Upload, Globe, RefreshCw, Eraser, Users } from 'lucide-react';
+import { ShareCollectionDialog } from './share-collection-dialog';
+import type { CalendarRights } from '@/lib/jmap/types';
 import { cn, formatDateTime } from '@/lib/utils';
 import { ICalImportModal } from '@/components/calendar/ical-import-modal';
 import { ICalSubscriptionModal } from '@/components/calendar/ical-subscription-modal';
@@ -83,7 +85,7 @@ function CalendarColorPicker({
   );
 }
 
-function CalendarEditForm({
+export function CalendarEditForm({
   initial,
   onSave,
   onCancel,
@@ -153,7 +155,7 @@ export { CalendarColorPicker, CALENDAR_COLORS };
 export function CalendarManagementSettings() {
   const t = useTranslations('calendar.management');
   const { client, serverUrl, username } = useAuthStore();
-  const { calendars, updateCalendar, createCalendar, removeCalendar, clearCalendarEvents, fetchCalendars, icalSubscriptions, removeICalSubscription, refreshICalSubscription, isSubscriptionCalendar } = useCalendarStore();
+  const { calendars, updateCalendar, shareCalendar, createCalendar, removeCalendar, clearCalendarEvents, fetchCalendars, icalSubscriptions, removeICalSubscription, refreshICalSubscription, isSubscriptionCalendar } = useCalendarStore();
 
   const [discoveredCalDavUrls, setDiscoveredCalDavUrls] = useState<Record<string, string | null>>({});
   const [wellKnownCalDavUrl, setWellKnownCalDavUrl] = useState<string | null>(null);
@@ -164,6 +166,7 @@ export function CalendarManagementSettings() {
   const [clearingId, setClearingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [colorPickerId, setColorPickerId] = useState<string | null>(null);
+  const [sharingId, setSharingId] = useState<string | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [editingSubscription, setEditingSubscription] = useState<typeof icalSubscriptions[0] | null>(null);
@@ -522,6 +525,16 @@ export function CalendarManagementSettings() {
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
+                {cal.myRights?.mayShare && !cal.isShared && !isSubscriptionCalendar(cal.id) && (
+                  <button
+                    type="button"
+                    onClick={() => setSharingId(cal.id)}
+                    className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    title={t('share')}
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setClearingId(cal.id)}
@@ -689,6 +702,24 @@ export function CalendarManagementSettings() {
           onClose={() => setEditingSubscription(null)}
         />
       )}
+
+      {sharingId && client && (() => {
+        const cal = calendars.find((c) => c.id === sharingId);
+        if (!cal) return null;
+        return (
+          <ShareCollectionDialog
+            client={client}
+            kind="calendar"
+            collectionName={cal.name}
+            shareWith={cal.shareWith}
+            ownAccountId={client.getAccountId()}
+            onShare={async (principalId, rights) => {
+              await shareCalendar(client, cal.id, principalId, rights as CalendarRights | null);
+            }}
+            onClose={() => setSharingId(null)}
+          />
+        );
+      })()}
     </SettingsSection>
   );
 }

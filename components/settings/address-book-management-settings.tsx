@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Book, Pencil, Share2, Tag } from "lucide-react";
+import { Book, Pencil, Share2, Tag, Users } from "lucide-react";
 import { useContactStore } from "@/stores/contact-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
 import { SettingsSection } from "./settings-section";
 import { cn } from "@/lib/utils";
-import type { AddressBook } from "@/lib/jmap/types";
+import type { AddressBook, AddressBookRights } from "@/lib/jmap/types";
+import { ShareCollectionDialog } from "./share-collection-dialog";
 
 function AddressBookEditRow({
   initial,
@@ -70,9 +71,10 @@ export function AddressBookManagementSettings() {
   const tContacts = useTranslations("contacts");
   const tSettings = useTranslations("settings.contacts");
   const { client } = useAuthStore();
-  const { addressBooks, contacts, supportsSync, fetchAddressBooks, renameAddressBook, renameKeyword } = useContactStore();
+  const { addressBooks, contacts, supportsSync, fetchAddressBooks, renameAddressBook, shareAddressBook, renameKeyword } = useContactStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingKeyword, setEditingKeyword] = useState<string | null>(null);
+  const [sharingId, setSharingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -146,6 +148,16 @@ export function AddressBookManagementSettings() {
               title={t("rename")}
             >
               <Pencil className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {!book.isShared && book.myRights?.mayShare && (
+            <button
+              type="button"
+              onClick={() => setSharingId(book.id)}
+              className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              title={t("share")}
+            >
+              <Users className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -242,6 +254,24 @@ export function AddressBookManagementSettings() {
         </div>
       </SettingsSection>
     </div>
+
+    {sharingId && client && (() => {
+      const book = addressBooks.find((b) => b.id === sharingId);
+      if (!book) return null;
+      return (
+        <ShareCollectionDialog
+          client={client}
+          kind="addressBook"
+          collectionName={book.name}
+          shareWith={book.shareWith}
+          ownAccountId={client.getAccountId()}
+          onShare={async (principalId, rights) => {
+            await shareAddressBook(client, book, principalId, rights as AddressBookRights | null);
+          }}
+          onClose={() => setSharingId(null)}
+        />
+      );
+    })()}
     </>
   );
 }

@@ -1815,7 +1815,13 @@
       "renamed": "アドレス帳の名前を変更しました",
       "rename_failed": "アドレス帳の名前変更に失敗しました",
       "default": "デフォルト",
-      "manage": "アドレス帳を管理"
+      "manage": "アドレス帳を管理",
+      "share": "アドレス帳を共有",
+      "new_contact_in_book": "このアドレス帳に新規連絡先",
+      "delete": "アドレス帳を削除",
+      "confirm_delete": "「{name}」を削除しますか？このアドレス帳のすべての連絡先が削除されます。",
+      "deleted": "アドレス帳を削除しました",
+      "delete_failed": "アドレス帳の削除に失敗しました"
     },
     "detail": {
       "emails": "メールアドレス",
@@ -2340,7 +2346,9 @@
       "confirm_clear": "\"{name}\"のすべてのイベントを削除しますか？この操作は元に戻せません。",
       "clear_events": "イベントを削除",
       "events_cleared": "{count}件のイベントを削除しました",
-      "error_clear": "カレンダーイベントの削除に失敗しました"
+      "error_clear": "カレンダーイベントの削除に失敗しました",
+      "share": "カレンダーを共有",
+      "new_event_in_calendar": "このカレンダーに新規イベント"
     },
     "subscription": {
       "title": "iCal購読",
@@ -2706,5 +2714,28 @@
   },
   "unified_mailbox": {
     "search_unavailable": "統合ビューでは検索を利用できません"
+  },
+  "sharing": {
+    "title": "「{name}」を共有",
+    "description": "このサーバー上の他のユーザーまたはグループにアクセス権を付与します。変更はすぐに反映されます。",
+    "no_shares": "まだ誰にも共有されていません。",
+    "add_person": "ユーザーまたはグループを追加",
+    "search_placeholder": "名前またはメールで検索…",
+    "loading_principals": "ユーザーを読み込み中…",
+    "no_principals": "他のユーザーまたはグループは見つかりません。",
+    "no_match": "一致する項目がありません。",
+    "remove": "アクセス権を削除",
+    "group": "グループ",
+    "share_added": "アクセス権を付与しました",
+    "share_updated": "アクセス権を更新しました",
+    "share_removed": "アクセス権を削除しました",
+    "share_failed": "共有の更新に失敗しました",
+    "preset": {
+      "freeBusy": "空き時間情報のみ",
+      "read": "読み取り専用",
+      "readWrite": "読み取り・書き込み",
+      "manager": "管理者",
+      "custom": "カスタム"
+    }
   }
 }

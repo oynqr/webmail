@@ -50,6 +50,7 @@ interface ContactFormProps {
   contact?: ContactCard | null;
   addressBooks?: AddressBook[];
   allKeywords?: string[];
+  defaultAddressBookId?: string;
   onSave: (data: Partial<ContactCard>) => Promise<void>;
   onCancel: () => void;
 }
@@ -143,7 +144,7 @@ function Select({ value, onChange, children, className }: {
   );
 }
 
-export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCancel }: ContactFormProps) {
+export function ContactForm({ contact, addressBooks, allKeywords, defaultAddressBookId, onSave, onCancel }: ContactFormProps) {
   const t = useTranslations("contacts.form");
   const isEditing = !!contact;
 
@@ -330,8 +331,11 @@ export function ContactForm({ contact, addressBooks, allKeywords, onSave, onCanc
         return ids[0];
       }
     }
+    if (defaultAddressBookId && addressBooks?.some(b => b.id === defaultAddressBookId)) {
+      return defaultAddressBookId;
+    }
     return "";
-  }, [contact]);
+  }, [contact, defaultAddressBookId, addressBooks]);
   const [selectedBookId, setSelectedBookId] = useState(currentBookId);
 
   const initialPhotoEntry = useMemo(() => {
