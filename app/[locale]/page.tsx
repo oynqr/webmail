@@ -171,6 +171,11 @@ export default function Home() {
     createMailbox,
     renameMailbox,
     deleteMailbox,
+    batchDelete,
+    batchArchive,
+    batchMarkAsRead,
+    batchMarkAsSpam,
+    batchUndoSpam,
   } = useEmailStore();
 
   const enableUnifiedMailbox = useSettingsStore((s) => s.enableUnifiedMailbox);
@@ -353,27 +358,77 @@ export default function Home() {
     onToggleStar: () => {
       if (selectedEmail) handleToggleStar();
     },
-    onArchive: () => {
-      if (selectedEmail) handleArchive();
+    onArchive: async () => {
+      if (selectedEmailIds.size > 0 && client) {
+        try {
+          await batchArchive(client);
+        } catch (error) {
+          console.error("Failed to batch archive:", error);
+        }
+      } else if (selectedEmail) {
+        handleArchive();
+      }
     },
-    onDelete: () => {
-      if (selectedEmail) handleDelete();
+    onDelete: async () => {
+      if (selectedEmailIds.size > 0 && client) {
+        const currentMailbox = mailboxes.find(m => m.id === selectedMailbox);
+        const isInTrash = currentMailbox?.role === 'trash';
+        const isInJunk = currentMailbox?.role === 'junk';
+        const permanentlyDeleteJunk = useSettingsStore.getState().permanentlyDeleteJunk;
+        const permanent = isInTrash || (isInJunk && permanentlyDeleteJunk);
+        const confirmed = await confirmDialog({
+          title: permanent
+            ? t('email_list.permanent_delete_confirm_title')
+            : t('email_list.batch_actions.delete_confirm_title'),
+          message: permanent
+            ? t('email_list.permanent_delete_confirm_batch_message', { count: selectedEmailIds.size })
+            : t('email_list.batch_actions.delete_confirm_message', { count: selectedEmailIds.size }),
+          confirmText: permanent
+            ? t('email_list.permanent_delete')
+            : t('email_list.batch_actions.delete'),
+          variant: "destructive",
+        });
+        if (!confirmed) return;
+        try {
+          await batchDelete(client, permanent);
+        } catch (error) {
+          console.error("Failed to batch delete:", error);
+        }
+      } else if (selectedEmail) {
+        handleDelete();
+      }
     },
     onMarkAsUnread: async () => {
-      if (selectedEmail && client) {
+      if (!client) return;
+      if (selectedEmailIds.size > 0) {
+        await batchMarkAsRead(client, false);
+      } else if (selectedEmail) {
         await markAsRead(client, selectedEmail.id, false);
       }
     },
     onMarkAsRead: async () => {
-      if (selectedEmail && client) {
+      if (!client) return;
+      if (selectedEmailIds.size > 0) {
+        await batchMarkAsRead(client, true);
+      } else if (selectedEmail) {
         await markAsRead(client, selectedEmail.id, true);
       }
     },
-    onToggleSpam: () => {
-      if (selectedEmail) {
-        // Check if we're in junk folder
-        const currentMailbox = mailboxes.find(m => m.id === selectedMailbox);
-        const isInJunk = currentMailbox?.role === 'junk';
+    onToggleSpam: async () => {
+      const currentMailbox = mailboxes.find(m => m.id === selectedMailbox);
+      const isInJunk = currentMailbox?.role === 'junk';
+      if (selectedEmailIds.size > 0 && client) {
+        const ids = Array.from(selectedEmailIds);
+        try {
+          if (isInJunk) {
+            await batchUndoSpam(client, ids);
+          } else {
+            await batchMarkAsSpam(client, ids);
+          }
+        } catch (error) {
+          console.error("Failed to batch toggle spam:", error);
+        }
+      } else if (selectedEmail) {
         if (isInJunk) {
           handleUndoSpam();
         } else {
@@ -408,13 +463,14 @@ export default function Home() {
       clearSelection();
     },
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [emails, selectedEmail, client, selectedMailbox, isMobile, isTablet]);
+  }), [emails, selectedEmail, client, selectedMailbox, isMobile, isTablet, selectedEmailIds, mailboxes]);
 
   // Initialize keyboard shortcuts
   useKeyboardShortcuts({
     enabled: isAuthenticated && !showComposer,
     emails,
     selectedEmailId: selectedEmail?.id,
+    selectionCount: selectedEmailIds.size,
     handlers: keyboardHandlers,
   });
 

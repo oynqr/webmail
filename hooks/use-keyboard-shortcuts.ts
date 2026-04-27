@@ -39,6 +39,7 @@ export interface UseKeyboardShortcutsOptions {
   enabled?: boolean;
   emails: Email[];
   selectedEmailId?: string;
+  selectionCount?: number;
   handlers: KeyboardShortcutHandlers;
 }
 
@@ -58,6 +59,7 @@ export function useKeyboardShortcuts({
   enabled = true,
   emails,
   selectedEmailId,
+  selectionCount = 0,
   handlers,
 }: UseKeyboardShortcutsOptions) {
   const handlersRef = useRef(handlers);
@@ -89,6 +91,8 @@ export function useKeyboardShortcuts({
 
       // Shortcuts that should NOT work with modifiers
       if (hasModifier) return;
+
+      const hasBatchTarget = !!selectedEmailId || selectionCount > 0;
 
       switch (key) {
         // Navigation
@@ -152,7 +156,7 @@ export function useKeyboardShortcuts({
           break;
 
         case "e":
-          if (selectedEmailId) {
+          if (hasBatchTarget) {
             event.preventDefault();
             h.onArchive?.();
           }
@@ -161,28 +165,28 @@ export function useKeyboardShortcuts({
         case "#":
         case "delete":
         case "backspace":
-          if (selectedEmailId && (key === "#" || key === "delete" || key === "backspace")) {
+          if (hasBatchTarget) {
             event.preventDefault();
             h.onDelete?.();
           }
           break;
 
         case "u":
-          if (selectedEmailId) {
+          if (hasBatchTarget) {
             event.preventDefault();
             h.onMarkAsUnread?.();
           }
           break;
 
         case "i":
-          if (selectedEmailId && event.shiftKey) {
+          if (hasBatchTarget && event.shiftKey) {
             event.preventDefault();
             h.onMarkAsRead?.();
           }
           break;
 
         case "!":
-          if (selectedEmailId) {
+          if (hasBatchTarget) {
             event.preventDefault();
             h.onToggleSpam?.();
           }
@@ -220,7 +224,7 @@ export function useKeyboardShortcuts({
           break;
       }
     },
-    [selectedEmailId]
+    [selectedEmailId, selectionCount]
   );
 
   useEffect(() => {
