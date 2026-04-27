@@ -80,6 +80,7 @@ export function useTimeGridInteractions({
     dayDate: Date,
   ) => {
     if (isMobile) return;
+    if (e.pointerType === "touch") return;
     if (e.button !== 0) return;
     if ((e.target as HTMLElement).closest("[data-calendar-event], [data-resize-handle]")) return;
 
