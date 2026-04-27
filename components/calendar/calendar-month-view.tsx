@@ -24,6 +24,7 @@ interface CalendarMonthViewProps {
   onHoverEvent?: (event: CalendarEvent, anchorRect: DOMRect) => void;
   onHoverLeave?: () => void;
   onContextMenuEvent?: (e: React.MouseEvent, event: CalendarEvent) => void;
+  onContextMenuEmpty?: (e: React.MouseEvent, date: Date, hour?: number, allDayArea?: boolean) => void;
   onCreateAtTime?: (date: Date) => void;
   firstDayOfWeek?: number;
   isMobile?: boolean;
@@ -39,6 +40,7 @@ export function CalendarMonthView({
   onHoverEvent,
   onHoverLeave,
   onContextMenuEvent,
+  onContextMenuEmpty,
   onCreateAtTime,
   firstDayOfWeek = 1,
   isMobile,
@@ -174,6 +176,7 @@ export function CalendarMonthView({
                   aria-label={fullDateLabel}
                   onClick={() => onSelectDate(day)}
                   onDoubleClick={() => onCreateAtTime?.(day)}
+                  onContextMenu={onContextMenuEmpty ? (e) => onContextMenuEmpty(e, day, undefined, true) : undefined}
                   onDragOver={(e) => handleCellDragOver(e, key)}
                   onDragLeave={handleCellDragLeave}
                   onDrop={(e) => handleCellDrop(e, day)}

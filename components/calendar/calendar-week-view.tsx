@@ -23,6 +23,7 @@ interface CalendarWeekViewProps {
   onHoverEvent?: (event: CalendarEvent, anchorRect: DOMRect) => void;
   onHoverLeave?: () => void;
   onContextMenuEvent?: (e: React.MouseEvent, event: CalendarEvent) => void;
+  onContextMenuEmpty?: (e: React.MouseEvent, date: Date, hour?: number, allDayArea?: boolean) => void;
   onCreateAtTime: (date: Date, endDate?: Date) => void;
   firstDayOfWeek?: number;
   timeFormat?: "12h" | "24h";
@@ -44,6 +45,7 @@ export function CalendarWeekView({
   onHoverEvent,
   onHoverLeave,
   onContextMenuEvent,
+  onContextMenuEmpty,
   onCreateAtTime,
   firstDayOfWeek = 1,
   timeFormat = "24h",
@@ -219,7 +221,11 @@ export function CalendarWeekView({
             style={{ minHeight: Math.max(28, (allDayRowCount + taskRowCount) * 24 + 4) }}
           >
             {weekDays.map((day) => (
-              <div key={format(day, "yyyy-MM-dd")} className="bg-background min-h-[28px]" />
+              <div
+                key={format(day, "yyyy-MM-dd")}
+                className="bg-background min-h-[28px]"
+                onContextMenu={onContextMenuEmpty ? (e) => onContextMenuEmpty(e, day, undefined, true) : undefined}
+              />
             ))}
 
             <div className="absolute inset-0 pointer-events-none">
@@ -378,6 +384,7 @@ export function CalendarWeekView({
                       aria-label={`${intlFormatter.dateTime(day, { weekday: "short" })} ${formatHour(h)}`}
                       onClick={() => handleSlotClick(day, h)}
                       onDoubleClick={() => handleSlotDoubleClick(day, h)}
+                      onContextMenu={onContextMenuEmpty ? (e) => onContextMenuEmpty(e, day, h, false) : undefined}
                       className="border-b border-border/50 hover:bg-muted/30 cursor-pointer transition-colors"
                       style={{ height: HOUR_HEIGHT }}
                     />

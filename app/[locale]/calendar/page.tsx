@@ -31,6 +31,7 @@ import { CalendarSidebarPanel } from "@/components/calendar/calendar-sidebar-pan
 import { EventModal, type PendingEventPreview } from "@/components/calendar/event-modal";
 import { EventDetailPopover } from "@/components/calendar/event-detail-popover";
 import { EventContextMenu } from "@/components/calendar/event-context-menu";
+import { EmptySpaceContextMenu } from "@/components/calendar/empty-space-context-menu";
 import { useContextMenu } from "@/hooks/use-context-menu";
 import { useRefreshGesture } from "@/hooks/use-refresh-gesture";
 import { downloadEventICS } from "@/lib/calendar-ics-export";
@@ -104,6 +105,7 @@ export default function CalendarPage() {
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null);
   const [defaultModalDate, setDefaultModalDate] = useState<Date | undefined>();
   const [defaultModalEndDate, setDefaultModalEndDate] = useState<Date | undefined>();
+  const [defaultModalAllDay, setDefaultModalAllDay] = useState(false);
   const [miniMonth, setMiniMonth] = useState(new Date());
   const [pendingScopeAction, setPendingScopeAction] = useState<PendingScopeAction | null>(null);
   const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
@@ -326,11 +328,12 @@ export default function CalendarPage() {
     setSelectedDate(date);
   }, [setSelectedDate]);
 
-  const openCreateModal = useCallback((date?: Date, endDate?: Date) => {
+  const openCreateModal = useCallback((date?: Date, endDate?: Date, allDay?: boolean) => {
     setEditEvent(null);
     const d = date || selectedDate;
     setDefaultModalDate(d);
     setDefaultModalEndDate(endDate);
+    setDefaultModalAllDay(allDay ?? false);
     setSelectedDate(d);
     setShowEventModal(true);
   }, [selectedDate, setSelectedDate]);
@@ -394,6 +397,21 @@ export default function CalendarPage() {
     closeDetail();
     openEventContextMenu(e, event);
   }, [closeDetail, openEventContextMenu]);
+
+  const {
+    contextMenu: emptyContextMenu,
+    openContextMenu: openEmptyContextMenu,
+    closeContextMenu: closeEmptyContextMenu,
+    menuRef: emptyContextMenuRef,
+  } = useContextMenu<{ date: Date; hour?: number; allDayArea?: boolean }>();
+
+  const handleContextMenuEmpty = useCallback(
+    (e: React.MouseEvent, date: Date, hour?: number, allDayArea?: boolean) => {
+      closeDetail();
+      openEmptyContextMenu(e, { date, hour, allDayArea });
+    },
+    [closeDetail, openEmptyContextMenu],
+  );
 
   const handleHoverEvent = useCallback((event: CalendarEvent, anchorRect: DOMRect) => {
     if (isMobile) return;
@@ -961,6 +979,7 @@ export default function CalendarPage() {
               onHoverEvent={handleHoverEvent}
               onHoverLeave={handleHoverLeave}
               onContextMenuEvent={handleContextMenuEvent}
+              onContextMenuEmpty={handleContextMenuEmpty}
               onCreateAtTime={openCreateModal}
               firstDayOfWeek={firstDayOfWeek}
               isMobile={isMobile}
@@ -978,6 +997,7 @@ export default function CalendarPage() {
               onHoverEvent={handleHoverEvent}
               onHoverLeave={handleHoverLeave}
               onContextMenuEvent={handleContextMenuEvent}
+              onContextMenuEmpty={handleContextMenuEmpty}
               onCreateAtTime={openCreateModal}
               firstDayOfWeek={firstDayOfWeek}
               timeFormat={timeFormat}
@@ -997,6 +1017,7 @@ export default function CalendarPage() {
               onHoverEvent={handleHoverEvent}
               onHoverLeave={handleHoverLeave}
               onContextMenuEvent={handleContextMenuEvent}
+              onContextMenuEmpty={handleContextMenuEmpty}
               onCreateAtTime={openCreateModal}
               timeFormat={timeFormat}
               isMobile={isMobile}
@@ -1211,12 +1232,13 @@ export default function CalendarPage() {
                 calendars={calendars}
                 defaultDate={defaultModalDate}
                 defaultEndDate={defaultModalEndDate}
+                defaultAllDay={defaultModalAllDay}
                 defaultCalendarId={defaultCalendarIdForCreate}
                 onSave={handleSaveEvent}
                 onDelete={handleDeleteEvent}
                 onDuplicate={handleDuplicateEvent}
                 onRsvp={handleRsvp}
-                onClose={() => { setShowEventModal(false); setEditEvent(null); setPendingPreview(null); setDefaultCalendarIdForCreate(undefined); }}
+                onClose={() => { setShowEventModal(false); setEditEvent(null); setPendingPreview(null); setDefaultCalendarIdForCreate(undefined); setDefaultModalAllDay(false); }}
                 onPreviewChange={setPendingPreview}
                 currentUserEmails={currentUserEmails}
                 isMobile={false}
@@ -1282,6 +1304,38 @@ export default function CalendarPage() {
         />
       )}
 
+      {emptyContextMenu.data && (() => {
+        const { date, hour } = emptyContextMenu.data;
+        return (
+          <EmptySpaceContextMenu
+            position={emptyContextMenu.position}
+            isOpen={emptyContextMenu.isOpen}
+            onClose={closeEmptyContextMenu}
+            menuRef={emptyContextMenuRef}
+            onNewEvent={() => {
+              const d = new Date(date);
+              if (typeof hour === "number") {
+                d.setHours(hour, 0, 0, 0);
+              } else {
+                const now = new Date();
+                d.setHours(now.getHours() + 1, 0, 0, 0);
+              }
+              openCreateModal(d);
+            }}
+            onNewAllDayEvent={() => {
+              const d = new Date(date);
+              d.setHours(0, 0, 0, 0);
+              openCreateModal(d, undefined, true);
+            }}
+            onNewTask={enableCalendarTasks ? () => {
+              setEditTask(null);
+              setShowTaskModal(true);
+            } : undefined}
+            onGoToToday={goToToday}
+          />
+        );
+      })()}
+
       {detailEvent && detailAnchorRect && (
         <EventDetailPopover
           event={detailEvent}
@@ -1308,12 +1362,13 @@ export default function CalendarPage() {
           calendars={calendars}
           defaultDate={defaultModalDate}
           defaultEndDate={defaultModalEndDate}
+          defaultAllDay={defaultModalAllDay}
           defaultCalendarId={defaultCalendarIdForCreate}
           onSave={handleSaveEvent}
           onDelete={handleDeleteEvent}
           onDuplicate={handleDuplicateEvent}
           onRsvp={handleRsvp}
-          onClose={() => { setShowEventModal(false); setEditEvent(null); setDefaultCalendarIdForCreate(undefined); }}
+          onClose={() => { setShowEventModal(false); setEditEvent(null); setDefaultCalendarIdForCreate(undefined); setDefaultModalAllDay(false); }}
           currentUserEmails={currentUserEmails}
           isMobile={true}
         />

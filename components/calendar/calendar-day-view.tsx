@@ -20,6 +20,7 @@ interface CalendarDayViewProps {
   onHoverEvent?: (event: CalendarEvent, anchorRect: DOMRect) => void;
   onHoverLeave?: () => void;
   onContextMenuEvent?: (e: React.MouseEvent, event: CalendarEvent) => void;
+  onContextMenuEmpty?: (e: React.MouseEvent, date: Date, hour?: number, allDayArea?: boolean) => void;
   onCreateAtTime: (date: Date, endDate?: Date) => void;
   timeFormat?: "12h" | "24h";
   isMobile?: boolean;
@@ -39,6 +40,7 @@ export function CalendarDayView({
   onHoverEvent,
   onHoverLeave,
   onContextMenuEvent,
+  onContextMenuEmpty,
   onCreateAtTime,
   timeFormat = "24h",
   isMobile,
@@ -144,7 +146,13 @@ export function CalendarDayView({
       </div>
 
       {(allDayEvents.length > 0 || dayTasks.length > 0) && (
-        <div className="px-4 py-2 border-b border-border">
+        <div
+          className="px-4 py-2 border-b border-border"
+          onContextMenu={onContextMenuEmpty ? (e) => {
+            if ((e.target as HTMLElement).closest("[data-calendar-event],button")) return;
+            onContextMenuEmpty(e, selectedDate, undefined, true);
+          } : undefined}
+        >
           {allDayEvents.length > 0 && (
             <>
               <div className="text-[10px] text-muted-foreground mb-1">{t("events.all_day")}</div>
@@ -240,6 +248,7 @@ export function CalendarDayView({
                 aria-label={formatHour(h)}
                 onClick={() => handleSlotClick(selectedDate, h)}
                 onDoubleClick={() => handleSlotDoubleClick(selectedDate, h)}
+                onContextMenu={onContextMenuEmpty ? (e) => onContextMenuEmpty(e, selectedDate, h, false) : undefined}
                 className="border-b border-border/50 hover:bg-muted/30 cursor-pointer transition-colors"
                 style={{ height: HOUR_HEIGHT }}
               />
