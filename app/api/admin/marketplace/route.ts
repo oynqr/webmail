@@ -18,7 +18,7 @@ import JSZip from 'jszip';
 import { MAX_PLUGIN_SIZE, MAX_THEME_SIZE, ALL_PERMISSIONS, ALLOWED_PLUGIN_FILES } from '@/lib/plugin-types';
 import { sanitizeThemeCSS, validateThemeCSSSafety } from '@/lib/theme-loader';
 
-const DIRECTORY_URL = process.env.EXTENSION_DIRECTORY_URL || 'http://localhost:3001';
+const DIRECTORY_URL = process.env.EXTENSION_DIRECTORY_URL || 'https://extensions.bulwarkmail.org';
 
 /**
  * GET /api/admin/marketplace - Search/browse the extension directory
