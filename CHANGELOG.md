@@ -2,11 +2,11 @@
 
 ## 1.5.3 (2026-04-28)
 
-> **New:** Bulwark Webmail now sends an anonymous instance heartbeat once per day (version, platform, bucketed account counts, feature toggles — no message data, no PII). Disable any time from **Admin → Telemetry** or by setting `BULWARK_TELEMETRY=off`. See the [privacy notice](https://bulwarkmail.org/docs/legal/privacy/telemetry) for the full schema.
+> **New:** Help shape Bulwark Webmail. Each instance now sends a lightweight daily heartbeat (version, platform, bucketed account counts, feature toggles - never message data or PII) so we can see which platforms and features actually get used and prioritize fixes where they matter most. You're in control: opt out any time from **Admin → Telemetry** or by setting `BULWARK_TELEMETRY=off`. Full schema in the [privacy notice](https://bulwarkmail.org/docs/legal/privacy/telemetry).
 
 ### Features
 
-- **Telemetry**: Anonymous instance telemetry, on by default. Reports schema version, platform, bucketed account counts, and feature toggles only — disable from the admin UI, with `BULWARK_TELEMETRY=off`, or by clearing the endpoint
+- **Telemetry**: Anonymous instance telemetry, on by default. Reports schema version, platform, bucketed account counts, and feature toggles only - disable from the admin UI, with `BULWARK_TELEMETRY=off`, or by clearing the endpoint
 - **Telemetry**: Track unique logins (HMAC'd per instance, 90-day retention) so the heartbeat can report bucketed account totals without storing usernames
 - **Plugins**: Theme API v2 with token compiler and skin slot
 - **Plugins**: Extension preview page and detailed extension info API
